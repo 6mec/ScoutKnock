@@ -3,9 +3,11 @@ import { cn } from "@/lib/utils";
 
 export function LiveDot({
   status = "live",
+  label,
   className,
 }: {
   status?: "live" | "searching";
+  label?: string;
   className?: string;
 }) {
   const color = status === "live" ? "bg-accent" : "bg-amber";
@@ -21,7 +23,7 @@ export function LiveDot({
         />
         <span className={cn("relative size-2 rounded-pill", color)} />
       </span>
-      {ptPT.ui.live[status]}
+      {label ?? ptPT.ui.live[status]}
     </span>
   );
 }

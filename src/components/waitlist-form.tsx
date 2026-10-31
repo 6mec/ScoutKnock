@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
+import { Button } from "@/components/ui/button";
+import { DrawnCheck } from "@/components/ui/drawn-check";
+import { Field, Input, Select } from "@/components/ui/field";
 import { ptPT } from "@/i18n/pt-PT";
 import { joinWaitlist, type WaitlistState } from "@/lib/waitlist/actions";
 
 const copy = ptPT.waitlist;
 const initialState: WaitlistState = { status: "idle" };
-const inputClass =
-  "h-12 rounded-[12px] border border-border bg-background px-3 text-[16px] outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent";
 
 export function WaitlistForm() {
   const [state, formAction, pending] = useActionState(
@@ -18,65 +19,66 @@ export function WaitlistForm() {
 
   if (state.status === "success") {
     return (
-      <p role="status" className="leading-[1.6]">
-        {state.message}
-      </p>
+      <div role="status" className="flex flex-col items-start gap-4 py-4">
+        <span className="inline-flex size-12 items-center justify-center rounded-pill bg-accent-soft">
+          <DrawnCheck size={24} />
+        </span>
+        <p className="type-body text-18">{state.message}</p>
+      </div>
     );
   }
 
+  const emailError =
+    state.status === "error" && state.message === copy.messages.invalidEmail
+      ? state.message
+      : undefined;
+  const formError =
+    state.status === "error" && !emailError ? state.message : undefined;
+
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <label htmlFor="waitlist-email" className="font-bold">
-          {copy.emailLabel}
-        </label>
-        <input
-          id="waitlist-email"
+      <Field label={copy.emailLabel} error={emailError}>
+        <Input
           name="email"
           type="email"
           autoComplete="email"
           placeholder={copy.emailPlaceholder}
           required
-          className={inputClass}
         />
-      </div>
-      <div className="flex flex-col gap-2">
-        <label htmlFor="waitlist-service" className="font-bold">
-          {copy.serviceLabel}
-        </label>
-        <select
-          id="waitlist-service"
-          name="service"
-          defaultValue=""
-          className={inputClass}
-        >
+      </Field>
+      <Field label={copy.serviceLabel}>
+        <Select name="service" defaultValue="">
           <option value="">{copy.serviceEmpty}</option>
           {copy.services.map((service) => (
             <option key={service.value} value={service.value}>
               {service.label}
             </option>
           ))}
-        </select>
-      </div>
+        </Select>
+      </Field>
       {/* Campo invisível para apanhar bots. */}
       <div className="hidden" aria-hidden="true">
         <input name="website" type="text" tabIndex={-1} autoComplete="off" />
       </div>
-      {state.status === "error" && (
-        <p role="alert" className="text-danger">
-          {state.message}
-        </p>
-      )}
-      <button
+      <div aria-live="polite">
+        {formError && (
+          <p role="alert" className="text-danger">
+            {formError}
+          </p>
+        )}
+      </div>
+      <Button
         type="submit"
-        disabled={pending}
-        className="h-12 rounded-[12px] bg-accent px-5 font-bold text-accent-contrast transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60"
+        size="lg"
+        loading={pending}
+        loadingText={copy.pending}
+        className="w-full"
       >
-        {pending ? copy.pending : copy.submit}
-      </button>
-      <p className="text-[16px] sm:text-[14px] leading-[1.6] text-muted">
+        {copy.submit}
+      </Button>
+      <p className="text-13 leading-[1.6] text-muted">
         {copy.privacyBefore}
-        <Link href="/privacidade" className="text-accent underline">
+        <Link href="/privacidade" className="focus-ring rounded-sm text-accent underline">
           {copy.privacyLink}
         </Link>
         {copy.privacyAfter}

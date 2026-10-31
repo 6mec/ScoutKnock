@@ -125,6 +125,105 @@
   --animate-fade-in: fade-in var(--duration-fast) var(--ease-out) both;
   --animate-fade-out: fade-out var(--duration-instant) var(--ease-out) both;
   --animate-draw-check: draw-check var(--duration-base) var(--ease-out) both;
+  --animate-entrance: entrance var(--duration-entrance) var(--ease-out) both;
+  --animate-radar-sweep: spinner 4s linear infinite;
+  --animate-radar-sweep-slow: spinner 14s linear infinite;
+  --animate-blip: blip 4s linear infinite;
+  --animate-ping: ping-ring 4s var(--ease-out) infinite;
+  --animate-breathe: breathe 4s var(--ease-in-out) infinite;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-accordion-down: accordion-down var(--duration-fast) var(--ease-out);
+  --animate-accordion-up: accordion-up var(--duration-fast) var(--ease-out);
+  --animate-slide-in-right: slide-in-right var(--duration-base) var(--ease-out) both;
+  --animate-slide-out-right: slide-out-right var(--duration-fast) var(--ease-out) both;
+}
+
+@keyframes entrance {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes blip {
+  0%,
+  6% {
+    opacity: 1;
+  }
+  40%,
+  100% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes ping-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  30%,
+  100% {
+    transform: scale(3.6);
+    opacity: 0;
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    background-color: transparent;
+  }
+  50% {
+    background-color: var(--accent-soft);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-out-right {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
 }
 
 @keyframes shimmer {
@@ -225,6 +324,17 @@
     --animate-fade-in: fade-in var(--duration-instant) linear both;
     --animate-fade-out: fade-out var(--duration-instant) linear both;
     --animate-draw-check: none;
+    --animate-entrance: fade-in var(--duration-instant) linear both;
+    --animate-radar-sweep: none;
+    --animate-radar-sweep-slow: none;
+    --animate-blip: none;
+    --animate-ping: none;
+    --animate-breathe: none;
+    --animate-marquee: none;
+    --animate-accordion-down: none;
+    --animate-accordion-up: none;
+    --animate-slide-in-right: fade-in var(--duration-instant) linear both;
+    --animate-slide-out-right: fade-out var(--duration-instant) linear both;
   }
 
   *,
@@ -279,7 +389,6 @@
   font-size: var(--text-13);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
 }
 
 body {

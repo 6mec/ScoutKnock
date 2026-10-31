@@ -51,7 +51,7 @@ Recebes uma mensagem de abordagem feita para aquela empresa, que revês e envias
 
 Etiqueta no cartão: Exemplo ilustrativo
 
-- Barbearia Horizonte — Nota: 90/100 (Forte)
+- Barbearia Horizonte — Nota: 90/100 (Forte), calculada por `scoreCompany`
 - Site próprio: não encontrado
 - Presença local: identificada no Google
 - Avaliações: poucas
@@ -126,7 +126,7 @@ Mensagens:
 - Email inválido: Este email não parece válido. Confirma e tenta outra vez.
 - Erro geral: Algo correu mal. Tenta outra vez dentro de instantes.
 
-Ordem na página: o formulário fica antes das perguntas frequentes, e o botão da chamada final leva até ele.
+Ordem na página: o formulário fica depois das perguntas frequentes, junto à chamada final, sem botão próprio nessa chamada (como no desenho).
 
 ## Chamada final
 
@@ -138,6 +138,13 @@ Ordem na página: o formulário fica antes das perguntas frequentes, e o botão 
 
 - Ligações: Privacidade · Termos · Contacto
 - Linha final: © 2026 ScoutKnock. Feito em Portugal.
+
+## Textos acrescentados na Fase 2 (vindos do desenho)
+
+- Etiquetas de secção: Para quem é · Como funciona · A nota · Site demo · Honestidade · Perguntas
+- Faixa de nichos: Barbearias · Restaurantes · Clínicas dentárias · Ginásios · Oficinas · Cafés · Cabeleireiros · Fisioterapia · Imobiliárias
+- Título da nota: Vês os motivos, não só o número
+- Empresas fictícias do herói: Barbearia Horizonte · Navalha & Pente · Barbearia Atlântico · Barbearia do Bairro
 
 ## Notas para o Claude Code
 

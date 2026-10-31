@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ptPT } from "@/i18n/pt-PT";
 import { getCompanyProvider, sampleProvider } from "./provider";
+import { HERO_COMPANIES, LANDING_EXAMPLE } from "./landing-examples";
 import { SAMPLE_COMPANIES } from "./sample-companies";
 import { scoreCompany, scoreLevel } from "./score";
 import type { Company } from "./types";
@@ -99,15 +100,27 @@ describe("scoreLevel", () => {
 });
 
 describe("exemplo da landing", () => {
-  it("coincide com o resultado real da função", () => {
+  it("a nota de exemplo é a mesma empresa do radar e dá 90", () => {
     const { example } = ptPT.landing;
     const company = SAMPLE_COMPANIES.find((c) => c.name === example.company);
 
-    expect(company).toBeDefined();
-    const result = scoreCompany(company as Company, service);
+    expect(company).toEqual(LANDING_EXAMPLE);
+    expect(scoreCompany(LANDING_EXAMPLE, service).score).toBe(90);
+    expect(scoreCompany(LANDING_EXAMPLE, service).level).toBe("strong");
+  });
 
-    expect(example.score).toBe(`${result.score}/100`);
-    expect(example.strength).toBe(ptPT.radar.levels[result.level]);
+  it("o herói mostra as notas reais da função, por ordem", () => {
+    const results = HERO_COMPANIES.map((company) =>
+      scoreCompany(company, service),
+    );
+
+    expect(results.map((result) => result.score)).toEqual([90, 70, 55, 0]);
+    expect(results.map((result) => result.level)).toEqual([
+      "strong",
+      "strong",
+      "medium",
+      "weak",
+    ]);
   });
 });
 

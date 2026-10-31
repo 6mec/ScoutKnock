@@ -95,7 +95,7 @@ const TEXT_SIZES = [
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-4 border-t border-border-subtle pt-8">
-      <h2 className="section-label">{title}</h2>
+      <h2 className="section-label text-accent">{title}</h2>
       {children}
     </section>
   );
@@ -179,7 +179,7 @@ export function UiPreview() {
             </div>
           ))}
         </div>
-        <p className="section-label">{copy.sectionLabel}</p>
+        <p className="section-label text-accent">{copy.sectionLabel}</p>
         <p className="type-body text-16">{copy.bodySample}</p>
         <p className="type-number text-20">{copy.numberSample}</p>
       </Section>
