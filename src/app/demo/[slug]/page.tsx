@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { DemoView } from "@/components/demos/demo-view";
 import { ptPT } from "@/i18n/pt-PT";
 import type { PublicDemo } from "@/lib/demos/rules";
+import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -31,7 +32,7 @@ async function Content({ params }: Pick<PageProps<"/demo/[slug]">, "params">) {
     .rpc("get_public_demo", { demo_slug: slug })
     .maybeSingle();
 
-  if (error) console.error(`demo pública: ${error.code}`);
+  if (error) await reportError("demo pública", error.code);
   if (!data) notFound();
 
   return <DemoView demo={data as PublicDemo} />;

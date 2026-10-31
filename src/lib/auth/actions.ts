@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
+import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 import { isValidEmail, isValidPassword } from "./validation";
 
@@ -17,11 +18,11 @@ function failure(message: string): AuthFormState {
 }
 
 // Regista só o código, sem dados do utilizador, e distingue o limite de pedidos.
-function unexpectedFailure(
+async function unexpectedFailure(
   action: string,
   error: { code?: string; status?: number },
 ) {
-  console.error(`auth ${action}: ${error.code ?? "sem código"} (${error.status})`);
+  await reportError(`auth ${action}`, error.code ?? error.status);
   return failure(error.status === 429 ? errors.rateLimited : errors.generic);
 }
 

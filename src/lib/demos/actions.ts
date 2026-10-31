@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
+import { logEvent, reportError } from "@/lib/events/log";
 import { getCompanyProvider } from "@/lib/radar/provider";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -33,8 +34,12 @@ async function currentUser() {
   return { supabase, user };
 }
 
-function failure(step: string, error: { code?: string } | null): CreateDemoResult {
-  console.error(`demos ${step}: ${error?.code ?? "sem código"}`);
+async function failure(
+  step: string,
+  error: { code?: string } | null,
+  userId: string,
+): Promise<CreateDemoResult> {
+  await reportError(`demos ${step}`, error?.code, userId);
   return { status: "error", message: copy.errors.generic };
 }
 
@@ -61,7 +66,7 @@ export async function createDemo(
       .from("profiles")
       .update({ display_name: name })
       .eq("id", user.id);
-    if (error) return failure("perfil", error);
+    if (error) return failure("perfil", error, user.id);
   } else {
     const { data: profile } = await supabase
       .from("profiles")
@@ -73,7 +78,7 @@ export async function createDemo(
   }
 
   const company = await getCompanyProvider()?.findById(companyId);
-  if (!company) return failure("empresa", null);
+  if (!company) return failure("empresa", null, user.id);
 
   const { data, error } = await supabase
     .from("demo_sites")
@@ -103,9 +108,13 @@ export async function createDemo(
       const { data: created } = await findExisting();
       if (created) return { status: "created", id: created.id };
     }
-    return failure("criar", error);
+    return failure("criar", error, user.id);
   }
 
+  await logEvent(
+    { type: "demo_created", data: { demoId: data.id, niche: company.niche } },
+    user.id,
+  );
   revalidatePath(GALLERY_PATH);
   return { status: "created", id: data.id };
 }
@@ -117,7 +126,7 @@ export async function saveDemo(
   const content = parseDemoContent(value);
   if (!content) return { ok: false };
 
-  const { supabase } = await currentUser();
+  const { supabase, user } = await currentUser();
   const { data, error } = await supabase
     .from("demo_sites")
     .update({
@@ -131,7 +140,7 @@ export async function saveDemo(
     .select("id");
 
   if (error || !data?.length) {
-    console.error(`demos guardar: ${error?.code ?? "sem linha"}`);
+    await reportError("demos guardar", error?.code ?? "sem linha", user.id);
     return { ok: false };
   }
 
@@ -143,7 +152,7 @@ export async function setDemoSent(
   id: string,
   sent: boolean,
 ): Promise<SaveDemoResult> {
-  const { supabase } = await currentUser();
+  const { supabase, user } = await currentUser();
   const { data, error } = await supabase
     .from("demo_sites")
     .update({ status: sent ? "sent" : "draft" })
@@ -151,7 +160,7 @@ export async function setDemoSent(
     .select("id");
 
   if (error || !data?.length) {
-    console.error(`demos estado: ${error?.code ?? "sem linha"}`);
+    await reportError("demos estado", error?.code ?? "sem linha", user.id);
     return { ok: false };
   }
 

@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
 import { requireUser } from "@/lib/auth/current-user";
 import type { OwnDemo } from "@/lib/demos/rules";
+import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 
 const { demos: copy } = ptPT;
@@ -31,7 +32,7 @@ export default function DemosPage() {
 }
 
 async function Gallery() {
-  await requireUser();
+  const user = await requireUser();
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -41,7 +42,7 @@ async function Gallery() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(`demos galeria: ${error.code}`);
+    await reportError("demos galeria", error.code, user.id);
     return <p role="alert">{copy.errors.generic}</p>;
   }
 

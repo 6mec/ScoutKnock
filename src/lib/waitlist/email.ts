@@ -1,5 +1,6 @@
 import "server-only";
 import { ptPT } from "@/i18n/pt-PT";
+import { reportError } from "@/lib/events/log";
 import { createToken } from "./tokens";
 
 const { email: copy } = ptPT.waitlist;
@@ -59,7 +60,7 @@ export async function sendConfirmationEmail(
   });
 
   if (!response.ok) {
-    console.error(`waitlist email: resposta ${response.status}`);
+    await reportError("waitlist email", response.status);
   }
 
   return response.ok;

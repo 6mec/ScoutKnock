@@ -1,6 +1,7 @@
 "use server";
 
 import { ptPT } from "@/i18n/pt-PT";
+import { reportError } from "@/lib/events/log";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getWaitlistEmailConfig, sendConfirmationEmail } from "./email";
 import {
@@ -53,7 +54,7 @@ export async function joinWaitlist(
     .gte("last_email_sent_at", new Date(now - 86_400_000).toISOString());
 
   if (countError || (count ?? 0) >= DAILY_EMAIL_LIMIT) {
-    console.error(`waitlist limite: ${countError?.code ?? "atingido"}`);
+    await reportError("waitlist limite", countError?.code ?? "atingido");
     return failure(messages.generic);
   }
 
@@ -64,7 +65,7 @@ export async function joinWaitlist(
     .maybeSingle();
 
   if (readError) {
-    console.error(`waitlist leitura: ${readError.code}`);
+    await reportError("waitlist leitura", readError.code);
     return failure(messages.generic);
   }
 
@@ -101,7 +102,7 @@ export async function joinWaitlist(
   if (insertError) {
     // Dois pedidos ao mesmo tempo com o mesmo email.
     if (insertError.code === "23505") return joined;
-    console.error(`waitlist inserção: ${insertError.code}`);
+    await reportError("waitlist inserção", insertError.code);
     return failure(messages.generic);
   }
 
