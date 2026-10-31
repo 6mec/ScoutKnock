@@ -10,6 +10,8 @@ const PAGE_TITLES: Record<string, string> = {
   radar: ptPT.app.nav.radar,
   demos: ptPT.app.nav.demos,
   contactos: ptPT.app.nav.contacts,
+  planos: ptPT.plans.title,
+  conta: ptPT.app.account.label,
   ui: ptPT.uiPreview.title,
 };
 

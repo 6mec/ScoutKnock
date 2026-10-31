@@ -593,6 +593,30 @@ export const ptPT = {
       generic: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
     },
   },
+  plans: {
+    title: "Planos",
+    names: { starter: "Inicial", pro: "Pro", agency: "Agência" },
+    recommended: "Recomendado",
+    priceSoon: "Preço a anunciar",
+    searches: "buscas por mês",
+    demos: "sites demo por mês",
+    trial: "Teste grátis de 7 dias: em breve.",
+  },
+  account: {
+    name: "O teu nome",
+    save: "Guardar",
+    saving: "Um momento…",
+    saved: "Guardado",
+    passwordEmail: "Enviar email para mudar a palavra-passe",
+    passwordEmailSent: "Enviámos-te um email com o link.",
+    deleteTitle: "Apagar conta",
+    deleteWarning:
+      "Isto apaga a tua conta, os teus contactos e as tuas demos. Não dá para desfazer.",
+    deleteConfirm: "Escreve APAGAR para confirmar",
+    errors: {
+      generic: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
+    },
+  },
   app: {
     nav: {
       label: "Menu do painel",
@@ -606,6 +630,7 @@ export const ptPT = {
     },
     account: {
       label: "Conta",
+      plans: "Planos",
       signOut: "Sair",
     },
     commands: {
@@ -618,6 +643,8 @@ export const ptPT = {
       goRadar: "Ir para o Radar",
       goDemos: "Ir para os sites demo",
       goContacts: "Ir para os contactos",
+      goPlans: "Ir para os planos",
+      goAccount: "Ir para a conta",
     },
   },
 };

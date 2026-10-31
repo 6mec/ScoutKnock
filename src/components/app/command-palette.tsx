@@ -1,7 +1,16 @@
 "use client";
 
 import { Command } from "cmdk";
-import { Globe, House, Radar, Search, Users, type LucideIcon } from "lucide-react";
+import {
+  CreditCard,
+  Globe,
+  House,
+  Radar,
+  Search,
+  UserRound,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Kbd } from "@/components/ui/kbd";
@@ -20,6 +29,8 @@ const COMMANDS: {
   { label: copy.goRadar, href: "/painel/radar", icon: Radar },
   { label: copy.goDemos, href: "/painel/demos", icon: Globe },
   { label: copy.goContacts, href: "/painel/contactos", icon: Users },
+  { label: copy.goPlans, href: "/painel/planos", icon: CreditCard },
+  { label: copy.goAccount, href: "/painel/conta", icon: UserRound },
 ];
 
 const subscribeToNothing = () => () => {};

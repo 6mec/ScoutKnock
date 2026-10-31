@@ -1,6 +1,7 @@
 "use client";
 
-import { LogOut } from "lucide-react";
+import { CreditCard, LogOut, UserRound } from "lucide-react";
+import Link from "next/link";
 import { useTransition } from "react";
 import { Avatar } from "@/components/ui/avatar";
 import {
@@ -39,6 +40,19 @@ export function AccountMenu({ email }: { email: string }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="end" className="max-w-[calc(100vw-16px)]">
         <DropdownMenuLabel className="break-all">{email}</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href="/painel/conta">
+            <UserRound aria-hidden="true" size={16} strokeWidth={1.75} />
+            {copy.label}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/painel/planos">
+            <CreditCard aria-hidden="true" size={16} strokeWidth={1.75} />
+            {copy.plans}
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={pending}

@@ -1,0 +1,139 @@
+"use client";
+
+import { useState, useTransition, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Field, Input } from "@/components/ui/field";
+import { toast } from "@/components/ui/toaster";
+import { ptPT } from "@/i18n/pt-PT";
+import {
+  deleteAccount,
+  saveDisplayName,
+  sendPasswordEmail,
+} from "@/lib/account/actions";
+import { DELETE_CONFIRMATION, isDeleteConfirmed } from "@/lib/account/rules";
+import { MAX_AUTHOR_NAME, parseAuthorName } from "@/lib/demos/rules";
+
+const { account: copy } = ptPT;
+const cardClasses = "flex flex-col gap-4 rounded-lg border border-border bg-surface p-6";
+
+export function AccountScreen({
+  email,
+  displayName,
+}: {
+  email: string;
+  displayName: string;
+}) {
+  const [name, setName] = useState(displayName);
+  const [confirmation, setConfirmation] = useState("");
+  const [saving, startSaving] = useTransition();
+  const [sending, startSending] = useTransition();
+  const [deleting, startDeleting] = useTransition();
+
+  function handleSave(event: FormEvent) {
+    event.preventDefault();
+    startSaving(async () => {
+      const { ok } = await saveDisplayName(name);
+      if (ok) toast.success(copy.saved);
+      else toast.error(copy.errors.generic);
+    });
+  }
+
+  function handlePasswordEmail() {
+    startSending(async () => {
+      const { ok, rateLimited } = await sendPasswordEmail();
+      if (ok) toast.success(copy.passwordEmailSent);
+      else toast.error(rateLimited ? ptPT.auth.errors.rateLimited : copy.errors.generic);
+    });
+  }
+
+  function handleDelete(event: FormEvent) {
+    event.preventDefault();
+    startDeleting(async () => {
+      // Quando corre bem, a ação redireciona e não chega a devolver.
+      const result = await deleteAccount(confirmation);
+      if (!result.ok) toast.error(copy.errors.generic);
+    });
+  }
+
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-8 lg:px-8">
+      <form onSubmit={handleSave} className={cardClasses}>
+        <Field label={ptPT.auth.fields.email}>
+          <Input value={email} readOnly />
+        </Field>
+        <Field label={copy.name}>
+          <Input
+            value={name}
+            maxLength={MAX_AUTHOR_NAME}
+            autoComplete="name"
+            onChange={(event) => setName(event.target.value)}
+          />
+        </Field>
+        <Button
+          type="submit"
+          loading={saving}
+          loadingText={copy.saving}
+          disabled={!parseAuthorName(name)}
+          className="self-start"
+        >
+          {copy.save}
+        </Button>
+      </form>
+
+      <section className={cardClasses}>
+        <h2 className="type-heading text-20">{ptPT.auth.fields.password}</h2>
+        <Button
+          variant="secondary"
+          loading={sending}
+          loadingText={copy.saving}
+          onClick={handlePasswordEmail}
+          className="h-auto min-h-11 self-start py-2 whitespace-normal"
+        >
+          {copy.passwordEmail}
+        </Button>
+      </section>
+
+      <section className={cardClasses}>
+        <h2 className="type-heading text-20">{copy.deleteTitle}</h2>
+        <p className="type-body text-muted">{copy.deleteWarning}</p>
+        <Dialog onOpenChange={() => setConfirmation("")}>
+          <DialogTrigger asChild>
+            <Button variant="danger" className="self-start">
+              {copy.deleteTitle}
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogTitle>{copy.deleteTitle}</DialogTitle>
+            <DialogDescription>{copy.deleteWarning}</DialogDescription>
+            <form onSubmit={handleDelete} className="flex flex-col gap-4">
+              <Field label={copy.deleteConfirm}>
+                <Input
+                  value={confirmation}
+                  autoComplete="off"
+                  placeholder={DELETE_CONFIRMATION}
+                  onChange={(event) => setConfirmation(event.target.value)}
+                />
+              </Field>
+              <Button
+                type="submit"
+                variant="danger"
+                loading={deleting}
+                loadingText={copy.saving}
+                disabled={!isDeleteConfirmed(confirmation)}
+              >
+                {copy.deleteTitle}
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </section>
+    </div>
+  );
+}
