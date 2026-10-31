@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>ScoutKnock · Landing</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0F14}
+a{color:#2DE2A6}a:hover{color:#7CF0C8}
+summary{cursor:pointer;list-style:none}
+summary::-webkit-details-marker{display:none}
+details[open] .plus{transform:rotate(45deg)}
+.plus{transition:transform .15s}
+@keyframes sk-rise{from{opacity:0;transform:translateY(18px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
+.sk-rise{animation:sk-rise .9s cubic-bezier(.2,.7,.2,1) both}
+.sk-row{animation:sk-rise .7s cubic-bezier(.2,.7,.2,1) both}
+@keyframes sk-breathe{0%,100%{opacity:.4}50%{opacity:1}}
+.sk-breathe{animation:sk-breathe 2.4s ease-in-out infinite}
+@keyframes sk-marquee{to{transform:translateX(-50%)}}
+.sk-marquee{animation:sk-marquee 40s linear infinite}
+@keyframes sk-fill{from{width:0}}
+.sk-fill{animation:sk-fill 1.6s cubic-bezier(.2,.7,.2,1) .4s both}
+@keyframes sk-hl{0%,100%{background-color:rgba(45,226,166,0)}50%{background-color:rgba(45,226,166,.09)}}
+.sk-hl{animation:sk-rise .7s cubic-bezier(.2,.7,.2,1) .6s both,sk-hl 4s ease-in-out 1.4s infinite}
+.sk-cta{transition:transform .15s,box-shadow .2s}
+.sk-cta:hover{color:#0B0F14;transform:translateY(-1px);box-shadow:0 0 0 4px rgba(45,226,166,.18),0 10px 30px -8px rgba(45,226,166,.55)}
+.sk-lift{transition:transform .25s,border-color .25s}
+.sk-lift:hover{transform:translateY(-4px);border-color:#2DE2A6}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</helmet>
+<div style="background:#0B0F14;color:#E6EDF3;font-family:'Geist',system-ui,sans-serif;font-size:16px;line-height:1.6;overflow:hidden">
+
+<!-- NAV -->
+<header style="border-bottom:1px solid #1F2937">
+<div style="max-width:1200px;margin:0 auto;padding:16px 40px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px">
+<a href="#topo" style="display:flex;align-items:center;gap:10px;text-decoration:none;color:#E6EDF3;font-weight:700;font-size:20px;letter-spacing:-0.02em">
+<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#121821" stroke="#1F2937"/><path d="M8 22a11 11 0 0 1 11-11" fill="none" stroke="#2DE2A6" stroke-width="2" stroke-linecap="round"/><path d="M8 22a6 6 0 0 1 6-6" fill="none" stroke="#2DE2A6" stroke-width="2" stroke-linecap="round"/><path d="M8 22L21 9" stroke="#2DE2A6" stroke-width="2" stroke-linecap="round"/><circle cx="23" cy="9" r="3" fill="#FFB547"/></svg>
+<span>Scout<span style="color:#2DE2A6">Knock</span></span>
+</a>
+<nav style="display:flex;flex-wrap:wrap;align-items:center;gap:8px 28px">
+<a href="#como" style="color:#8B98A9;text-decoration:none;font-size:15px;padding:10px 0">Como funciona</a>
+<a href="#perguntas" style="color:#8B98A9;text-decoration:none;font-size:15px;padding:10px 0">Perguntas</a>
+<a href="#lista" class="sk-cta" style="background:#2DE2A6;color:#0B0F14;text-decoration:none;font-weight:600;font-size:15px;padding:11px 18px;border-radius:10px">Entrar na lista de espera</a>
+</nav>
+</div>
+</header>
+
+<!-- HERO -->
+<section id="topo" style="position:relative;border-bottom:1px solid #1F2937">
+<svg aria-hidden="true" style="position:absolute;right:-220px;top:-180px;opacity:.55" width="900" height="900" viewBox="0 0 900 900" fill="none"><circle cx="450" cy="450" r="130" stroke="#1F2937"/><circle cx="450" cy="450" r="230" stroke="#1F2937"/><circle cx="450" cy="450" r="330" stroke="#1F2937"/><circle cx="450" cy="450" r="430" stroke="#1F2937"/><path d="M450 0V900M0 450H900" stroke="#1F2937"/><g><path d="M450 450L450 20" stroke="#2DE2A6" stroke-opacity=".3"/><animateTransform attributeName="transform" type="rotate" from="0 450 450" to="360 450 450" dur="14s" repeatCount="indefinite"/></g></svg>
+<div style="position:relative;max-width:1200px;margin:0 auto;padding:88px 40px 96px;display:flex;flex-wrap:wrap;align-items:center;gap:56px">
+<div style="flex:1 1 440px;min-width:0">
+<div class="sk-rise" style="display:inline-flex;align-items:center;gap:10px;border:1px solid #1F2937;background:#121821;border-radius:999px;padding:6px 14px 6px 12px;font-family:'Geist Mono',monospace;font-size:13px;color:#8B98A9">
+<span class="sk-breathe" style="width:8px;height:8px;border-radius:50%;background:#FFB547"></span>Em construção · lista de espera aberta
+</div>
+<h1 class="sk-rise" style="margin:28px 0 0;font-size:84px;line-height:.98;letter-spacing:-0.045em;font-weight:700;animation-delay:.1s">Bate à porta <span style="color:#2DE2A6">certa.</span></h1>
+<p class="sk-rise" style="margin:28px 0 0;font-size:20px;line-height:1.55;color:#8B98A9;max-width:520px;text-wrap:pretty;animation-delay:.2s">Encontra empresas locais que precisam do teu serviço, percebe porquê e chega com a proposta pronta.</p>
+<div class="sk-rise" style="margin-top:36px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;animation-delay:.3s">
+<a href="#lista" class="sk-cta" style="background:#2DE2A6;color:#0B0F14;text-decoration:none;font-weight:600;font-size:17px;padding:15px 24px;border-radius:12px">Entrar na lista de espera</a>
+<a href="#como" style="color:#E6EDF3;text-decoration:none;font-weight:500;font-size:16px;padding:14px 4px;display:inline-flex;align-items:center;gap:8px">Ver como funciona
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 3v10M3.5 8.5L8 13l4.5-4.5" stroke="#E6EDF3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+</div>
+<p style="margin:18px 0 0;font-size:14px;color:#8B98A9">Sem cartão. Só te avisamos quando abrirmos.</p>
+</div>
+
+<!-- Radar mock -->
+<div class="sk-rise" style="flex:1 1 460px;min-width:0;max-width:560px;animation-delay:.35s">
+<div style="background:#121821;border:1px solid #1F2937;border-radius:16px;overflow:hidden">
+<div style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid #1F2937">
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#E6EDF3;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:5px 10px">Sites e landing pages</span>
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#E6EDF3;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:5px 10px">Barbearias</span>
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#E6EDF3;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:5px 10px">Porto</span>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:0">
+<div style="flex:1 1 220px;display:flex;align-items:center;justify-content:center;padding:20px;border-right:1px solid #1F2937">
+<svg width="220" height="220" viewBox="0 0 240 240" role="img" aria-label="Radar com cinco empresas encontradas, uma em destaque">
+<circle cx="120" cy="120" r="32" fill="none" stroke="#1F2937"/><circle cx="120" cy="120" r="64" fill="none" stroke="#1F2937"/><circle cx="120" cy="120" r="96" fill="none" stroke="#1F2937"/><circle cx="120" cy="120" r="118" fill="none" stroke="#1F2937"/>
+<path d="M120 2V238M2 120H238" stroke="#1F2937"/>
+<g>
+<path d="M120 120L36.6 36.6A118 118 0 0 1 120 2Z" fill="#2DE2A6" fill-opacity=".07"/>
+<path d="M120 120L79.6 9.1A118 118 0 0 1 120 2Z" fill="#2DE2A6" fill-opacity=".14"/>
+<path d="M120 120L120 2" stroke="#2DE2A6" stroke-width="1.6"/>
+<animateTransform attributeName="transform" type="rotate" from="0 120 120" to="360 120 120" dur="4s" repeatCount="indefinite"/>
+</g>
+<circle cx="168" cy="70" r="5" fill="#2DE2A6" opacity=".25"><animate attributeName="opacity" values="1;.25" dur="4s" begin=".49s" repeatCount="indefinite"/></circle>
+<circle cx="78" cy="96" r="4" fill="#2DE2A6" opacity=".25"><animate attributeName="opacity" values="1;.25" dur="4s" begin="3.33s" repeatCount="indefinite"/></circle>
+<circle cx="150" cy="170" r="4" fill="#8B98A9" opacity=".25"><animate attributeName="opacity" values="1;.25" dur="4s" begin="1.66s" repeatCount="indefinite"/></circle>
+<circle cx="52" cy="160" r="3.5" fill="#8B98A9" opacity=".25"><animate attributeName="opacity" values="1;.25" dur="4s" begin="2.66s" repeatCount="indefinite"/></circle>
+<circle cx="190" cy="132" r="4.5" fill="#FFB547" opacity=".35"><animate attributeName="opacity" values="1;.35" dur="4s" begin="1.11s" repeatCount="indefinite"/></circle>
+<circle cx="190" cy="132" r="5" fill="none" stroke="#FFB547" stroke-opacity="0"><animate attributeName="r" values="5;18;18" keyTimes="0;.3;1" dur="4s" begin="1.11s" repeatCount="indefinite"/><animate attributeName="stroke-opacity" values=".9;0;0" keyTimes="0;.3;1" dur="4s" begin="1.11s" repeatCount="indefinite"/></circle>
+<circle cx="120" cy="120" r="3" fill="#E6EDF3"/>
+</svg>
+</div>
+<div style="flex:1 1 240px;min-width:0;display:flex;flex-direction:column">
+<div class="sk-hl" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #1F2937">
+<span style="font-family:'Geist Mono',monospace;font-weight:600;font-size:18px;color:#0B0F14;background:#2DE2A6;border-radius:8px;padding:2px 8px;min-width:30px;text-align:center">82</span>
+<div style="min-width:0"><div style="font-weight:600;font-size:15px">Barbearia Horizonte</div><div style="font-size:13px;color:#8B98A9">Sem site próprio</div></div>
+</div>
+<div class="sk-row" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #1F2937;animation-delay:.8s">
+<span style="font-family:'Geist Mono',monospace;font-weight:600;font-size:18px;color:#0B0F14;background:#2DE2A6;border-radius:8px;padding:2px 8px;min-width:30px;text-align:center">74</span>
+<div style="min-width:0"><div style="font-weight:600;font-size:15px">Barbearia Atlântico</div><div style="font-size:13px;color:#8B98A9">Site sem versão móvel</div></div>
+</div>
+<div class="sk-row" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #1F2937;animation-delay:1s">
+<span style="font-family:'Geist Mono',monospace;font-weight:600;font-size:18px;color:#0B0F14;background:#FFB547;border-radius:8px;padding:2px 8px;min-width:30px;text-align:center">58</span>
+<div style="min-width:0"><div style="font-weight:600;font-size:15px">Studio Ribeira</div><div style="font-size:13px;color:#8B98A9">Poucas avaliações</div></div>
+</div>
+<div class="sk-row" style="display:flex;align-items:center;gap:12px;padding:14px 16px;animation-delay:1.2s">
+<span style="font-family:'Geist Mono',monospace;font-weight:600;font-size:18px;color:#8B98A9;border:1px solid #1F2937;border-radius:8px;padding:1px 8px;min-width:30px;text-align:center">31</span>
+<div style="min-width:0"><div style="font-weight:600;font-size:15px">Barbearia do Bairro</div><div style="font-size:13px;color:#8B98A9">Presença já completa</div></div>
+</div>
+</div>
+</div>
+<div style="padding:10px 16px;border-top:1px solid #1F2937;font-family:'Geist Mono',monospace;font-size:12px;color:#8B98A9">Exemplo ilustrativo · empresas e valores fictícios</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FAIXA DE NICHOS -->
+<div aria-hidden="true" style="border-bottom:1px solid #1F2937;overflow:hidden;padding:20px 0;background:#0D1218">
+<div class="sk-marquee" style="display:flex;width:max-content;gap:44px;font-family:'Geist Mono',monospace;font-size:14px;letter-spacing:.06em;color:#8B98A9;white-space:nowrap">
+<span>BARBEARIAS</span><span style="color:#2DE2A6">+</span><span>RESTAURANTES</span><span style="color:#2DE2A6">+</span><span>CLÍNICAS DENTÁRIAS</span><span style="color:#2DE2A6">+</span><span>GINÁSIOS</span><span style="color:#2DE2A6">+</span><span>OFICINAS</span><span style="color:#2DE2A6">+</span><span>CAFÉS</span><span style="color:#2DE2A6">+</span><span>CABELEIREIROS</span><span style="color:#2DE2A6">+</span><span>FISIOTERAPIA</span><span style="color:#2DE2A6">+</span><span>IMOBILIÁRIAS</span><span style="color:#2DE2A6">+</span>
+<span>BARBEARIAS</span><span style="color:#2DE2A6">+</span><span>RESTAURANTES</span><span style="color:#2DE2A6">+</span><span>CLÍNICAS DENTÁRIAS</span><span style="color:#2DE2A6">+</span><span>GINÁSIOS</span><span style="color:#2DE2A6">+</span><span>OFICINAS</span><span style="color:#2DE2A6">+</span><span>CAFÉS</span><span style="color:#2DE2A6">+</span><span>CABELEIREIROS</span><span style="color:#2DE2A6">+</span><span>FISIOTERAPIA</span><span style="color:#2DE2A6">+</span><span>IMOBILIÁRIAS</span><span style="color:#2DE2A6">+</span>
+</div>
+</div>
+
+<!-- PARA QUEM -->
+<section style="border-bottom:1px solid #1F2937">
+<div style="max-width:1200px;margin:0 auto;padding:88px 40px;display:flex;flex-wrap:wrap;gap:40px 72px">
+<div style="flex:1 1 380px;min-width:0">
+<div style="font-family:'Geist Mono',monospace;font-size:13px;color:#2DE2A6;letter-spacing:.08em">PARA QUEM É</div>
+<h2 style="margin:14px 0 0;font-size:44px;line-height:1.08;letter-spacing:-0.03em;font-weight:700">Feito para quem vende serviços</h2>
+</div>
+<div style="flex:1 1 420px;min-width:0">
+<p style="margin:0;font-size:20px;color:#8B98A9;text-wrap:pretty">Se trabalhas por conta própria ou numa pequena agência, o ScoutKnock ajuda-te a deixar de adivinhar a quem escrever.</p>
+<div style="margin-top:28px;display:flex;flex-wrap:wrap;gap:10px">
+<span style="border:1px solid #1F2937;background:#121821;border-radius:999px;padding:8px 16px;font-size:15px">Sites e landing pages</span>
+<span style="border:1px solid #1F2937;background:#121821;border-radius:999px;padding:8px 16px;font-size:15px">Social media</span>
+<span style="border:1px solid #1F2937;background:#121821;border-radius:999px;padding:8px 16px;font-size:15px">Design</span>
+<span style="border:1px solid #1F2937;background:#121821;border-radius:999px;padding:8px 16px;font-size:15px">Marketing</span>
+<span style="border:1px solid #1F2937;background:#121821;border-radius:999px;padding:8px 16px;font-size:15px">Fotografia e vídeo</span>
+</div>
+</div>
+</div>
+</section>
+
+<!-- COMO FUNCIONA -->
+<section id="como" style="border-bottom:1px solid #1F2937">
+<div style="max-width:1200px;margin:0 auto;padding:88px 40px">
+<div style="font-family:'Geist Mono',monospace;font-size:13px;color:#2DE2A6;letter-spacing:.08em">COMO FUNCIONA</div>
+<h2 style="margin:14px 0 0;font-size:44px;line-height:1.08;letter-spacing:-0.03em;font-weight:700;max-width:760px">Do “por onde começo?” ao primeiro contacto</h2>
+
+<div style="margin-top:56px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:20px">
+
+<div class="sk-lift" style="background:#121821;border:1px solid #1F2937;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'Geist Mono',monospace;font-size:44px;font-weight:500;color:#1F2937;line-height:1">01</span>
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="7" stroke="#2DE2A6" stroke-width="1.8"/><path d="M17.5 17.5L24 24" stroke="#2DE2A6" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+<h3 style="margin:0;font-size:26px;letter-spacing:-0.02em">Encontra</h3>
+<p style="margin:0;color:#8B98A9;text-wrap:pretty">Escolhes o teu serviço, um nicho (por exemplo, barbearias) e uma localidade. O ScoutKnock mostra empresas reais dessa zona.</p>
+<div style="margin-top:auto;display:flex;flex-direction:column;gap:8px;font-family:'Geist Mono',monospace;font-size:13px">
+<div style="display:flex;justify-content:space-between;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:9px 12px"><span style="color:#8B98A9">serviço</span><span>Sites</span></div>
+<div style="display:flex;justify-content:space-between;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:9px 12px"><span style="color:#8B98A9">nicho</span><span>Barbearias</span></div>
+<div style="display:flex;justify-content:space-between;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:9px 12px"><span style="color:#8B98A9">local</span><span>Porto</span></div>
+</div>
+</div>
+
+<div class="sk-lift" style="background:#121821;border:1px solid #1F2937;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'Geist Mono',monospace;font-size:44px;font-weight:500;color:#1F2937;line-height:1">02</span>
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><circle cx="14" cy="14" r="10" stroke="#2DE2A6" stroke-width="1.8"/><circle cx="14" cy="14" r="4.5" stroke="#2DE2A6" stroke-width="1.8"/><circle cx="14" cy="14" r="1" fill="#2DE2A6"/></svg></div>
+<h3 style="margin:0;font-size:26px;letter-spacing:-0.02em">Percebe</h3>
+<p style="margin:0;color:#8B98A9;text-wrap:pretty">Cada empresa recebe uma nota de oportunidade com os motivos: sem site, site lento, sem versão para telemóvel, poucas avaliações. Ficas a saber porque vale a pena contactar.</p>
+<div style="margin-top:auto;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:12px">
+<div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:13px"><span style="color:#8B98A9">nota</span><span style="color:#2DE2A6;font-weight:600">82 / 100</span></div>
+<div style="margin-top:8px;height:6px;border-radius:3px;background:#1F2937"><div style="width:82%;height:6px;border-radius:3px;background:#2DE2A6"></div></div>
+<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:#8B98A9"><span style="border:1px solid #1F2937;border-radius:6px;padding:2px 8px">sem site</span><span style="border:1px solid #1F2937;border-radius:6px;padding:2px 8px">poucas avaliações</span></div>
+</div>
+</div>
+
+<div class="sk-lift" style="background:#121821;border:1px solid #1F2937;border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:20px">
+<div style="display:flex;align-items:center;justify-content:space-between"><span style="font-family:'Geist Mono',monospace;font-size:44px;font-weight:500;color:#1F2937;line-height:1">03</span>
+<svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="5" y="3" width="14" height="22" rx="2" stroke="#2DE2A6" stroke-width="1.8"/><path d="M19 12h4M21 10v4" stroke="#FFB547" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+<h3 style="margin:0;font-size:26px;letter-spacing:-0.02em">Propõe</h3>
+<p style="margin:0;color:#8B98A9;text-wrap:pretty">Recebes uma mensagem de abordagem feita para aquela empresa, que revês e envias tu, e podes mostrar-lhe um site demo com o nome dela. Antes de falares de preço, ela já vê o que podes fazer.</p>
+<div style="margin-top:auto;background:#0B0F14;border:1px solid #1F2937;border-radius:8px;padding:12px;font-size:13px;color:#8B98A9;line-height:1.5">
+<div style="font-family:'Geist Mono',monospace;font-size:12px;color:#FFB547;margin-bottom:6px">rascunho · revê antes de enviar</div>
+Olá! Reparei que a Barbearia Horizonte ainda não tem site&hellip;
+</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<!-- EXEMPLO DA NOTA -->
+<section style="border-bottom:1px solid #1F2937">
+<div style="max-width:1200px;margin:0 auto;padding:88px 40px;display:flex;flex-wrap:wrap;align-items:center;gap:48px 72px">
+<div style="flex:1 1 380px;min-width:0">
+<div style="font-family:'Geist Mono',monospace;font-size:13px;color:#2DE2A6;letter-spacing:.08em">A NOTA</div>
+<h2 style="margin:14px 0 0;font-size:44px;line-height:1.08;letter-spacing:-0.03em;font-weight:700">Vês os motivos, não só o número</h2>
+<p style="margin:20px 0 0;font-size:18px;color:#8B98A9;max-width:460px;text-wrap:pretty">70 a 100 é Forte, 40 a 69 é Média, abaixo disso é Fraca. Cada nota diz-te o que foi encontrado, para decidires tu.</p>
+</div>
+<div style="flex:1 1 440px;min-width:0;max-width:560px">
+<div style="background:#121821;border:1px solid #1F2937;border-radius:16px;padding:28px">
+<div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px">
+<div>
+<div style="display:inline-block;font-family:'Geist Mono',monospace;font-size:12px;color:#FFB547;border:1px solid #FFB547;border-radius:6px;padding:2px 8px">Exemplo ilustrativo</div>
+<div style="margin-top:14px;font-size:24px;font-weight:700;letter-spacing:-0.02em">Barbearia Horizonte</div>
+</div>
+<div style="text-align:right"><div style="font-family:'Geist Mono',monospace;font-size:56px;font-weight:600;line-height:1;color:#2DE2A6">82</div><div style="font-family:'Geist Mono',monospace;font-size:13px;color:#8B98A9">/100 · Forte</div></div>
+</div>
+<div style="margin-top:22px;height:8px;border-radius:4px;background:#1F2937"><div class="sk-fill" style="width:82%;height:8px;border-radius:4px;background:#2DE2A6"></div></div>
+<div style="margin-top:24px;display:flex;flex-direction:column;font-size:15px">
+<div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid #1F2937"><span style="color:#8B98A9">Site próprio</span><span>não encontrado</span></div>
+<div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid #1F2937"><span style="color:#8B98A9">Presença local</span><span>identificada no Google</span></div>
+<div style="display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid #1F2937"><span style="color:#8B98A9">Avaliações</span><span>poucas</span></div>
+</div>
+<div style="margin-top:8px;background:#0B0F14;border:1px solid #1F2937;border-radius:10px;padding:14px 16px;font-size:15px"><span style="color:#FFB547;font-weight:600">Sugestão · </span>uma página com marcação de horário pode ser o próximo passo.</div>
+</div>
+<p style="margin:12px 4px 0;font-size:13px;color:#8B98A9">Exemplo para ilustrar o resultado. A empresa e os valores são fictícios.</p>
+</div>
+</div>
+</section>
+
+<!-- MOSTRA, NÃO CONTES -->
+<section style="border-bottom:1px solid #1F2937">
+<div style="max-width:1200px;margin:0 auto;padding:88px 40px;display:flex;flex-wrap:wrap-reverse;align-items:center;gap:48px 72px">
+<div style="flex:1 1 440px;min-width:0;max-width:560px">
+<div style="background:#121821;border:1px solid #1F2937;border-radius:16px;overflow:hidden">
+<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid #1F2937">
+<span style="width:10px;height:10px;border-radius:50%;background:#1F2937"></span><span style="width:10px;height:10px;border-radius:50%;background:#1F2937"></span><span style="width:10px;height:10px;border-radius:50%;background:#1F2937"></span>
+<span style="margin-left:12px;flex:1;font-family:'Geist Mono',monospace;font-size:12px;color:#8B98A9;background:#0B0F14;border-radius:6px;padding:4px 10px">demo.exemplo · prévia não oficial</span>
+</div>
+<div style="padding:28px;background:#E6EDF3;color:#0B0F14">
+<div style="display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px"><span>Barbearia Horizonte</span><span style="font-weight:500;font-size:13px">Serviços · Preços · Marcar</span></div>
+<div style="margin-top:36px;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-0.03em;max-width:340px">O corte certo, à hora marcada.</div>
+<div style="margin-top:18px;display:inline-block;background:#0B0F14;color:#E6EDF3;font-size:14px;font-weight:600;padding:10px 16px;border-radius:8px">Marcar horário</div>
+<div style="margin-top:36px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px"><div style="height:56px;background:#C9D3DD;border-radius:8px"></div><div style="height:56px;background:#C9D3DD;border-radius:8px"></div><div style="height:56px;background:#C9D3DD;border-radius:8px"></div></div>
+</div>
+<div style="padding:12px 16px;border-top:1px solid #1F2937;font-size:13px;color:#8B98A9">Proposta não oficial. Feita por [nome do freelancer] para [empresa].</div>
+</div>
+</div>
+<div style="flex:1 1 380px;min-width:0">
+<div style="font-family:'Geist Mono',monospace;font-size:13px;color:#2DE2A6;letter-spacing:.08em">SITE DEMO</div>
+<h2 style="margin:14px 0 0;font-size:44px;line-height:1.08;letter-spacing:-0.03em;font-weight:700">Chega com algo para mostrar</h2>
+<p style="margin:20px 0 0;font-size:18px;color:#8B98A9;max-width:480px;text-wrap:pretty">Em vez de mais uma mensagem genérica, apresenta uma prévia de site feita para aquela empresa. É mais fácil dizer que sim a algo que já parece seu.</p>
+<ul style="margin:28px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px">
+<li style="display:flex;gap:12px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none;margin-top:3px"><path d="M4 10.5l4 4 8-9" stroke="#2DE2A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Demos pensadas para o negócio de cada empresa</span></li>
+<li style="display:flex;gap:12px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none;margin-top:3px"><path d="M4 10.5l4 4 8-9" stroke="#2DE2A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Boas no computador e no telemóvel</span></li>
+<li style="display:flex;gap:12px;align-items:flex-start"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none;margin-top:3px"><path d="M4 10.5l4 4 8-9" stroke="#2DE2A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Se a empresa gostar, publicas como site oficial</span></li>
+</ul>
+</div>
+</div>
+</section>
+
+<!-- HONESTIDADE -->
+<section style="border-bottom:1px solid #1F2937;background:#121821">
+<div style="max-width:1200px;margin:0 auto;padding:88px 40px;display:flex;flex-wrap:wrap;gap:40px 72px">
+<div style="flex:1 1 380px;min-width:0">
+<div style="font-family:'Geist Mono',monospace;font-size:13px;color:#FFB547;letter-spacing:.08em">HONESTIDADE</div>
+<h2 style="margin:14px 0 0;font-size:44px;line-height:1.08;letter-spacing:-0.03em;font-weight:700">Sem promessas mágicas</h2>
+<p style="margin:20px 0 0;font-size:18px;color:#8B98A9;max-width:480px;text-wrap:pretty">O ScoutKnock encontra empresas e prepara a abordagem. Fechar o negócio continua a ser trabalho teu. Não prometemos resultados, só uma forma mais direta de chegar às pessoas certas.</p>
+</div>
+<div style="flex:1 1 380px;min-width:0;display:flex;flex-direction:column;gap:12px">
+<div style="background:#0B0F14;border:1px solid #1F2937;border-radius:12px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true" style="flex:none;margin-top:2px"><path d="M11 2l7 3v5c0 5-3 8.5-7 10-4-1.500-7-5-7-10V5z" stroke="#2DE2A6" stroke-width="1.8" stroke-linejoin="round"/></svg><span>Dados de empresas obtidos de fontes públicas e oficiais</span></div>
+<div style="background:#0B0F14;border:1px solid #1F2937;border-radius:12px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true" style="flex:none;margin-top:2px"><path d="M4 11h14M12 5l6 6-6 6" stroke="#2DE2A6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Mensagens enviadas sempre por ti, uma de cada vez</span></div>
+<div style="background:#0B0F14;border:1px solid #1F2937;border-radius:12px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true" style="flex:none;margin-top:2px"><circle cx="11" cy="11" r="8" stroke="#2DE2A6" stroke-width="1.8"/><path d="M5.500 5.500l11 11" stroke="#2DE2A6" stroke-width="1.8" stroke-linecap="round"/></svg><span>Nada de envios em massa</span></div>
+</div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section id="perguntas" style="border-bottom:1px solid #1F2937">
+<div style="max-width:1200px;margin:0 auto;padding:88px 40px;display:flex;flex-wrap:wrap;gap:40px 72px">
+<div style="flex:1 1 300px;min-width:0">
+<div style="font-family:'Geist Mono',monospace;font-size:13px;color:#2DE2A6;letter-spacing:.08em">PERGUNTAS</div>
+<h2 style="margin:14px 0 0;font-size:44px;line-height:1.08;letter-spacing:-0.03em;font-weight:700">Perguntas frequentes</h2>
+</div>
+<div style="flex:2 1 520px;min-width:0;border-top:1px solid #1F2937">
+
+<details style="border-bottom:1px solid #1F2937"><summary style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;font-size:18px;font-weight:600"><span>Quando abre?</span><svg class="plus" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none"><path d="M10 3v14M3 10h14" stroke="#8B98A9" stroke-width="1.8" stroke-linecap="round"/></svg></summary><p style="margin:0 0 22px;color:#8B98A9;max-width:620px;text-wrap:pretty">Estamos a construir o produto. Quem estiver na lista de espera é avisado primeiro, por email, quando houver data.</p></details>
+
+<details style="border-bottom:1px solid #1F2937"><summary style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;font-size:18px;font-weight:600"><span>Vai ter teste grátis?</span><svg class="plus" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none"><path d="M10 3v14M3 10h14" stroke="#8B98A9" stroke-width="1.8" stroke-linecap="round"/></svg></summary><p style="margin:0 0 22px;color:#8B98A9;max-width:620px;text-wrap:pretty">Planeamos incluir um teste grátis de 7 dias. Os detalhes e os preços serão anunciados no lançamento.</p></details>
+
+<details style="border-bottom:1px solid #1F2937"><summary style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;font-size:18px;font-weight:600"><span>Funciona em Portugal e no Brasil?</span><svg class="plus" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none"><path d="M10 3v14M3 10h14" stroke="#8B98A9" stroke-width="1.8" stroke-linecap="round"/></svg></summary><p style="margin:0 0 22px;color:#8B98A9;max-width:620px;text-wrap:pretty">Sim, é esse o objetivo. A busca vai funcionar por distrito e concelho em Portugal, e por cidade e bairro no Brasil.</p></details>
+
+<details style="border-bottom:1px solid #1F2937"><summary style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;font-size:18px;font-weight:600"><span>De onde vêm os dados das empresas?</span><svg class="plus" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none"><path d="M10 3v14M3 10h14" stroke="#8B98A9" stroke-width="1.8" stroke-linecap="round"/></svg></summary><p style="margin:0 0 22px;color:#8B98A9;max-width:620px;text-wrap:pretty">De fontes públicas e oficiais, como o Google Maps através da API oficial. Guardamos apenas informação comercial pública das empresas.</p></details>
+
+<details style="border-bottom:1px solid #1F2937"><summary style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;font-size:18px;font-weight:600"><span>O ScoutKnock envia as mensagens por mim?</span><svg class="plus" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none"><path d="M10 3v14M3 10h14" stroke="#8B98A9" stroke-width="1.8" stroke-linecap="round"/></svg></summary><p style="margin:0 0 22px;color:#8B98A9;max-width:620px;text-wrap:pretty">Não. Geramos a mensagem e tu revês, ajustas e envias. É mais seguro para a tua conta e respeita as regras do WhatsApp e da lei.</p></details>
+
+<details style="border-bottom:1px solid #1F2937"><summary style="display:flex;justify-content:space-between;align-items:center;gap:16px;padding:22px 0;font-size:18px;font-weight:600"><span>Quanto vai custar?</span><svg class="plus" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true" style="flex:none"><path d="M10 3v14M3 10h14" stroke="#8B98A9" stroke-width="1.8" stroke-linecap="round"/></svg></summary><p style="margin:0 0 22px;color:#8B98A9;max-width:620px;text-wrap:pretty">Ainda estamos a fechar os preços. Vão ser planos mensais, com limites de buscas e de sites demo, e quem estiver na lista de espera saberá primeiro.</p></details>
+
+</div>
+</div>
+</section>
+
+<!-- LISTA DE ESPERA -->
+<section id="lista" style="position:relative">
+<svg aria-hidden="true" style="position:absolute;left:-260px;bottom:-300px;opacity:.5" width="760" height="760" viewBox="0 0 760 760" fill="none"><circle cx="380" cy="380" r="110" stroke="#1F2937"/><circle cx="380" cy="380" r="200" stroke="#1F2937"/><circle cx="380" cy="380" r="290" stroke="#1F2937"/><circle cx="380" cy="380" r="370" stroke="#1F2937"/></svg>
+<div style="position:relative;max-width:1200px;margin:0 auto;padding:96px 40px;display:flex;flex-wrap:wrap;align-items:center;gap:48px 72px">
+<div style="flex:1 1 380px;min-width:0">
+<h2 style="margin:0;font-size:64px;line-height:1;letter-spacing:-0.04em;font-weight:700">Bate à porta <span style="color:#2DE2A6">certa.</span></h2>
+<p style="margin:20px 0 0;font-size:20px;color:#8B98A9">Menos procura, mais conversas.</p>
+</div>
+<div style="flex:1 1 420px;min-width:0;max-width:520px;background:#121821;border:1px solid #1F2937;border-radius:16px;padding:32px">
+<h3 style="margin:0;font-size:24px;letter-spacing:-0.02em">Sê dos primeiros a entrar</h3>
+<p style="margin:8px 0 0;color:#8B98A9">Deixa o teu email e avisamos-te quando abrirmos.</p>
+<div style="margin-top:24px;display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-direction:column;gap:6px"><label for="email" style="font-size:14px;font-weight:500">O teu email</label>
+<input id="email" type="email" placeholder="nome@exemplo.pt" style="box-sizing:border-box;width:100%;background:#0B0F14;color:#E6EDF3;border:1px solid #2B3647;border-radius:10px;padding:0 14px;height:48px;font:inherit"></div>
+<div style="display:flex;flex-direction:column;gap:6px"><label for="vende" style="font-size:14px;font-weight:500">O que vendes? <span style="color:#8B98A9;font-weight:400">(opcional)</span></label>
+<select id="vende" style="box-sizing:border-box;width:100%;background:#0B0F14;color:#E6EDF3;border:1px solid #2B3647;border-radius:10px;padding:0 14px;height:48px;font:inherit"><option>Sites</option><option>Social media</option><option>Design</option><option>Marketing</option><option>Outro</option></select></div>
+<button type="button" style="background:#2DE2A6;color:#0B0F14;border:0;border-radius:12px;height:52px;font:inherit;font-weight:600;font-size:17px;cursor:pointer">Entrar na lista de espera</button>
+</div>
+<p style="margin:16px 0 0;font-size:13px;color:#8B98A9">Usamos o teu email só para te avisar do lançamento. Podes sair da lista quando quiseres. Lê a <a href="#" style="color:#2DE2A6">Política de Privacidade</a>.</p>
+</div>
+</div>
+</section>
+
+<!-- RODAPÉ -->
+<footer style="border-top:1px solid #1F2937">
+<div style="max-width:1200px;margin:0 auto;padding:28px 40px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 24px;font-size:14px;color:#8B98A9">
+<span>© 2026 ScoutKnock. Feito em Portugal.</span>
+<nav style="display:flex;flex-wrap:wrap;gap:8px 24px"><a href="#" style="color:#8B98A9;text-decoration:none;padding:8px 0">Privacidade</a><a href="#" style="color:#8B98A9;text-decoration:none;padding:8px 0">Termos</a><a href="#" style="color:#8B98A9;text-decoration:none;padding:8px 0">Contacto</a></nav>
+</div>
+</footer>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":4400}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

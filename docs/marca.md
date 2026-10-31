@@ -24,7 +24,7 @@ Personalidade: direta, honesta, tecnológica, sem exageros. Fala como um colega 
 
 ## Cores
 
-O tema segue o sistema do utilizador: visual escuro ("radar") ou tema claro. Todas as combinações abaixo passam o contraste mínimo de acessibilidade (4,5:1 para texto).
+Tema escuro ("radar") por defeito, com a classe `dark` no `<html>` (ver `docs/design.md`); os tokens claros continuam disponíveis. Todas as combinações abaixo passam o contraste mínimo de acessibilidade (4,5:1 para texto).
 
 | Papel | Escuro | Claro |
 | --- | --- | --- |
@@ -105,7 +105,7 @@ Nota: o ficheiro atual força `Arial` no `body`. Substituir pela linha acima, pa
 - Interface e títulos: **Geist Sans** (já instalada no projeto).
 - Números, códigos e a nota de oportunidade: **Geist Mono**.
 - Títulos: peso 700, espaçamento ligeiramente apertado. Texto corrente: 400, linha de 1,6.
-- Escala: 14 / 16 / 20 / 28 / 40 px. Texto mínimo no telemóvel: 16 px.
+- Escala e tamanhos mínimos: ver `docs/design.md` (16 px nos campos no telemóvel; 12 a 14 px permitidos em etiquetas).
 
 ## Tom dos textos
 

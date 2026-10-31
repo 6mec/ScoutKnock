@@ -1,49 +1,285 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Hover e pressionado, também forçáveis com data-preview na página /painel/ui. */
+@custom-variant hovered {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  &[data-preview="hover"] {
+    @slot;
+  }
+}
+
+@custom-variant pressed {
+  &:active {
+    @slot;
+  }
+  &[data-preview="pressed"] {
+    @slot;
+  }
+}
+
+/* Tokens claros: ativos quando o html não tem a classe dark. */
 :root {
+  --canvas: #eef2f6;
   --background: #f7f9fb;
   --surface: #ffffff;
+  --surface-raised: #f1f4f8;
+  --border-subtle: #edf0f4;
   --border: #e3e8ee;
+  --border-strong: #cbd3dd;
+  --border-input: #7c8796;
   --foreground: #0b0f14;
   --muted: #566273;
   --accent: #0a7f5b;
   --accent-contrast: #ffffff;
+  --accent-soft: rgba(10, 127, 91, 0.1);
+  --accent-halo: rgba(10, 127, 91, 0.18);
   --amber: #a15c00;
   --danger: #c62828;
+  --elevation-float: 0 16px 48px -12px rgba(11, 15, 20, 0.22);
+
+  --duration-instant: 120ms;
+  --duration-fast: 200ms;
+  --duration-base: 320ms;
+  --duration-slow: 600ms;
+  --duration-entrance: 900ms;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0b0f14;
-    --surface: #121821;
-    --border: #1f2937;
-    --foreground: #e6edf3;
-    --muted: #8b98a9;
-    --accent: #2de2a6;
-    --accent-contrast: #0b0f14;
-    --amber: #ffb547;
-    --danger: #ff6b6b;
-  }
+.dark {
+  color-scheme: dark;
+  --canvas: #070a0e;
+  --background: #0b0f14;
+  --surface: #121821;
+  --surface-raised: #161e29;
+  --border-subtle: #1a222e;
+  --border: #1f2937;
+  --border-strong: #2b3647;
+  --border-input: #627085;
+  --foreground: #e6edf3;
+  --muted: #8b98a9;
+  --accent: #2de2a6;
+  --accent-contrast: #0b0f14;
+  --accent-soft: rgba(45, 226, 166, 0.12);
+  --accent-halo: rgba(45, 226, 166, 0.18);
+  --amber: #ffb547;
+  --danger: #ff6b6b;
+  --elevation-float: 0 16px 48px -12px rgba(0, 0, 0, 0.6);
 }
 
 @theme inline {
+  --color-canvas: var(--canvas);
   --color-background: var(--background);
   --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-border-subtle: var(--border-subtle);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-border-input: var(--border-input);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-accent: var(--accent);
   --color-accent-contrast: var(--accent-contrast);
+  --color-accent-soft: var(--accent-soft);
   --color-amber: var(--amber);
   --color-danger: var(--danger);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --shadow-float: var(--elevation-float);
+  --shadow-halo: 0 0 0 4px var(--accent-halo);
+}
+
+@theme {
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --text-12: 12px;
+  --text-13: 13px;
+  --text-14: 14px;
+  --text-16: 16px;
+  --text-18: 18px;
+  --text-20: 20px;
+  --text-24: 24px;
+  --text-32: 32px;
+  --text-44: 44px;
+  --text-48: 48px;
+  --text-64: 64px;
+  --text-84: 84px;
+
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  --animate-pulse-dot: pulse-dot 3s var(--ease-in-out) infinite;
+  --animate-spinner: spinner 800ms linear infinite;
+  --animate-sweep-once: sweep 1.2s var(--ease-out) both;
+  --animate-sweep-loop: sweep 3s linear infinite;
+  --animate-pop-in: pop-in var(--duration-fast) var(--ease-out) both;
+  --animate-pop-out: pop-out var(--duration-instant) var(--ease-out) both;
+  --animate-fade-in: fade-in var(--duration-fast) var(--ease-out) both;
+  --animate-fade-out: fade-out var(--duration-instant) var(--ease-out) both;
+  --animate-draw-check: draw-check var(--duration-base) var(--ease-out) both;
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  70%,
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pop-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes draw-check {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Movimento reduzido: sem loops nem escalas, só fades curtos. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --animate-shimmer: none;
+    --animate-pulse-dot: none;
+    --animate-spinner: none;
+    --animate-sweep-once: none;
+    --animate-sweep-loop: none;
+    --animate-pop-in: fade-in var(--duration-instant) linear both;
+    --animate-pop-out: fade-out var(--duration-instant) linear both;
+    --animate-fade-in: fade-in var(--duration-instant) linear both;
+    --animate-fade-out: fade-out var(--duration-instant) linear both;
+    --animate-draw-check: none;
+  }
+
+  *,
+  ::before,
+  ::after {
+    scroll-behavior: auto !important;
+    transition-duration: var(--duration-instant) !important;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
   }
+}
+
+@utility focus-ring {
+  &:focus-visible,
+  &[data-preview="focus"] {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+}
+
+@utility type-display {
+  font-weight: 700;
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+@utility type-heading {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+@utility type-body {
+  line-height: 1.6;
+  text-wrap: pretty;
+  max-width: 65ch;
+}
+
+@utility type-number {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+@utility section-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-13);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 body {
