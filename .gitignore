@@ -1,0 +1,19 @@
+node_modules/
+.next/
+out/
+dist/
+.vercel/
+
+# Segredos: nunca vão para o Git
+.env
+.env.local
+.env.*.local
+
+# Sistema e editor
+.DS_Store
+Thumbs.db
+.vscode/
+npm-debug.log*
+
+# Claude Code (preferências só tuas)
+CLAUDE.local.md
