@@ -33,7 +33,15 @@ function subscription(overrides: Partial<Stripe.Subscription> = {}) {
     status: "active",
     customer: "cus_1",
     metadata: { user_id: "u1" },
-    items: { data: [{ price: { id: "price_pe" } }] },
+    items: {
+      data: [
+        {
+          price: { id: "price_pe" },
+          current_period_start: 1_800_000_000,
+          current_period_end: 1_802_592_000,
+        },
+      ],
+    },
     trial_start: null,
     trial_end: null,
     cancel_at_period_end: false,
@@ -277,6 +285,15 @@ describe("webhook do Stripe", () => {
     expect(d.apply.mock.calls[0][0]).toMatchObject({
       hadTrial: true,
       trialEnd: "2027-01-15T08:00:00.000Z",
+    });
+  });
+
+  it("guarda o período atual, porque é nele que o consumo renova", async () => {
+    const d = deps();
+    await handleStripeEvent(event("customer.subscription.updated"), config, d);
+    expect(d.apply.mock.calls[0][0]).toMatchObject({
+      periodStart: "2027-01-15T08:00:00.000Z",
+      periodEnd: "2027-02-14T08:00:00.000Z",
     });
   });
 

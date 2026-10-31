@@ -20,7 +20,13 @@ import { ContactsTable } from "./contacts-table";
 
 const { contacts: copy } = ptPT;
 
-export function ContactsScreen({ initial }: { initial: Contact[] }) {
+export function ContactsScreen({
+  initial,
+  statusFilter,
+}: {
+  initial: Contact[];
+  statusFilter: ContactStatus | null;
+}) {
   const [contacts, setContacts] = useState(initial);
   const [lastInitial, setLastInitial] = useState(initial);
   const [openId, setOpenId] = useState<string | null>(null);
@@ -32,6 +38,9 @@ export function ContactsScreen({ initial }: { initial: Contact[] }) {
   }
 
   const open = contacts.find(({ id }) => id === openId);
+  const visible = statusFilter
+    ? contacts.filter(({ status }) => status === statusFilter)
+    : contacts;
 
   function changeStatus(id: string, status: ContactStatus) {
     const previous = contacts;
@@ -98,7 +107,25 @@ export function ContactsScreen({ initial }: { initial: Contact[] }) {
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col px-4 py-6 lg:px-8">
+    <div className="flex w-full min-w-0 flex-col gap-4 px-4 py-6 lg:px-8">
+      {statusFilter && (
+        <div className="flex flex-wrap items-center gap-x-4" data-testid="contacts-filter">
+          <p className="font-semibold">
+            {copy.filter.showing(copy.statuses[statusFilter])}
+          </p>
+          <Link
+            href="/painel/contactos"
+            className="focus-ring inline-flex min-h-11 items-center rounded-sm text-14 text-accent underline"
+          >
+            {copy.filter.clear}
+          </Link>
+          {visible.length === 0 && (
+            <p role="status" className="w-full text-muted">
+              {copy.filter.empty}
+            </p>
+          )}
+        </div>
+      )}
       <Tabs defaultValue="board">
         <TabsList>
           <TabsTrigger value="board">{copy.views.board}</TabsTrigger>
@@ -106,14 +133,14 @@ export function ContactsScreen({ initial }: { initial: Contact[] }) {
         </TabsList>
         <TabsContent value="board">
           <ContactsBoard
-            contacts={contacts}
+            contacts={visible}
             onOpen={setOpenId}
             onStatusChange={changeStatus}
           />
         </TabsContent>
         <TabsContent value="table">
           <ContactsTable
-            contacts={contacts}
+            contacts={visible}
             onOpen={setOpenId}
             onStatusChange={changeStatus}
           />

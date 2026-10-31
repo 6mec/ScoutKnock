@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
 import { requireUser } from "@/lib/auth/current-user";
 import type { Contact } from "@/lib/contacts/rules";
+import { parseStatusFilter } from "@/lib/dashboard/rules";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,16 +14,21 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function ContactsPage() {
+export default function ContactsPage({
+  searchParams,
+}: PageProps<"/painel/contactos">) {
   return (
     <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
-      <Content />
+      <Content searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Content() {
+async function Content({
+  searchParams,
+}: Pick<PageProps<"/painel/contactos">, "searchParams">) {
   const user = await requireUser();
+  const { estado } = await searchParams;
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("contacts")
@@ -38,5 +44,5 @@ async function Content() {
     );
   }
 
-  return <ContactsScreen initial={data as Contact[]} />;
+  return <ContactsScreen initial={data as Contact[]} statusFilter={parseStatusFilter(estado)} />;
 }

@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ptPT } from "@/i18n/pt-PT";
 import { findLocation } from "@/lib/radar/localities";
-import { newSearchRequests, subscribeToNewSearch } from "@/lib/radar/new-search";
+import { newSearchRequests, subscribeToNewSearch,
+  takePendingSearch,
+} from "@/lib/radar/new-search";
 import {
   readSearchEvents,
   type ScoredCompany,
@@ -98,7 +100,21 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
     [],
   );
 
-  async function search() {
+  // Adiado um instante: em desenvolvimento, o React corre os efeitos duas vezes, e o
+  // primeiro é cancelado antes de a busca começar, sem a gastar.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const repeated = takePendingSearch();
+      if (repeated) {
+        setValues(repeated);
+        search(repeated);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function search(query: SearchQuery = values) {
     const controller = new AbortController();
     controllerRef.current = controller;
     dispatch({ type: "start" });
@@ -110,7 +126,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
       const response = await fetch("/api/radar/search", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(query),
         signal: controller.signal,
       });
 
@@ -165,7 +181,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
           <RadarForm
             values={values}
             onChange={setValues}
-            onSubmit={search}
+            onSubmit={() => search()}
             focusOnMount={state.returning}
           />
         )}
@@ -195,7 +211,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
             <p className="type-body">{copy.errors[state.error]}</p>
             <div className="flex flex-wrap gap-3">
               {state.error !== "limit" && state.error !== "unavailable" && (
-                <Button onClick={search}>{copy.retry}</Button>
+                <Button onClick={() => search()}>{copy.retry}</Button>
               )}
               <Button variant="secondary" onClick={reset}>
                 {copy.back}

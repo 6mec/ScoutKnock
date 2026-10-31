@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition, type FormEvent } from "react";
+import { useRef, useState, useTransition, type FormEvent } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,6 +50,7 @@ export function CreateDemoButton({
   const [askName, setAskName] = useState(false);
   const [name, setName] = useState("");
   const [draft, setDraft] = useState(EMPTY_DRAFT);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   const update = (change: Partial<typeof EMPTY_DRAFT>) =>
     setDraft((current) => ({ ...current, ...change }));
@@ -81,6 +82,7 @@ export function CreateDemoButton({
   return (
     <>
       <Button
+        ref={buttonRef}
         variant="secondary"
         loading={checking}
         loadingText={copy.pending}
@@ -89,7 +91,14 @@ export function CreateDemoButton({
         {copy.create}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent
+          className="max-w-2xl"
+          // Abre depois de uma verificação, por isso o foco volta ao botão à mão.
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            buttonRef.current?.focus();
+          }}
+        >
           <DialogTitle>{copy.form.title}</DialogTitle>
           <DialogDescription>{copy.form.body}</DialogDescription>
           <p className="rounded-md border border-amber p-3 text-14">

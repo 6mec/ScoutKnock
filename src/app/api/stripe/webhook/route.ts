@@ -41,6 +41,8 @@ export async function POST(request: Request) {
             had_trial: update.hadTrial,
             new_trial_end: update.trialEnd,
             new_cancel_at_period_end: update.cancelAtPeriodEnd,
+            new_period_start: update.periodStart,
+            new_period_end: update.periodEnd,
           },
         );
         if (error) throw new Error(error.code);

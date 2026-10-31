@@ -18,7 +18,13 @@ export type SubscriptionUpdate = {
   hadTrial: boolean;
   trialEnd: string | null;
   cancelAtPeriodEnd: boolean;
+  periodStart: string | null;
+  periodEnd: string | null;
 };
+
+function toIso(seconds?: number | null) {
+  return seconds ? new Date(seconds * 1000).toISOString() : null;
+}
 
 export type WebhookResult = "applied" | "duplicate" | "ignored" | "rejected";
 
@@ -48,7 +54,8 @@ export async function handleStripeEvent(
     return "ignored";
   }
 
-  const plan = planForPrice(config, subscription.items.data[0]?.price.id);
+  const item = subscription.items.data[0];
+  const plan = planForPrice(config, item?.price.id);
   const applied = await deps.apply({
     eventId: event.id,
     eventType: event.type,
@@ -61,10 +68,10 @@ export async function handleStripeEvent(
     status: subscription.status,
     plan,
     hadTrial: subscription.trial_start !== null,
-    trialEnd: subscription.trial_end
-      ? new Date(subscription.trial_end * 1000).toISOString()
-      : null,
+    trialEnd: toIso(subscription.trial_end),
     cancelAtPeriodEnd: subscription.cancel_at_period_end,
+    periodStart: toIso(item?.current_period_start),
+    periodEnd: toIso(item?.current_period_end),
   });
 
   if (!applied) return "duplicate";

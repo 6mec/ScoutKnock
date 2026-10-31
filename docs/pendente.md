@@ -26,6 +26,8 @@ Escolhidos para cumprir os 30% do preço em euros no pior caso, com os preços d
 | Pro | 150 | 300 (10) | 11,25 € | 11,70 € |
 | Agência | 245 | 750 (25) | 23,58 € | 23,70 € |
 
+O consumo renova no período atual da subscrição do Stripe. No teste grátis, o período é o próprio teste. Sem subscrição, conta o mês de calendário em Lisboa.
+
 Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limits` e `public.plan_lookup_limits`. Têm de mudar nos dois sítios.
 
 **Por decidir (Daniel):** os preços em reais não cumprem esta conta a câmbios acima de cerca de 2,50 a 2,77 reais por euro, conforme o pack. Os preços ficam como estão por agora. Rever com o câmbio do dia.

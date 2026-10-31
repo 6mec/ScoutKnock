@@ -7,6 +7,7 @@ import {
   DialogContent,
   DialogDescription,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/field";
 import { toast } from "@/components/ui/toaster";
@@ -38,35 +39,33 @@ export function SaveContactButton({ companyId }: { companyId: string }) {
   }
 
   return (
-    <>
-      <Button variant="secondary" onClick={() => setOpen(true)}>
-        {copy.saveToContacts}
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogTitle>{copy.saveDialog.title}</DialogTitle>
-          <DialogDescription>{copy.saveDialog.body}</DialogDescription>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <Field label={copy.saveDialog.label}>
-              <Input
-                value={label}
-                maxLength={MAX_LABEL}
-                required
-                autoComplete="off"
-                onChange={(event) => setLabel(event.target.value)}
-              />
-            </Field>
-            <div className="flex flex-wrap gap-2">
-              <Button type="submit" loading={pending} loadingText={copy.saving}>
-                {copy.saveDialog.submit}
-              </Button>
-              <Button variant="secondary" onClick={() => setOpen(false)}>
-                {copy.saveDialog.cancel}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    </>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="secondary">{copy.saveToContacts}</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogTitle>{copy.saveDialog.title}</DialogTitle>
+        <DialogDescription>{copy.saveDialog.body}</DialogDescription>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Field label={copy.saveDialog.label}>
+            <Input
+              value={label}
+              maxLength={MAX_LABEL}
+              required
+              autoComplete="off"
+              onChange={(event) => setLabel(event.target.value)}
+            />
+          </Field>
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" loading={pending} loadingText={copy.saving}>
+              {copy.saveDialog.submit}
+            </Button>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              {copy.saveDialog.cancel}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

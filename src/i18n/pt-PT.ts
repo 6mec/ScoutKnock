@@ -566,13 +566,100 @@ export const ptPT = {
     },
   },
   dashboard: {
-    greeting: "Olá. Vamos encontrar o próximo cliente?",
+    title: "Como está o teu mês",
+    loading: "A carregar o painel",
     newSearch: "Nova busca",
-    steps: [
-      "Escolhe o serviço, o nicho e a localidade.",
-      "Vê as empresas ordenadas pela nota de oportunidade.",
-      "Abre uma empresa e percebe os motivos da nota.",
-    ],
+    usage: {
+      title: "Consumo",
+      meter: {
+        searches: (used: number, limit: number) => `${used} de ${limit} buscas`,
+        demos: (used: number, limit: number) => `${used} de ${limit} sites demo`,
+        lookups: (used: number, limit: number) =>
+          `${used} de ${limit} aberturas de contacto`,
+      },
+      lookupsToday: (used: number, limit: number) => `Hoje: ${used} de ${limit}`,
+      reached: {
+        searches: "Chegaste ao limite de buscas.",
+        demos: "Chegaste ao limite de sites demo.",
+        lookups: "Chegaste ao limite de aberturas de contacto.",
+      },
+      seePlans: "Ver os planos",
+      seePlansUpgrade: "Ver o pack seguinte",
+      renews: (date: string) => `Renova a ${date}.`,
+      trialEnds: (date: string) => `O teste grátis acaba a ${date}.`,
+      endsOn: (date: string) => `A subscrição acaba a ${date}.`,
+    },
+    next: {
+      title: "Próximo passo",
+      subscribe: "Subscreve um pack",
+      openContacts: "Abrir os contactos",
+      paymentProblem:
+        "O último pagamento falhou. Regulariza-o para voltares aos limites do teu pack.",
+      limit: (date: string) =>
+        `Chegaste ao limite de buscas. Subscreve um pack ou espera pela renovação, a ${date}.`,
+      limitUpgrade: (date: string) =>
+        `Chegaste ao limite de buscas. Passa para o pack seguinte ou espera pela renovação, a ${date}.`,
+      limitWait: (date: string) =>
+        `Chegaste ao limite de buscas. Voltas a ter buscas na renovação, a ${date}.`,
+      expiringDemo: (name: string, days: number) =>
+        days === 0
+          ? `A demo de ${name} é apagada hoje.`
+          : days === 1
+            ? `A demo de ${name} é apagada dentro de 1 dia.`
+            : `A demo de ${name} é apagada dentro de ${days} dias.`,
+      toContact: (count: number) =>
+        count === 1
+          ? "Tens 1 contacto por contactar."
+          : `Tens ${count} contactos por contactar.`,
+      firstSearch: "Faz a tua primeira busca.",
+      saveCompany: "Abre uma empresa no Radar e guarda-a nos contactos.",
+      newSearch: "Os teus contactos estão em dia. Procura mais empresas.",
+    },
+    leads: {
+      title: "Contactos por estado",
+      empty: "Ainda não tens contactos. Guarda uma empresa no Radar para começares.",
+    },
+    searches: {
+      title: "Últimas buscas",
+      empty: "Ainda não fizeste nenhuma busca.",
+      found: (count: number) => (count === 1 ? "1 empresa" : `${count} empresas`),
+      repeat: "Repetir",
+      repeatLabel: (niche: string, locality: string) =>
+        `Repetir a busca ${niche} em ${locality}`,
+      confirmTitle: "Repetir esta busca?",
+      confirmBody: (next: number, limit: number) =>
+        `Conta como nova busca: ficas com ${next} de ${limit}.`,
+      confirm: "Repetir a busca",
+      cancel: "Cancelar",
+    },
+    demos: {
+      title: "Sites demo",
+      empty: "Ainda não tens sites demo. Abre uma empresa no Radar para criares o primeiro.",
+      active: (count: number) => (count === 1 ? "1 ativo" : `${count} ativos`),
+      deletedIn: (days: number) =>
+        days === 0
+          ? "Apagada hoje"
+          : days === 1
+            ? "Apagada dentro de 1 dia"
+            : `Apagada dentro de ${days} dias`,
+      noName: "Empresa sem nome",
+      open: "Abrir a demo",
+      openLabel: (name: string) => `Abrir a demo de ${name}`,
+      seeAll: "Ver todos os sites demo",
+    },
+    subscription: {
+      title: "Subscrição",
+      none: "Sem pack ativo: tens o limite mais baixo.",
+      active: (plan: string) => `Estás no pack ${plan}.`,
+      trial: (date: string) => `Estás no teste grátis até ${date}.`,
+      ending: (plan: string, date: string) =>
+        `Estás no pack ${plan}. A subscrição acaba a ${date}.`,
+      paymentProblem: (plan: string) =>
+        `O último pagamento do pack ${plan} falhou. Tens o limite mais baixo até ser regularizado.`,
+      manage: "Gerir subscrição",
+      planLimits: (searches: number, demos: number) =>
+        `${searches} buscas e ${demos} sites demo`,
+    },
   },
   demos: {
     notice: (author: string, company: string) =>
@@ -670,6 +757,11 @@ export const ptPT = {
     removeConfirm: "Remover",
     removeCancel: "Cancelar",
     views: { board: "Quadro", table: "Tabela" },
+    filter: {
+      showing: (status: string) => `A mostrar: ${status}`,
+      clear: "Ver todos os contactos",
+      empty: "Nenhum contacto neste estado.",
+    },
     statuses: {
       to_contact: "Por contactar",
       contacted: "Contactado",

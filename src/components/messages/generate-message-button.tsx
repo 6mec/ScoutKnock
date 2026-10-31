@@ -43,6 +43,7 @@ export function GenerateMessageButton({
 }) {
   const router = useRouter();
   const controller = useRef<AbortController | null>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<Status>("writing");
   const [text, setText] = useState("");
@@ -134,6 +135,7 @@ export function GenerateMessageButton({
   return (
     <>
       <Button
+        ref={buttonRef}
         variant={variant}
         onClick={() => {
           setOpen(true);
@@ -143,7 +145,14 @@ export function GenerateMessageButton({
         {copy.generate}
       </Button>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent aria-describedby={undefined} className="max-w-lg">
+        <DialogContent
+          aria-describedby={undefined}
+          className="max-w-lg"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            buttonRef.current?.focus();
+          }}
+        >
           <DialogTitle>{copy.title(companyName)}</DialogTitle>
           {isSample && (
             <div className="flex flex-col items-start gap-2">
