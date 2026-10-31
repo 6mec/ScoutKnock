@@ -24,6 +24,18 @@ export function WaitlistForm() {
           <DrawnCheck size={24} />
         </span>
         <p className="type-body text-18">{state.message}</p>
+        {/* Em produção, o compilador retira este bloco por completo. */}
+        {process.env.NODE_ENV === "development" && state.devConfirmPath && (
+          <p className="rounded-md border border-amber p-3 text-14">
+            {copy.devLinkNotice}{" "}
+            <Link
+              href={state.devConfirmPath}
+              className="focus-ring rounded-sm text-accent underline"
+            >
+              {copy.devLink}
+            </Link>
+          </p>
+        )}
       </div>
     );
   }

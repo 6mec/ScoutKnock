@@ -2,6 +2,16 @@
 
 Lista do que já está construído mas desligado. Cada ponto diz o passo exato para o ligar. Nunca colar chaves no código nem em conversas: só no `.env.local` e nas variáveis de ambiente da Vercel.
 
+## Bloqueios do lançamento
+
+Sem cada um destes pontos, o site não pode abrir ao público:
+
+- **SMTP próprio no Supabase:** sem ele, ninguém de fora se regista. Ver "Emails".
+- **Domínio verificado e envio real dos emails.** Ver "Emails".
+- **Termos do Google sobre guardar dados das empresas.** Ver "Google Places".
+- **Chave do Google Places e modo real do Stripe, com faturação certificada.** Ver as secções respetivas.
+- **Textos legais validados.**
+
 ## Mensagens por IA
 
 **Estado:** pendente: precisa de chave.
@@ -101,3 +111,34 @@ Lista do que já está construído mas desligado. Cada ponto diz o passo exato p
 - Faturação certificada (InvoiceXpress ou Moloni) e IVA (OSS na UE, clientes BR). Não está construída.
 - Regras das redes de cartões para testes grátis e lembretes do fim do teste. O Stripe não envia estes lembretes em modo de teste.
 - Termos de subscrição e direito de cancelamento, com os textos legais.
+
+## Emails
+
+**Estado:** pendente: precisa de domínio próprio. O envio real está desligado.
+
+**Funciona hoje, com a chave gratuita do Resend:** todos os envios da aplicação passam por `src/lib/email/send.ts`. Com `EMAIL_REAL_SENDING` diferente de `true`, o destinatário passa a `delivered@resend.dev` e o remetente a `onboarding@resend.dev`, por isso não chega nada a ninguém. Estes envios contam para a quota do Resend.
+
+**Só em desenvolvimento:** com o envio real desligado, a lista de espera mostra o link de confirmação no ecrã, para testar o fluxo. Em produção esse link não existe.
+
+**Em produção, sem envio real:** a lista de espera fica fechada e não guarda emails.
+
+### Bloqueio do lançamento: SMTP próprio no Supabase
+
+Registo, confirmação de conta e recuperação de palavra-passe saem pelo Supabase, não por `send.ts`. O serviço por omissão do Supabase só entrega a membros da equipa do projeto, está limitado a 2 mensagens por hora e não serve para produção. **Sem SMTP próprio, ninguém de fora consegue registar-se nem recuperar a palavra-passe.** Fonte: supabase.com/docs/guides/auth/auth-smtp (consultada a 31/10/2026).
+
+**Para ligar:**
+
+1. Comprar um domínio.
+2. No Resend, adicionar o domínio e configurar os registos DNS indicados. Esperar pela verificação.
+3. No Resend, criar uma chave de API própria para o SMTP.
+4. No Supabase, em Authentication, ativar o SMTP próprio com os dados do Resend e um remetente do domínio.
+5. No Supabase, rever os limites de envio. Depois de ligar o SMTP, o limite por omissão é de 30 mensagens por hora.
+6. Na Vercel e no `.env.local`, colocar `WAITLIST_EMAIL_FROM` com um endereço do domínio, `SITE_URL` com o endereço público e `EMAIL_REAL_SENDING=true`.
+7. Rever o limite do plano do Resend em relação ao `DAILY_EMAIL_LIMIT`.
+
+**Verificar antes de abrir:**
+
+- [ ] Registo com um email fora da equipa do projeto: o email de confirmação chega.
+- [ ] Recuperação de palavra-passe com o mesmo email.
+- [ ] Lista de espera em produção: o email chega, e o link confirma e permite sair.
+- [ ] Os emails não caem no spam.

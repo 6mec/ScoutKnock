@@ -1,9 +1,7 @@
 import "server-only";
-import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
-import { createToken } from "./tokens";
-
-const { email: copy } = ptPT.waitlist;
+import { canPromiseEmail, sendEmail } from "@/lib/email/send";
+import { buildConfirmationEmail } from "./confirmation-email";
 
 // Sem tudo isto o formulário fica fechado: não guarda emails nem promete envios.
 export function getWaitlistEmailConfig() {
@@ -12,9 +10,11 @@ export function getWaitlistEmailConfig() {
   const tokenSecret = process.env.WAITLIST_TOKEN_SECRET;
   const siteUrl = process.env.SITE_URL;
 
-  if (!apiKey || !from || !tokenSecret || !siteUrl) return null;
+  if (!apiKey || !from || !tokenSecret || !siteUrl || !canPromiseEmail()) {
+    return null;
+  }
 
-  return { apiKey, from, tokenSecret, siteUrl };
+  return { from, tokenSecret, siteUrl };
 }
 
 type EmailConfig = NonNullable<ReturnType<typeof getWaitlistEmailConfig>>;
@@ -24,44 +24,10 @@ export async function sendConfirmationEmail(
   id: string,
   email: string,
 ) {
-  const link = (path: string, purpose: "confirm" | "unsubscribe") => {
-    const url = new URL(path, config.siteUrl);
-    url.searchParams.set("id", id);
-    url.searchParams.set("token", createToken(config.tokenSecret, purpose, id));
-    return url.toString();
-  };
-  const confirmUrl = link("/lista/confirmar", "confirm");
-  const unsubscribeUrl = link("/lista/sair", "unsubscribe");
+  const { message, devConfirmPath } = buildConfirmationEmail(config, id, email);
+  const { ok, status } = await sendEmail(message);
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${config.apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: config.from,
-      to: email,
-      subject: copy.subject,
-      headers: { "List-Unsubscribe": `<${unsubscribeUrl}>` },
-      text: [
-        copy.intro,
-        confirmUrl,
-        copy.ignore,
-        `${copy.unsubscribe} ${unsubscribeUrl}`,
-      ].join("\n\n"),
-      html: [
-        `<p>${copy.intro}</p>`,
-        `<p><a href="${confirmUrl}">${copy.confirmLink}</a></p>`,
-        `<p>${copy.ignore}</p>`,
-        `<p><a href="${unsubscribeUrl}">${copy.unsubscribe}</a></p>`,
-      ].join(""),
-    }),
-  });
+  if (!ok) await reportError("waitlist email", status);
 
-  if (!response.ok) {
-    await reportError("waitlist email", response.status);
-  }
-
-  return response.ok;
+  return { ok, devConfirmPath: ok ? devConfirmPath : null };
 }

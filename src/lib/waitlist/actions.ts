@@ -17,11 +17,17 @@ import { verifyToken, type TokenPurpose } from "./tokens";
 export type WaitlistState = {
   status: "idle" | "error" | "success";
   message?: string;
+  // Só em dev com o envio real desligado: ver buildConfirmationEmail.
+  devConfirmPath?: string;
 };
 
 const { messages, confirm, leave } = ptPT.waitlist;
 
 const joined: WaitlistState = { status: "success", message: messages.success };
+
+function joinedWith(devConfirmPath: string | null): WaitlistState {
+  return devConfirmPath ? { ...joined, devConfirmPath } : joined;
+}
 
 function failure(message: string): WaitlistState {
   return { status: "error", message };
@@ -79,14 +85,14 @@ export async function joinWaitlist(
     }
 
     const sent = await sendConfirmationEmail(config, existing.id, email);
-    if (!sent) return failure(messages.generic);
+    if (!sent.ok) return failure(messages.generic);
 
     await supabase
       .from("waitlist")
       .update({ last_email_sent_at: new Date(now).toISOString() })
       .eq("id", existing.id);
 
-    return joined;
+    return joinedWith(sent.devConfirmPath);
   }
 
   const { data: created, error: insertError } = await supabase
@@ -107,12 +113,12 @@ export async function joinWaitlist(
   }
 
   const sent = await sendConfirmationEmail(config, created.id, email);
-  if (!sent) {
+  if (!sent.ok) {
     await supabase.from("waitlist").delete().eq("id", created.id);
     return failure(messages.generic);
   }
 
-  return joined;
+  return joinedWith(sent.devConfirmPath);
 }
 
 function hasValidToken(purpose: TokenPurpose, formData: FormData) {

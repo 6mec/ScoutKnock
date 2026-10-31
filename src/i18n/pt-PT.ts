@@ -217,6 +217,9 @@ export const ptPT = {
       "Usamos o teu email só para te avisar do lançamento. Podes sair da lista quando quiseres. Lê a ",
     privacyLink: "Política de Privacidade",
     privacyAfter: ".",
+    devLinkNotice:
+      "Só em desenvolvimento: o envio real está desligado, por isso este email não chega a ninguém.",
+    devLink: "Abrir o link de confirmação",
     messages: {
       success:
         "Se este email ainda não estiver na lista, enviámos-te um email para o confirmares.",
