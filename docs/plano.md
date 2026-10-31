@@ -25,8 +25,10 @@ Nunca: envio automático em massa.
 | --- | --- | --- | --- | --- |
 | Teste (7 dias) | grátis | grátis | 10 | 2 |
 | Inicial | 19 € | R$ 49 | 100 | 10 |
-| Pro | 39 € | R$ 97 | 400 | 50 |
-| Agência | 79 € | R$ 197 | 1500 | 200 |
+| Pro | 39 € | R$ 97 | 150 | 50 |
+| Agência | 79 € | R$ 197 | 245 | 200 |
+
+Limites provisórios para o lançamento, escolhidos para cumprir os 30% de custo no pior caso. Aberturas de contacto: Inicial 90 por mês (3 por dia), Pro 300 (10 por dia), Agência 750 (25 por dia). Revêem-se depois de medir o custo real com a chave do Google e o uso dos primeiros clientes (ver `docs/pendente.md`).
 
 Site oficial alojado: 5 € (R$ 15) por mês por site publicado.
 

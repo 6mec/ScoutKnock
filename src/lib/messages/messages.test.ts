@@ -27,7 +27,6 @@ import {
 const input: MessageInput = {
   companyName: "Barbearia Exemplo",
   niche: "Barbearias",
-  locality: "Porto",
   reasons: ["noWebsite", "fewReviews"],
   senderName: "Ana",
   tone: "normal",
@@ -109,17 +108,16 @@ describe("fornecedor simulado", () => {
 });
 
 describe("fornecedor Claude com respostas simuladas", () => {
-  it("usa o modelo aprovado e envia só dados públicos", () => {
+  it("usa o modelo aprovado e envia só nome, nicho e motivos", () => {
     const request = buildClaudeRequest(input);
     expect(request.model).toBe(CLAUDE_MODEL);
     expect(CLAUDE_MODEL).toBe("claude-haiku-5-5");
     expect(JSON.parse(request.messages[0].content)).toEqual({
       empresa: "Barbearia Exemplo",
       nicho: "Barbearias",
-      localidade: "Porto",
       motivos: ["Sem site", "Poucas avaliações (menos de 20)"],
-      remetente: "Ana",
     });
+    expect(JSON.stringify(request)).not.toContain("Ana");
   });
 
   it("os dados da empresa não entram nas instruções", () => {
@@ -137,7 +135,9 @@ describe("fornecedor Claude com respostas simuladas", () => {
       "chave",
       fakeClaude([start, textDelta("Olá, "), textDelta("equipa."), end("end_turn")]),
     );
-    expect(await collect(provider.write(input, { onUsage }))).toBe("Olá, equipa.");
+    expect(await collect(provider.write(input, { onUsage }))).toBe(
+      "Olá, equipa.\n\nAna",
+    );
     expect(onUsage).toHaveBeenCalledWith({ inputTokens: 100, outputTokens: 40 });
   });
 

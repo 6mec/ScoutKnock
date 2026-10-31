@@ -3,14 +3,16 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { reportError } from "@/lib/events/log";
-import { getCompanyProvider } from "@/lib/radar/provider";
+import { lookupCompanyForUser } from "@/lib/radar/lookup-server";
 import { scoreCompany } from "@/lib/radar/score";
-import { SERVICE_IDS } from "@/lib/radar/types";
+import { SERVICE_IDS, type Opportunity } from "@/lib/radar/types";
 import { createClient } from "@/lib/supabase/server";
 import {
   isContactStatus,
   marksLastContact,
+  parseCompanyId,
   parseContactDetails,
+  parseContactLabel,
 } from "./rules";
 
 const CONTACTS_PATH = "/painel/contactos";
@@ -29,26 +31,20 @@ async function currentUser() {
   return { supabase, user };
 }
 
-// Os dados da empresa e a nota vêm sempre do servidor, nunca do browser.
-export async function saveContact(companyId: string): Promise<Result> {
+// Guarda só o place_id e o nome que o freelancer escreveu, por isso não há chamada paga.
+export async function saveContact(
+  companyIdValue: unknown,
+  labelValue: unknown,
+): Promise<Result> {
+  const companyId = parseCompanyId(companyIdValue);
+  const label = parseContactLabel(labelValue);
+  if (!companyId || !label) return { ok: false };
+
   const { supabase, user } = await currentUser();
-
-  const company = await getCompanyProvider({ userId: user.id })?.findById(companyId);
-  if (!company) {
-    await reportError("contactos guardar", "sem empresa", user.id);
-    return { ok: false };
-  }
-
   const { error } = await supabase.from("contacts").insert({
     user_id: user.id,
-    company_id: company.id,
-    company_name: company.name,
-    niche: company.niche,
-    locality: company.locality,
-    address: company.address,
-    phone: company.phone ?? null,
-    website: company.website,
-    score: scoreCompany(company, SERVICE_IDS[0]).score,
+    company_id: companyId,
+    label,
   });
 
   // Já guardada antes: para quem usa, o resultado é o mesmo.
@@ -59,6 +55,47 @@ export async function saveContact(companyId: string): Promise<Result> {
 
   revalidatePath(CONTACTS_PATH);
   return { ok: true };
+}
+
+export type ContactCompany =
+  | {
+      status: "ok";
+      isSample: boolean;
+      name: string;
+      address: string;
+      phone: string | null;
+      website: string | null;
+      reviewCount: number;
+      hasOpeningHours: boolean;
+      opportunity: Opportunity;
+    }
+  | { status: "limit" | "unavailable" };
+
+// Os dados do Google vêm na hora e ficam só no ecrã: nada disto é gravado.
+export async function getContactCompany(id: string): Promise<ContactCompany> {
+  const { supabase, user } = await currentUser();
+  const { data: contact } = await supabase
+    .from("contacts")
+    .select("company_id")
+    .eq("id", id)
+    .maybeSingle();
+  if (!contact) return { status: "unavailable" };
+
+  const lookup = await lookupCompanyForUser(supabase, contact.company_id, user.id);
+  if (lookup.status !== "ok") return lookup;
+
+  const { company, isSample } = lookup;
+  return {
+    status: "ok",
+    isSample,
+    name: company.name,
+    address: company.address,
+    phone: company.phone ?? null,
+    website: company.website,
+    reviewCount: company.reviewCount,
+    hasOpeningHours: company.hasOpeningHours,
+    opportunity: scoreCompany(company, SERVICE_IDS[0]),
+  };
 }
 
 async function updateContact(
@@ -104,6 +141,8 @@ export async function saveContactDetails(
   if (!details) return { ok: false };
 
   return updateContact(id, "contactos detalhes", {
+    label: details.label,
+    confirmed_contact: details.confirmedContact,
     next_action: details.nextAction,
     next_action_at: details.nextActionAt,
     notes: details.notes,

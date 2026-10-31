@@ -12,6 +12,22 @@ Sem cada um destes pontos, o site não pode abrir ao público:
 - **Chave do Google Places e modo real do Stripe, com faturação certificada.** Ver as secções respetivas.
 - **Textos legais validados.**
 
+## Limites dos packs
+
+**Estado:** provisórios. Rever depois de medir o custo real com a chave do Google e o uso dos primeiros clientes.
+
+Escolhidos para cumprir os 30% do preço em euros no pior caso, com os preços do Google de 30/10/2026, sem a parte grátis e com um dólar a contar como um euro (0,035 € por busca e 0,02 € por abertura de contacto):
+
+| Pack | Buscas | Aberturas por mês (por dia) | Custo máximo | 30% do preço |
+| --- | --- | --- | --- | --- |
+| Inicial | 100 | 90 (3) | 5,30 € | 5,70 € |
+| Pro | 150 | 300 (10) | 11,25 € | 11,70 € |
+| Agência | 245 | 750 (25) | 23,58 € | 23,70 € |
+
+Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limits` e `public.plan_lookup_limits`. Têm de mudar nos dois sítios.
+
+**Por decidir (Daniel):** os preços em reais não cumprem esta conta a câmbios acima de cerca de 2,50 a 2,77 reais por euro, conforme o pack. Os preços ficam como estão por agora. Rever com o câmbio do dia.
+
 ## Mensagens por IA
 
 **Estado:** pendente: precisa de chave.

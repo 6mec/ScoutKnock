@@ -65,6 +65,8 @@ export function ContactsScreen({ initial }: { initial: Contact[] }) {
         contact.id === id
           ? {
               ...contact,
+              label: details.label,
+              confirmed_contact: details.confirmedContact,
               next_action: details.nextAction,
               next_action_at: details.nextActionAt,
               notes: details.notes,

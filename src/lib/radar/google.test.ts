@@ -12,6 +12,7 @@ import {
   placeToCompany,
   type GooglePlace,
 } from "./google-provider";
+import { lookupCompany } from "./lookup";
 import { getCompanyProvider } from "./provider";
 import { runSearch } from "./run-search";
 import type { SearchEvent } from "./search-events";
@@ -264,7 +265,65 @@ describe("conversão da resposta do Google", () => {
   });
 });
 
+describe("consulta de detalhes", () => {
+  const fake = (usesSampleData: boolean) => {
+    const findById = vi.fn(async () => ({ id: "x" }) as never);
+    return { usesSampleData, findById, search: vi.fn(), stream: vi.fn() };
+  };
+
+  it("a real conta para o limite diário", async () => {
+    const provider = fake(false);
+    const consume = vi.fn(async () => true);
+    expect((await lookupCompany(provider, "x", consume)).status).toBe("ok");
+    expect(consume).toHaveBeenCalledOnce();
+  });
+
+  it("com o limite atingido não há chamada paga", async () => {
+    const provider = fake(false);
+    expect(await lookupCompany(provider, "x", async () => false)).toEqual({
+      status: "limit",
+    });
+    expect(provider.findById).not.toHaveBeenCalled();
+  });
+
+  it("se não der para contar, não há chamada paga", async () => {
+    const provider = fake(false);
+    expect((await lookupCompany(provider, "x", async () => "error")).status).toBe(
+      "unavailable",
+    );
+    expect(provider.findById).not.toHaveBeenCalled();
+  });
+
+  it("os dados de exemplo não custam nada nem contam", async () => {
+    const provider = fake(true);
+    const consume = vi.fn(async () => false);
+    expect(await lookupCompany(provider, "x", consume)).toMatchObject({
+      status: "ok",
+      isSample: true,
+    });
+    expect(consume).not.toHaveBeenCalled();
+  });
+
+  it("sem fornecedor fica indisponível", async () => {
+    expect(await lookupCompany(null, "x", async () => true)).toEqual({
+      status: "unavailable",
+    });
+  });
+});
+
 describe("fornecedor Google com respostas simuladas", () => {
+  it("nunca pede latitude nem longitude", async () => {
+    const { provider, fetcher } = setup([json({}), json(place)]);
+    await events(provider);
+    await provider.findById("abc_1");
+
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    for (const call of fetcher.mock.calls as unknown as [string, RequestInit][]) {
+      const mask = (call[1].headers as Record<string, string>)["X-Goog-FieldMask"];
+      expect(mask).not.toMatch(/location|viewport|\*/i);
+    }
+  });
+
   it("faz o pedido certo, com a chave só no cabeçalho", async () => {
     const { provider, fetcher } = setup([json({ places: [place] })]);
     await events(provider);

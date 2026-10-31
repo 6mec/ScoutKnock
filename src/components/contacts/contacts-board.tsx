@@ -12,7 +12,6 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { useState } from "react";
-import { ScoreChip } from "@/components/ui/score-chip";
 import { ptPT } from "@/i18n/pt-PT";
 import {
   CONTACT_STATUSES,
@@ -58,21 +57,19 @@ function CardContent({
 }) {
   return (
     <>
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-2">
         {onOpen ? (
           <button
             type="button"
             onClick={() => onOpen(contact.id)}
             className="focus-ring min-h-11 min-w-0 flex-1 rounded-sm text-left font-semibold underline-offset-2 hovered:underline"
           >
-            {contact.company_name}
+            {contact.label}
           </button>
         ) : (
-          <p className="min-h-11 min-w-0 flex-1 font-semibold">{contact.company_name}</p>
+          <p className="min-h-11 min-w-0 flex-1 font-semibold">{contact.label}</p>
         )}
-        <ScoreChip score={contact.score} className="shrink-0" />
       </div>
-      <p className="text-13 text-muted">{contact.locality}</p>
       {contact.next_action && (
         <p className="text-13">
           {contact.next_action}

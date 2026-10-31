@@ -4,8 +4,12 @@ import {
   CONTACT_STATUSES,
   isContactStatus,
   marksLastContact,
+  MAX_CONFIRMED_CONTACT,
+  MAX_LABEL,
   MAX_NOTES,
+  parseCompanyId,
   parseContactDetails,
+  parseContactLabel,
   searchContacts,
   sortContacts,
   type Contact,
@@ -15,13 +19,8 @@ function contact(values: Partial<Contact>): Contact {
   return {
     id: "1",
     company_id: "c",
-    company_name: "Empresa",
-    niche: "Barbearias",
-    locality: "Porto",
-    address: "Rua",
-    phone: null,
-    website: null,
-    score: 50,
+    label: "Empresa",
+    confirmed_contact: null,
     status: "to_contact",
     last_contacted_at: null,
     next_action: null,
@@ -32,11 +31,19 @@ function contact(values: Partial<Contact>): Contact {
   };
 }
 
-const details = { nextAction: " Ligar ", nextActionAt: "2026-11-20", notes: "" };
+const details = {
+  label: " Barbearia do João ",
+  confirmedContact: "",
+  nextAction: " Ligar ",
+  nextActionAt: "2026-11-20",
+  notes: "",
+};
 
 describe("parseContactDetails", () => {
   it("limpa os espaços e guarda vazio como null", () => {
     expect(parseContactDetails(details)).toEqual({
+      label: "Barbearia do João",
+      confirmedContact: null,
       nextAction: "Ligar",
       nextActionAt: "2026-11-20",
       notes: null,
@@ -54,22 +61,52 @@ describe("parseContactDetails", () => {
     { ...details, nextActionAt: "2026-02-31" },
     { ...details, notes: "a".repeat(MAX_NOTES + 1) },
     { ...details, nextAction: 3 },
+    { ...details, label: "  " },
+    { ...details, label: "a".repeat(MAX_LABEL + 1) },
+    { ...details, confirmedContact: "a".repeat(MAX_CONFIRMED_CONTACT + 1) },
   ])("rejeita %j", (value) => {
     expect(parseContactDetails(value)).toBeNull();
   });
 });
 
+describe("o que o freelancer escreve", () => {
+  it("aceita um nome e limpa os espaços", () => {
+    expect(parseContactLabel("  Barbearia do João ")).toBe("Barbearia do João");
+  });
+
+  it.each(["", "   ", 3, null, "a".repeat(MAX_LABEL + 1)])(
+    "rejeita o nome %j",
+    (value) => {
+      expect(parseContactLabel(value)).toBeNull();
+    },
+  );
+
+  it("só aceita ids simples, como os do Google", () => {
+    expect(parseCompanyId("ChIJ_abc-123")).toBe("ChIJ_abc-123");
+    expect(parseCompanyId("../outro")).toBeNull();
+    expect(parseCompanyId("")).toBeNull();
+    expect(parseCompanyId(3)).toBeNull();
+  });
+
+  it("o contacto não tem campos para dados do Google", () => {
+    const fields = Object.keys(contact({}));
+    for (const field of ["company_name", "niche", "locality", "address", "phone", "website", "score"]) {
+      expect(fields).not.toContain(field);
+    }
+  });
+});
+
 describe("searchContacts", () => {
   const list = [
-    contact({ id: "1", company_name: "Clínica Sorriso", locality: "Lisboa" }),
-    contact({ id: "2", company_name: "Barbearia Horizonte" }),
+    contact({ id: "1", label: "Clínica Sorriso", notes: "Fica em Lisboa" }),
+    contact({ id: "2", label: "Barbearia Horizonte" }),
   ];
 
   it("ignora maiúsculas e acentos", () => {
     expect(searchContacts(list, "CLINICA").map(({ id }) => id)).toEqual(["1"]);
   });
 
-  it("procura também na localidade", () => {
+  it("procura também nas notas", () => {
     expect(searchContacts(list, "lisboa").map(({ id }) => id)).toEqual(["1"]);
   });
 
@@ -80,17 +117,15 @@ describe("searchContacts", () => {
 
 describe("sortContacts", () => {
   const list = [
-    contact({ id: "a", company_name: "Zeta", score: 10, status: "won" }),
+    contact({ id: "a", label: "Zeta", status: "won" }),
     contact({
       id: "b",
-      company_name: "Águia",
-      score: 90,
+      label: "Águia",
       next_action_at: "2026-12-01",
     }),
     contact({
       id: "c",
-      company_name: "Beta",
-      score: 40,
+      label: "Beta",
       status: "replied",
       next_action_at: "2026-11-01",
     }),
@@ -100,10 +135,6 @@ describe("sortContacts", () => {
 
   it("ordena nomes com acentos", () => {
     expect(ids("name", "asc")).toEqual(["b", "c", "a"]);
-  });
-
-  it("ordena pela nota", () => {
-    expect(ids("score", "desc")).toEqual(["b", "c", "a"]);
   });
 
   it("ordena pela ordem do quadro", () => {
@@ -116,7 +147,7 @@ describe("sortContacts", () => {
   });
 
   it("não altera a lista original", () => {
-    sortContacts(list, "score", "asc");
+    sortContacts(list, "name", "asc");
     expect(list[0].id).toBe("a");
   });
 });

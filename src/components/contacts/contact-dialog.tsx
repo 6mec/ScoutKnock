@@ -1,18 +1,24 @@
 "use client";
 
-import { useState, useTransition, type FormEvent } from "react";
+import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { GenerateMessageButton } from "@/components/messages/generate-message-button";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Field, Input, Textarea } from "@/components/ui/field";
-import { ContactScore } from "@/components/contacts/score-summary";
-import { GenerateMessageButton } from "@/components/messages/generate-message-button";
+import { ScoreBreakdown } from "@/components/ui/score-breakdown";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import {
+  getContactCompany,
   removeContact,
   saveContactDetails,
+  type ContactCompany,
 } from "@/lib/contacts/actions";
 import {
+  MAX_CONFIRMED_CONTACT,
+  MAX_LABEL,
   MAX_NEXT_ACTION,
   MAX_NOTES,
   type Contact,
@@ -27,6 +33,79 @@ const dateTimeFormat = new Intl.DateTimeFormat("pt-PT", {
   timeZone: "Europe/Lisbon",
 });
 
+function CompanySection({ company }: { company: ContactCompany | null }) {
+  if (!company) {
+    return (
+      <div role="status" className="flex flex-col gap-2">
+        <span className="sr-only">{copy.company.loading}</span>
+        <Skeleton className="h-24 rounded-lg" />
+      </div>
+    );
+  }
+
+  if (company.status !== "ok") {
+    return (
+      <p role="status" className="rounded-md border border-border p-3 text-14 text-muted">
+        {company.status === "limit" ? copy.company.limit : copy.company.unavailable}
+      </p>
+    );
+  }
+
+  const rows: [string, React.ReactNode][] = [
+    [copy.company.name, company.name],
+    [copy.details.address, company.address],
+    ...(company.phone
+      ? ([[copy.details.phone, company.phone]] as [string, string][])
+      : []),
+    [
+      copy.company.website,
+      company.website ? (
+        <a
+          href={company.website}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="focus-ring rounded-sm break-all text-accent underline"
+        >
+          {company.website}
+        </a>
+      ) : (
+        copy.company.noWebsite
+      ),
+    ],
+    [copy.company.reviews, company.reviewCount],
+    [
+      copy.company.hours,
+      company.hasOpeningHours ? copy.company.hoursYes : copy.company.hoursNo,
+    ],
+  ];
+
+  return (
+    <section
+      data-testid="contact-company"
+      aria-label={copy.company.title}
+      className="flex flex-col gap-3 rounded-lg border border-border p-4"
+    >
+      {company.isSample && (
+        <Badge variant="amber" className="self-start">
+          {ptPT.radar.sampleBadge}
+        </Badge>
+      )}
+      <ScoreBreakdown opportunity={company.opportunity} />
+      <dl className="flex flex-col gap-3">
+        {rows.map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-13 text-muted">{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        ))}
+      </dl>
+      {!company.isSample && (
+        <p className="text-13 text-muted">{ptPT.radar.attribution}</p>
+      )}
+    </section>
+  );
+}
+
 export function ContactDialog({
   contact,
   onClose,
@@ -40,17 +119,35 @@ export function ContactDialog({
   onSaved: (id: string, details: ContactDetails) => void;
   onRemoved: (id: string) => void;
 }) {
+  const [label, setLabel] = useState(contact.label);
+  const [confirmedContact, setConfirmedContact] = useState(
+    contact.confirmed_contact ?? "",
+  );
   const [nextAction, setNextAction] = useState(contact.next_action ?? "");
   const [nextActionAt, setNextActionAt] = useState(contact.next_action_at ?? "");
   const [notes, setNotes] = useState(contact.notes ?? "");
+  const [company, setCompany] = useState<ContactCompany | null>(null);
   const [confirmingRemoval, setConfirmingRemoval] = useState(false);
   const [saving, startSaving] = useTransition();
   const [removing, startRemoving] = useTransition();
+  // Cada abertura é uma chamada paga: nunca repetir por o efeito correr outra vez.
+  const requested = useRef(false);
+
+  useEffect(() => {
+    if (requested.current) return;
+    requested.current = true;
+
+    getContactCompany(contact.id)
+      .then(setCompany)
+      .catch(() => setCompany({ status: "unavailable" }));
+  }, [contact.id]);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     startSaving(async () => {
       const { ok } = await saveContactDetails(contact.id, {
+        label,
+        confirmedContact,
         nextAction,
         nextActionAt,
         notes,
@@ -58,6 +155,8 @@ export function ContactDialog({
 
       if (ok) {
         onSaved(contact.id, {
+          label: label.trim(),
+          confirmedContact: confirmedContact.trim() || null,
           nextAction: nextAction.trim() || null,
           nextActionAt: nextActionAt || null,
           notes: notes.trim() || null,
@@ -78,42 +177,48 @@ export function ContactDialog({
     });
   }
 
-  const rows: [string, string][] = [
-    [copy.details.address, contact.address],
-    ...(contact.phone
-      ? ([[copy.details.phone, contact.phone]] as [string, string][])
-      : []),
-    [
-      copy.details.lastContact,
-      contact.last_contacted_at
-        ? dateTimeFormat.format(new Date(contact.last_contacted_at))
-        : copy.details.noContactYet,
-    ],
-  ];
+  const found = company?.status === "ok" ? company : null;
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent aria-describedby={undefined} className="max-w-lg">
-        <DialogTitle>{contact.company_name}</DialogTitle>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <ContactScore score={contact.score} />
+        <DialogTitle>{contact.label}</DialogTitle>
+        <div className="flex flex-wrap items-center justify-end gap-3">
           <StatusMenu contact={contact} onChange={onStatusChange} />
         </div>
-        <GenerateMessageButton
-          source={{ kind: "contact", id: contact.id }}
-          companyName={contact.company_name}
-          phone={contact.phone}
-          variant="secondary"
-        />
-        <dl className="flex flex-col gap-3">
-          {rows.map(([label, value]) => (
-            <div key={label}>
-              <dt className="text-13 text-muted">{label}</dt>
-              <dd>{value}</dd>
-            </div>
-          ))}
+        <CompanySection company={company} />
+        {found && (
+          <GenerateMessageButton
+            source={{ kind: "contact", id: contact.id }}
+            companyName={found.name}
+            phone={found.phone}
+            variant="secondary"
+          />
+        )}
+        <dl>
+          <dt className="text-13 text-muted">{copy.details.lastContact}</dt>
+          <dd>
+            {contact.last_contacted_at
+              ? dateTimeFormat.format(new Date(contact.last_contacted_at))
+              : copy.details.noContactYet}
+          </dd>
         </dl>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <Field label={copy.details.label}>
+            <Input
+              value={label}
+              maxLength={MAX_LABEL}
+              required
+              onChange={(event) => setLabel(event.target.value)}
+            />
+          </Field>
+          <Field label={copy.details.confirmedContact}>
+            <Input
+              value={confirmedContact}
+              maxLength={MAX_CONFIRMED_CONTACT}
+              onChange={(event) => setConfirmedContact(event.target.value)}
+            />
+          </Field>
           <Field label={copy.details.nextAction}>
             <Input
               value={nextAction}

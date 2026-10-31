@@ -74,6 +74,8 @@ describe("limites do pack", () => {
       expect(limitsFor("active", plan.id)).toEqual({
         searches: plan.searches,
         demos: plan.demos,
+        lookups: plan.lookups,
+        monthlyLookups: plan.monthlyLookups,
       });
     }
   });
@@ -92,14 +94,19 @@ describe("limites do pack", () => {
   });
 
   it("sem subscrição ou com pack desconhecido fica no mais baixo", () => {
-    expect(limitsFor(null, null)).toEqual({ searches: 10, demos: 2 });
+    expect(limitsFor(null, null)).toEqual({
+      searches: 10,
+      demos: 2,
+      lookups: 3,
+      monthlyLookups: 90,
+    });
     expect(limitsFor("active", null)).toEqual(LOWEST_LIMITS);
     expect(limitsFor("active", "outro")).toEqual(LOWEST_LIMITS);
   });
 
   it("o pagamento recuperado devolve os limites do pack", () => {
     expect(limitsFor("past_due", "pro")).toEqual(LOWEST_LIMITS);
-    expect(limitsFor("active", "pro").searches).toBe(400);
+    expect(limitsFor("active", "pro").searches).toBe(150);
   });
 
   it("subscrição acabada pode voltar a subscrever; com problema de pagamento, não", () => {
@@ -107,6 +114,26 @@ describe("limites do pack", () => {
     expect(hasLiveSubscription("trialing")).toBe(true);
     expect(hasLiveSubscription("canceled")).toBe(false);
     expect(hasLiveSubscription(null)).toBe(false);
+  });
+});
+
+describe("custo no pior caso", () => {
+  // Preços do Google de 30/10/2026, sem a parte grátis. Um dólar conta como um euro.
+  const SEARCH_COST = 0.035;
+  const LOOKUP_COST = 0.02;
+
+  it.each(PLANS.map((plan) => [plan.id, plan] as const))(
+    "%s não passa 30%% do preço em euros",
+    (_id, plan) => {
+      const cost = plan.searches * SEARCH_COST + plan.monthlyLookups * LOOKUP_COST;
+      expect(cost).toBeLessThanOrEqual(plan.price.eur * 0.3);
+    },
+  );
+
+  it("o teto mensal nunca passa o diário vezes 30 dias", () => {
+    PLANS.forEach((plan) =>
+      expect(plan.monthlyLookups).toBe(plan.lookups * 30),
+    );
   });
 });
 

@@ -8,19 +8,18 @@ export const CONTACT_STATUSES = [
 ] as const;
 export type ContactStatus = (typeof CONTACT_STATUSES)[number];
 
+export const MAX_LABEL = 120;
+export const MAX_CONFIRMED_CONTACT = 200;
 export const MAX_NEXT_ACTION = 200;
 export const MAX_NOTES = 2000;
 
+// Só o place_id e o que o freelancer escreve. Nome, morada, telefone, site e nota
+// do Google não se guardam: vêm na hora, ao abrir o contacto.
 export type Contact = {
   id: string;
   company_id: string;
-  company_name: string;
-  niche: string;
-  locality: string;
-  address: string;
-  phone: string | null;
-  website: string | null;
-  score: number;
+  label: string;
+  confirmed_contact: string | null;
   status: ContactStatus;
   last_contacted_at: string | null;
   next_action: string | null;
@@ -30,12 +29,14 @@ export type Contact = {
 };
 
 export type ContactDetails = {
+  label: string;
+  confirmedContact: string | null;
   nextAction: string | null;
   nextActionAt: string | null;
   notes: string | null;
 };
 
-export type ContactSortKey = "name" | "score" | "status" | "nextAction";
+export type ContactSortKey = "name" | "status" | "nextAction";
 export type SortDirection = "asc" | "desc";
 
 export function isContactStatus(value: unknown): value is ContactStatus {
@@ -54,11 +55,26 @@ function isValidDate(value: string) {
   return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
 }
 
+export function parseContactLabel(value: unknown) {
+  if (typeof value !== "string") return null;
+
+  const label = value.trim();
+  return label && label.length <= MAX_LABEL ? label : null;
+}
+
+export function parseCompanyId(value: unknown) {
+  return typeof value === "string" && /^[\w-]{1,200}$/.test(value) ? value : null;
+}
+
 export function parseContactDetails(value: unknown): ContactDetails | null {
   if (typeof value !== "object" || value === null) return null;
 
-  const { nextAction, nextActionAt, notes } = value as Record<string, unknown>;
+  const { label, confirmedContact, nextAction, nextActionAt, notes } =
+    value as Record<string, unknown>;
+  const parsedLabel = parseContactLabel(label);
   if (
+    !parsedLabel ||
+    typeof confirmedContact !== "string" ||
     typeof nextAction !== "string" ||
     typeof nextActionAt !== "string" ||
     typeof notes !== "string"
@@ -66,10 +82,12 @@ export function parseContactDetails(value: unknown): ContactDetails | null {
     return null;
   }
 
+  const confirmed = confirmedContact.trim();
   const action = nextAction.trim();
   const text = notes.trim();
 
   if (
+    confirmed.length > MAX_CONFIRMED_CONTACT ||
     action.length > MAX_NEXT_ACTION ||
     text.length > MAX_NOTES ||
     (nextActionAt && !isValidDate(nextActionAt))
@@ -78,6 +96,8 @@ export function parseContactDetails(value: unknown): ContactDetails | null {
   }
 
   return {
+    label: parsedLabel,
+    confirmedContact: confirmed || null,
     nextAction: action || null,
     nextActionAt: nextActionAt || null,
     notes: text || null,
@@ -96,9 +116,7 @@ export function searchContacts(contacts: Contact[], search: string) {
   if (!wanted) return contacts;
 
   return contacts.filter((contact) =>
-    normalize(
-      `${contact.company_name} ${contact.niche} ${contact.locality}`,
-    ).includes(wanted),
+    normalize(`${contact.label} ${contact.notes ?? ""}`).includes(wanted),
   );
 }
 
@@ -113,9 +131,7 @@ export function sortContacts(
   return [...contacts].sort((a, b) => {
     switch (key) {
       case "name":
-        return sign * a.company_name.localeCompare(b.company_name, "pt-PT");
-      case "score":
-        return sign * (a.score - b.score);
+        return sign * a.label.localeCompare(b.label, "pt-PT");
       case "status":
         return (
           sign *

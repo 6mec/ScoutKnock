@@ -149,6 +149,7 @@ async function Content({
                 [
                   [plan.searches, copy.searches],
                   [plan.demos, copy.demos],
+                  [plan.monthlyLookups, copy.lookups(plan.lookups)],
                 ] as const
               ).map(([value, label]) => (
                 <div key={label} className="flex items-baseline gap-2">

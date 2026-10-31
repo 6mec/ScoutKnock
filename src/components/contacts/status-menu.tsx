@@ -43,7 +43,7 @@ export function StatusMenu({
           data-status-menu={contact.id}
           variant="secondary"
           size="sm"
-          aria-label={`${copy.changeStatus}: ${contact.company_name}, ${copy.statuses[contact.status]}`}
+          aria-label={`${copy.changeStatus}: ${contact.label}, ${copy.statuses[contact.status]}`}
         >
           {copy.changeStatus}
           <ChevronDown aria-hidden="true" size={14} strokeWidth={1.75} />

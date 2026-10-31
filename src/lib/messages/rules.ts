@@ -10,17 +10,21 @@ export type MessageTone = (typeof MESSAGE_TONES)[number];
 export type MessageSource = { kind: "company" | "contact"; id: string };
 export type MessageRequest = { source: MessageSource; tone: MessageTone };
 
-// Só dados públicos da empresa e o nome de quem assina.
+// O nome de quem assina nunca vai para o Claude: junta-se no fim, no servidor.
 export type MessageInput = {
   companyName: string;
   niche: string;
-  locality: string;
   reasons: ReasonCode[];
   senderName: string | null;
   tone: MessageTone;
 };
 
-export type MessageErrorCode = "provider" | "limit" | "offline" | "notFound";
+export type MessageErrorCode =
+  | "provider"
+  | "limit"
+  | "lookupLimit"
+  | "offline"
+  | "notFound";
 
 export type MessageEvent =
   | { type: "start"; isSample: boolean }

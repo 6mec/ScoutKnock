@@ -3,7 +3,6 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState } from "react";
 import { Field, Input } from "@/components/ui/field";
-import { ScoreChip } from "@/components/ui/score-chip";
 import { ptPT } from "@/i18n/pt-PT";
 import {
   searchContacts,
@@ -19,7 +18,6 @@ import { StatusMenu } from "./status-menu";
 const { contacts: copy } = ptPT;
 const COLUMNS: { key: ContactSortKey; label: string }[] = [
   { key: "name", label: copy.table.company },
-  { key: "score", label: copy.table.score },
   { key: "status", label: copy.table.status },
   { key: "nextAction", label: copy.table.nextAction },
 ];
@@ -35,8 +33,8 @@ export function ContactsTable({
   onStatusChange: (id: string, status: ContactStatus) => void;
 }) {
   const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<ContactSortKey>("score");
-  const [direction, setDirection] = useState<SortDirection>("desc");
+  const [sortKey, setSortKey] = useState<ContactSortKey>("name");
+  const [direction, setDirection] = useState<SortDirection>("asc");
   const SortIcon = direction === "asc" ? ArrowUp : ArrowDown;
   const rows = sortContacts(searchContacts(contacts, search), sortKey, direction);
 
@@ -45,7 +43,7 @@ export function ContactsTable({
       setDirection((current) => (current === "asc" ? "desc" : "asc"));
     } else {
       setSortKey(key);
-      setDirection(key === "score" ? "desc" : "asc");
+      setDirection("asc");
     }
   }
 
@@ -102,15 +100,9 @@ export function ContactsTable({
                       onClick={() => onOpen(contact.id)}
                       className="focus-ring block min-h-11 w-full rounded-sm px-3 text-left underline-offset-2 hovered:underline"
                     >
-                      {contact.company_name}
-                      <span className="block text-13 font-normal text-muted">
-                        {contact.locality}
-                      </span>
+                      {contact.label}
                     </button>
                   </th>
-                  <td className="px-4 py-2">
-                    <ScoreChip score={contact.score} />
-                  </td>
                   <td className="px-4 py-2">
                     <div className="flex flex-col items-start gap-1">
                       <span>{copy.statuses[contact.status]}</span>

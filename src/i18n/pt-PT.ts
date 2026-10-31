@@ -527,6 +527,8 @@ export const ptPT = {
         "Chegaste ao limite de 20 mensagens por hoje. Amanhã podes gerar mais.",
       offline: "Sem ligação à internet. Verifica a rede e tenta outra vez.",
       notFound: "Não encontrámos os dados desta empresa.",
+      lookupLimit:
+        "Chegaste ao limite diário de consultas de empresas. Amanhã podes gerar esta mensagem.",
     },
     sample: {
       noReason: (company: string) =>
@@ -618,6 +620,28 @@ export const ptPT = {
     empty: "Ainda não tens contactos. Guarda uma empresa no Radar para começares.",
     saveToContacts: "Guardar nos contactos",
     savedToContacts: "Guardado nos contactos",
+    saveDialog: {
+      title: "Guardar nos contactos",
+      body: "Guardamos só o nome que escreveres aqui e as tuas notas. Os dados da empresa são pedidos de novo sempre que abrires o contacto.",
+      label: "Nome para este contacto",
+      submit: "Guardar",
+      cancel: "Cancelar",
+    },
+    company: {
+      title: "Dados públicos",
+      loading: "A carregar os dados da empresa…",
+      name: "Nome",
+      website: "Site",
+      noWebsite: "Sem site",
+      reviews: "Avaliações",
+      hours: "Horário",
+      hoursYes: "Publicado",
+      hoursNo: "Sem horário publicado",
+      limit:
+        "Chegaste ao limite diário de consultas de empresas. As tuas notas continuam aqui, e amanhã podes voltar a ver estes dados.",
+      unavailable:
+        "Não foi possível carregar os dados da empresa. As tuas notas continuam aqui.",
+    },
     changeStatus: "Mudar estado",
     save: "Guardar",
     saving: "A guardar…",
@@ -638,8 +662,7 @@ export const ptPT = {
     table: {
       search: "Pesquisar contactos",
       noMatches: "Nenhum contacto com esta pesquisa.",
-      company: "Empresa",
-      score: "Nota",
+      company: "Contacto",
       status: "Estado",
       nextAction: "Próxima ação",
     },
@@ -648,6 +671,8 @@ export const ptPT = {
       phone: "Telefone",
       lastContact: "Último contacto",
       noContactYet: "Ainda não houve contacto",
+      label: "Nome para este contacto",
+      confirmedContact: "Contacto que confirmaste",
       nextAction: "Próxima ação",
       date: "Data",
       notes: "Notas",
@@ -663,6 +688,8 @@ export const ptPT = {
     priceSoon: "Preço a anunciar",
     searches: "buscas por mês",
     demos: "sites demo por mês",
+    lookups: (daily: number) =>
+      `aberturas de contacto por mês (até ${daily} por dia)`,
     trial: "Teste grátis de 7 dias: em breve.",
     trialTerms:
       "O teste grátis dura 7 dias, com 10 buscas e 2 sites demo, e não pede cartão. Se não adicionares um cartão até ao fim, a subscrição cancela sozinha e não pagas nada. Cada conta tem um só teste.",

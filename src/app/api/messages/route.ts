@@ -6,48 +6,33 @@ import {
   type MessageEvent,
   type MessageRequest,
 } from "@/lib/messages/rules";
-import { getCompanyProvider } from "@/lib/radar/provider";
+import { lookupCompanyForUser } from "@/lib/radar/lookup-server";
 import { scoreCompany } from "@/lib/radar/score";
-import { SERVICE_IDS, type ReasonCode } from "@/lib/radar/types";
+import { SERVICE_IDS } from "@/lib/radar/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
-// Os dados da empresa vêm sempre do servidor, nunca do browser.
+// O id do contacto é lido no servidor, e os dados vêm sempre do fornecedor.
 async function findCompany(
   supabase: Supabase,
   { source }: MessageRequest,
   userId: string,
 ) {
-  if (source.kind === "company") {
-    const company = await getCompanyProvider({ userId })?.findById(source.id);
-    if (!company) return null;
+  let companyId = source.id;
 
-    return {
-      companyName: company.name,
-      niche: company.niche,
-      locality: company.locality,
-      reasons: scoreCompany(company, SERVICE_IDS[0]).reasons.map(
-        (reason) => reason.code,
-      ),
-    };
+  if (source.kind === "contact") {
+    const { data } = await supabase
+      .from("contacts")
+      .select("company_id")
+      .eq("id", source.id)
+      .maybeSingle();
+    if (!data) return { status: "unavailable" as const };
+    companyId = data.company_id as string;
   }
 
-  const { data } = await supabase
-    .from("contacts")
-    .select("company_name, niche, locality, website")
-    .eq("id", source.id)
-    .maybeSingle();
-  if (!data) return null;
-
-  return {
-    companyName: data.company_name as string,
-    niche: data.niche as string,
-    locality: data.locality as string,
-    // O contacto guarda a nota, não os motivos: fica só o que se sabe ao certo.
-    reasons: data.website ? [] : (["noWebsite"] as ReasonCode[]),
-  };
+  return lookupCompanyForUser(supabase, companyId, userId);
 }
 
 export async function POST(request: Request) {
@@ -61,8 +46,11 @@ export async function POST(request: Request) {
   const body = parseMessageRequest(await request.json().catch(() => null));
   if (!body) return new Response(null, { status: 400 });
 
-  const company = await findCompany(supabase, body, user.id);
-  if (!company) return new Response(null, { status: 404 });
+  const found = await findCompany(supabase, body, user.id);
+  if (found.status === "limit") return new Response(null, { status: 409 });
+  if (found.status !== "ok") return new Response(null, { status: 404 });
+
+  const { company } = found;
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -84,7 +72,11 @@ export async function POST(request: Request) {
 
   const pieces = provider.write(
     {
-      ...company,
+      companyName: company.name,
+      niche: company.niche,
+      reasons: scoreCompany(company, SERVICE_IDS[0]).reasons.map(
+        (reason) => reason.code,
+      ),
       senderName: (profile?.display_name as string | null) ?? null,
       tone: body.tone,
     },

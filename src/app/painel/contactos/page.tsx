@@ -27,7 +27,6 @@ async function Content() {
   const { data, error } = await supabase
     .from("contacts")
     .select("*")
-    .order("score", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (error) {

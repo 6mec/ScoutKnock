@@ -5,8 +5,8 @@ export type PlanId = (typeof PLANS)[number]["id"];
 export type Currency = "eur" | "brl";
 
 export const TRIAL_DAYS = 7;
-// O limite mais baixo do docs/plano.md. Tem de bater certo com public.plan_limits.
-export const LOWEST_LIMITS = { searches: 10, demos: 2 };
+// O limite mais baixo do docs/plano.md. Tem de bater certo com a base de dados.
+export const LOWEST_LIMITS = { searches: 10, demos: 2, lookups: 3, monthlyLookups: 90 };
 
 const CURRENCIES: Currency[] = ["eur", "brl"];
 
@@ -23,7 +23,12 @@ export function limitsFor(status: string | null, plan: string | null) {
   const found = PLANS.find((item) => item.id === plan);
 
   return status === "active" && found
-    ? { searches: found.searches, demos: found.demos }
+    ? {
+        searches: found.searches,
+        demos: found.demos,
+        lookups: found.lookups,
+        monthlyLookups: found.monthlyLookups,
+      }
     : LOWEST_LIMITS;
 }
 

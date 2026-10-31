@@ -26,6 +26,7 @@ type Status = "writing" | "ready" | "error";
 
 const ERROR_BY_STATUS: Record<number, MessageErrorCode> = {
   404: "notFound",
+  409: "lookupLimit",
   429: "limit",
 };
 
@@ -183,7 +184,7 @@ export function GenerateMessageButton({
               className="flex flex-col items-start gap-3 rounded-md border border-danger p-4"
             >
               <p>{copy.errors[errorCode]}</p>
-              {errorCode !== "limit" && errorCode !== "notFound" && (
+              {errorCode !== "limit" && errorCode !== "lookupLimit" && errorCode !== "notFound" && (
                 <Button variant="secondary" onClick={() => generate(tone)}>
                   {copy.retry}
                 </Button>
