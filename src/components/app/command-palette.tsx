@@ -7,6 +7,7 @@ import {
   House,
   Radar,
   Search,
+  SunMoon,
   UserRound,
   Users,
   type LucideIcon,
@@ -16,11 +17,12 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { Kbd } from "@/components/ui/kbd";
 import { ptPT } from "@/i18n/pt-PT";
 import { requestNewSearch } from "@/lib/radar/new-search";
+import { toggleTheme } from "@/lib/theme";
 
 const copy = ptPT.app.commands;
 const COMMANDS: {
   label: string;
-  href: string;
+  href?: string;
   icon: LucideIcon;
   onSelect?: () => void;
 }[] = [
@@ -31,6 +33,7 @@ const COMMANDS: {
   { label: copy.goContacts, href: "/painel/contactos", icon: Users },
   { label: copy.goPlans, href: "/painel/planos", icon: CreditCard },
   { label: copy.goAccount, href: "/painel/conta", icon: UserRound },
+  { label: copy.toggleTheme, icon: SunMoon, onSelect: toggleTheme },
 ];
 
 const subscribeToNothing = () => () => {};
@@ -92,7 +95,7 @@ export function CommandPalette() {
               onSelect={() => {
                 setOpen(false);
                 onSelect?.();
-                router.push(href);
+                if (href) router.push(href);
               }}
               className="flex min-h-11 cursor-default items-center gap-3 rounded-sm px-3 data-[selected=true]:bg-accent-soft"
             >

@@ -25,6 +25,7 @@
 
 /* Tokens claros: ativos quando o html não tem a classe dark. */
 :root {
+  color-scheme: light;
   --canvas: #eef2f6;
   --background: #f7f9fb;
   --surface: #ffffff;
@@ -37,7 +38,7 @@
   --muted: #566273;
   --accent: #0a7f5b;
   --accent-contrast: #ffffff;
-  --accent-soft: rgba(10, 127, 91, 0.1);
+  --accent-soft: rgba(10, 127, 91, 0.06);
   --accent-halo: rgba(10, 127, 91, 0.18);
   --amber: #a15c00;
   --danger: #c62828;

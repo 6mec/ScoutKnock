@@ -7,5 +7,5 @@ const { contact: copy } = ptPT.legal;
 export const metadata: Metadata = { title: copy.title };
 
 export default function ContactPage() {
-  return <LegalPage title={copy.title} paragraphs={copy.paragraphs} />;
+  return <LegalPage href="/contacto" title={copy.title} paragraphs={copy.paragraphs} />;
 }

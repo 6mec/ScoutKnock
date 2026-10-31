@@ -2,6 +2,7 @@
 
 import createGlobe from "cobe";
 import { useEffect, useRef } from "react";
+import { GLOBE_COLORS, type Theme } from "@/lib/theme";
 
 const IDLE_ROTATION_PER_FRAME = 0.002;
 const APPROACH_PER_FRAME = 0.04;
@@ -25,8 +26,10 @@ function anglesFor([latitude, longitude]: [number, number], fromPhi: number) {
 // Decorativo. Sem localidade roda devagar; com localidade, roda até ela e aproxima.
 export default function RadarGlobe({
   target,
+  theme,
 }: {
   target: [number, number] | null;
+  theme: Theme;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const targetRef = useRef(target);
@@ -55,13 +58,9 @@ export default function RadarGlobe({
         devicePixelRatio: pixelRatio,
         phi: START_PHI,
         theta: START_THETA,
-        dark: 1,
+        ...GLOBE_COLORS[theme],
         diffuse: 1.2,
         mapSamples: 16000,
-        mapBrightness: 3,
-        baseColor: [0.12, 0.16, 0.22],
-        markerColor: [0.18, 0.89, 0.65],
-        glowColor: [0.07, 0.09, 0.13],
       });
     } catch {
       // Sem WebGL, ficam os anéis do radar.
@@ -112,14 +111,14 @@ export default function RadarGlobe({
       document.removeEventListener("visibilitychange", syncVisibility);
       globe.destroy();
     };
-  }, []);
+  }, [theme]);
 
   return (
     <canvas
       ref={canvasRef}
       aria-hidden="true"
       data-testid="radar-globe"
-      className="pointer-events-none absolute inset-0 size-full rounded-pill"
+      className="pointer-events-none absolute inset-0 size-full rounded-pill opacity-50 dark:opacity-100"
     />
   );
 }

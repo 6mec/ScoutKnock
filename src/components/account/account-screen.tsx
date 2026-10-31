@@ -18,9 +18,11 @@ import {
   sendPasswordEmail,
 } from "@/lib/account/actions";
 import { DELETE_CONFIRMATION, isDeleteConfirmed } from "@/lib/account/rules";
+import { setTheme, useTheme, type Theme } from "@/lib/theme";
 import { MAX_AUTHOR_NAME, parseAuthorName } from "@/lib/demos/rules";
 
 const { account: copy } = ptPT;
+const THEMES: Theme[] = ["dark", "light"];
 const cardClasses = "flex flex-col gap-4 rounded-lg border border-border bg-surface p-6";
 
 export function AccountScreen({
@@ -30,6 +32,7 @@ export function AccountScreen({
   email: string;
   displayName: string;
 }) {
+  const theme = useTheme();
   const [name, setName] = useState(displayName);
   const [confirmation, setConfirmation] = useState("");
   const [saving, startSaving] = useTransition();
@@ -86,6 +89,24 @@ export function AccountScreen({
           {copy.save}
         </Button>
       </form>
+
+      <section aria-labelledby="account-theme" className={cardClasses}>
+        <h2 id="account-theme" className="type-heading text-20">
+          {copy.theme}
+        </h2>
+        <div role="group" aria-labelledby="account-theme" className="flex gap-2">
+          {THEMES.map((id) => (
+            <Button
+              key={id}
+              variant={theme === id ? "primary" : "secondary"}
+              aria-pressed={theme === id}
+              onClick={() => setTheme(id)}
+            >
+              {copy.themes[id]}
+            </Button>
+          ))}
+        </div>
+      </section>
 
       <section className={cardClasses}>
         <h2 className="type-heading text-20">{ptPT.auth.fields.password}</h2>

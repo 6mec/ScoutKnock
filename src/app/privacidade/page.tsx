@@ -7,5 +7,5 @@ const { privacy: copy } = ptPT.legal;
 export const metadata: Metadata = { title: copy.title };
 
 export default function PrivacyPage() {
-  return <LegalPage title={copy.title} paragraphs={copy.paragraphs} />;
+  return <LegalPage href="/privacidade" title={copy.title} paragraphs={copy.paragraphs} />;
 }

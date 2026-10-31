@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useTheme } from "@/lib/theme";
 import { useMediaQuery } from "@/lib/use-media-query";
 
 // O WebGL carrega depois do resto, para não atrasar o título do herói.
@@ -10,5 +11,7 @@ const HeroGlobe = dynamic(() => import("./hero-globe"), { ssr: false });
 export function HeroGlobeLazy() {
   const isWide = useMediaQuery("(min-width: 768px)");
 
-  return isWide ? <HeroGlobe /> : null;
+  const theme = useTheme();
+
+  return isWide ? <HeroGlobe key={theme} theme={theme} /> : null;
 }

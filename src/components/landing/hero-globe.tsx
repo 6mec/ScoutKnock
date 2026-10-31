@@ -2,6 +2,7 @@
 
 import createGlobe, { type Marker } from "cobe";
 import { useEffect, useRef } from "react";
+import { GLOBE_COLORS, type Theme } from "@/lib/theme";
 
 const ROTATION_PER_FRAME = 0.002;
 const PULSE_PER_FRAME = 0.03;
@@ -25,7 +26,7 @@ function markersAt(pulse: number): Marker[] {
 }
 
 // Decorativo. Pausa fora do ecrã ou com o separador escondido, e fica parado com movimento reduzido.
-export default function HeroGlobe() {
+export default function HeroGlobe({ theme }: { theme: Theme }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -46,16 +47,11 @@ export default function HeroGlobe() {
         devicePixelRatio: pixelRatio,
         phi: 3.6,
         theta: 0.2,
-        dark: 1,
+        ...GLOBE_COLORS[theme],
         diffuse: 1.2,
         mapSamples: 16000,
-        mapBrightness: 3,
-        baseColor: [0.12, 0.16, 0.22],
-        markerColor: [0.18, 0.89, 0.65],
-        glowColor: [0.07, 0.09, 0.13],
         markers: markersAt(0),
         arcs: [{ from: LISBON, to: SAO_PAULO }],
-        arcColor: [0.18, 0.89, 0.65],
         arcWidth: 0.5,
         arcHeight: 0.3,
       });
@@ -100,7 +96,7 @@ export default function HeroGlobe() {
       document.removeEventListener("visibilitychange", syncVisibility);
       globe.destroy();
     };
-  }, []);
+  }, [theme]);
 
   return (
     <canvas

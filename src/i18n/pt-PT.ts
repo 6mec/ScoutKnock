@@ -250,6 +250,7 @@ export const ptPT = {
     backHome: "Voltar à página inicial",
   },
   legal: {
+    navLabel: "Páginas legais",
     reviewNotice:
       "Texto provisório. O conteúdo legal final ainda está em revisão.",
     backHome: "Voltar à página inicial",
@@ -603,6 +604,8 @@ export const ptPT = {
     trial: "Teste grátis de 7 dias: em breve.",
   },
   account: {
+    theme: "Tema",
+    themes: { dark: "Escuro", light: "Claro" },
     name: "O teu nome",
     save: "Guardar",
     saving: "Um momento…",
@@ -616,6 +619,12 @@ export const ptPT = {
     errors: {
       generic: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
     },
+  },
+  system: {
+    notFound: "Nada no radar por aqui.",
+    home: "Voltar ao início",
+    error: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
+    retry: "Tentar outra vez",
   },
   app: {
     nav: {
@@ -645,6 +654,7 @@ export const ptPT = {
       goContacts: "Ir para os contactos",
       goPlans: "Ir para os planos",
       goAccount: "Ir para a conta",
+      toggleTheme: "Mudar tema",
     },
   },
 };
