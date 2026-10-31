@@ -6,10 +6,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Kbd } from "@/components/ui/kbd";
 import { ptPT } from "@/i18n/pt-PT";
+import { requestNewSearch } from "@/lib/radar/new-search";
 
 const copy = ptPT.app.commands;
-const COMMANDS: { label: string; href: string; icon: LucideIcon }[] = [
-  { label: copy.newSearch, href: "/painel/radar", icon: Search },
+const COMMANDS: {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  onSelect?: () => void;
+}[] = [
+  { label: copy.newSearch, href: "/painel/radar", icon: Search, onSelect: requestNewSearch },
   { label: copy.goHome, href: "/painel", icon: House },
   { label: copy.goRadar, href: "/painel/radar", icon: Radar },
 ];
@@ -66,12 +72,13 @@ export function CommandPalette() {
           <Command.Empty className="px-3 py-6 text-center text-muted">
             {copy.empty}
           </Command.Empty>
-          {COMMANDS.map(({ label, href, icon: Icon }) => (
+          {COMMANDS.map(({ label, href, icon: Icon, onSelect }) => (
             <Command.Item
               key={label}
               value={label}
               onSelect={() => {
                 setOpen(false);
+                onSelect?.();
                 router.push(href);
               }}
               className="flex min-h-11 cursor-default items-center gap-3 rounded-sm px-3 data-[selected=true]:bg-accent-soft"

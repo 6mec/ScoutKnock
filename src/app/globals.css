@@ -135,6 +135,7 @@
   --animate-accordion-down: accordion-down var(--duration-fast) var(--ease-out);
   --animate-accordion-up: accordion-up var(--duration-fast) var(--ease-out);
   --animate-slide-in-right: slide-in-right var(--duration-base) var(--ease-out) both;
+  --animate-slide-in-bottom: slide-in-bottom var(--duration-base) var(--ease-out) both;
   --animate-slide-out-right: slide-out-right var(--duration-fast) var(--ease-out) both;
 }
 
@@ -214,6 +215,16 @@
   }
   to {
     transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
   }
 }
 
@@ -334,6 +345,7 @@
     --animate-accordion-down: none;
     --animate-accordion-up: none;
     --animate-slide-in-right: fade-in var(--duration-instant) linear both;
+    --animate-slide-in-bottom: fade-in var(--duration-instant) linear both;
     --animate-slide-out-right: fade-out var(--duration-instant) linear both;
   }
 

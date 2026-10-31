@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { NewSearchLink } from "@/components/app/new-search-link";
 import { ptPT } from "@/i18n/pt-PT";
 
 const { dashboard: copy } = ptPT;
@@ -15,9 +14,7 @@ export default function DashboardPage() {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-10 lg:px-8 lg:py-14">
       <div className="flex flex-col items-start gap-6">
         <h2 className="type-heading text-32 lg:text-44">{copy.greeting}</h2>
-        <Button asChild size="lg">
-          <Link href="/painel/radar">{copy.newSearch}</Link>
-        </Button>
+        <NewSearchLink>{copy.newSearch}</NewSearchLink>
       </div>
       <ol className="grid gap-3 md:grid-cols-3">
         {copy.steps.map((step, index) => (
