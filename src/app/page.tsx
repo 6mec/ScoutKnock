@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { Logo } from "@/components/logo";
 import { ptPT } from "@/i18n/pt-PT";
 
 export default function Home() {
@@ -6,19 +6,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-1 w-full max-w-3xl mx-auto flex-col justify-center gap-10 px-6 py-16">
-      <div className="flex items-center gap-3">
-        <Image
-          src="/brand/scoutknock-mark.svg"
-          alt=""
-          width={40}
-          height={40}
-          priority
-        />
-        <p className="text-[20px] font-bold tracking-tight">
-          <span className="text-foreground">{brand.scout}</span>
-          <span className="text-accent">{brand.knock}</span>
-        </p>
-      </div>
+      <Logo />
       <div className="flex flex-col gap-4">
         <h1 className="text-[40px] leading-tight font-bold tracking-tight">
           {brand.slogan}
