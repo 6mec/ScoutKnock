@@ -21,6 +21,8 @@ export const ptPT = {
       openMenu: "Abrir menu",
       howItWorks: "Como funciona",
       faq: "Perguntas",
+      signIn: "Entrar",
+      goToPanel: "Ir para o painel",
     },
     hero: {
       badge: "Em construção · lista de espera aberta",
@@ -766,6 +768,7 @@ export const ptPT = {
     account: {
       label: "Conta",
       plans: "Planos",
+      viewSite: "Ver o site",
       signOut: "Sair",
     },
     commands: {

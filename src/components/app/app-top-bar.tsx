@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { Suspense } from "react";
 import { CommandPalette } from "@/components/app/command-palette";
+import { Logo } from "@/components/ui/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
 
@@ -29,9 +31,19 @@ function PageTitle() {
 export function AppTopBar() {
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-8">
-      <Suspense fallback={<Skeleton className="h-6 w-24" />}>
-        <PageTitle />
-      </Suspense>
+      <div className="flex min-w-0 items-center gap-3">
+        {/* No computador, o logótipo está no menu lateral. */}
+        <Link
+          href="/painel"
+          aria-label={ptPT.app.nav.homeLogo}
+          className="focus-ring inline-flex size-11 shrink-0 items-center justify-center rounded-sm md:hidden"
+        >
+          <Logo showWordmark={false} size={28} />
+        </Link>
+        <Suspense fallback={<Skeleton className="h-6 w-24" />}>
+          <PageTitle />
+        </Suspense>
+      </div>
       <CommandPalette />
     </header>
   );

@@ -3,7 +3,7 @@
 import { Menu, X } from "lucide-react";
 import { useMotionValueEvent, useScroll } from "motion/react";
 import { Dialog as DialogPrimitive } from "radix-ui";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
 import { ptPT } from "@/i18n/pt-PT";
@@ -16,7 +16,16 @@ const LINKS = [
   { href: "#perguntas", label: copy.nav.faq },
 ];
 
-export function LandingHeader() {
+// As ações dependem da sessão e vêm do servidor, já com o botão certo.
+export function LandingHeader({
+  desktopActions,
+  barActions,
+  drawerActions,
+}: {
+  desktopActions: ReactNode;
+  barActions: ReactNode;
+  drawerActions: ReactNode;
+}) {
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
 
@@ -33,7 +42,8 @@ export function LandingHeader() {
     >
       <div className="mx-auto flex h-18 w-full max-w-300 items-center justify-between gap-4 px-4 lg:px-10">
         <a href="#topo" className="focus-ring rounded-sm">
-          <Logo />
+          {/* Nos ecrãs muito estreitos fica só o símbolo, para caber a ação principal. */}
+          <Logo wordmarkClassName="max-[359px]:sr-only" />
         </a>
 
         <nav
@@ -49,17 +59,19 @@ export function LandingHeader() {
               {link.label}
             </a>
           ))}
-          <Button asChild variant="secondary">
-            <a href="#lista-de-espera">{copy.joinButton}</a>
-          </Button>
+          <div className="flex min-w-72 items-center justify-end gap-5">
+            {desktopActions}
+          </div>
         </nav>
 
+        <div className="flex items-center gap-3 md:hidden">
+          {barActions}
         <DialogPrimitive.Root>
           <DialogPrimitive.Trigger asChild>
             <Button
               variant="ghost"
               aria-label={copy.nav.openMenu}
-              className="size-11 px-0 md:hidden"
+              className="size-11 px-0"
             >
               <Menu aria-hidden="true" size={20} strokeWidth={1.75} />
             </Button>
@@ -96,14 +108,11 @@ export function LandingHeader() {
                   </DialogPrimitive.Close>
                 ))}
               </nav>
-              <DialogPrimitive.Close asChild>
-                <Button asChild size="lg">
-                  <a href="#lista-de-espera">{copy.joinButton}</a>
-                </Button>
-              </DialogPrimitive.Close>
+              <div className="flex min-h-13 flex-col gap-2">{drawerActions}</div>
             </DialogPrimitive.Content>
           </DialogPrimitive.Portal>
         </DialogPrimitive.Root>
+        </div>
       </div>
     </header>
   );

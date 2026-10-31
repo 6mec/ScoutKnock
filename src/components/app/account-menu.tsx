@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, LogOut, UserRound } from "lucide-react";
+import { CreditCard, Globe, LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useTransition } from "react";
 import { Avatar } from "@/components/ui/avatar";
@@ -51,6 +51,12 @@ export function AccountMenu({ email }: { email: string }) {
           <Link href="/painel/planos">
             <CreditCard aria-hidden="true" size={16} strokeWidth={1.75} />
             {copy.plans}
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/">
+            <Globe aria-hidden="true" size={16} strokeWidth={1.75} />
+            {copy.viewSite}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />

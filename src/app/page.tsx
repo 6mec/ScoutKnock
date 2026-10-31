@@ -8,6 +8,7 @@ import { HeroGlobeLazy } from "@/components/landing/hero-globe-lazy";
 import { HeroRadar } from "@/components/landing/hero-radar";
 import { HowItWorks } from "@/components/landing/how-it-works";
 import { LandingHeader } from "@/components/landing/landing-header";
+import { LandingSessionActions } from "@/components/landing/landing-session-actions";
 import { RadarRings } from "@/components/landing/radar-rings";
 import { ScoreDemo } from "@/components/landing/score-demo";
 import { Button } from "@/components/ui/button";
@@ -116,7 +117,11 @@ export default function Home() {
       <noscript>
         <style>{NO_SCRIPT_STYLES}</style>
       </noscript>
-      <LandingHeader />
+      <LandingHeader
+        desktopActions={<LandingSessionActions variant="desktop" />}
+        barActions={<LandingSessionActions variant="bar" />}
+        drawerActions={<LandingSessionActions variant="drawer" />}
+      />
 
       <main id="topo" className="flex flex-col">
         <section className="relative overflow-hidden border-b border-border">

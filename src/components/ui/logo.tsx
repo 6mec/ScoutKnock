@@ -8,11 +8,13 @@ export function Logo({
   size = 32,
   searching = false,
   showWordmark = true,
+  wordmarkClassName,
   className,
 }: {
   size?: number;
   searching?: boolean;
   showWordmark?: boolean;
+  wordmarkClassName?: string;
   className?: string;
 }) {
   const { brand } = ptPT;
@@ -46,7 +48,7 @@ export function Logo({
         <circle cx="46" cy="20" r="5" fill="#FFB547" />
       </svg>
       {showWordmark && (
-        <span className="text-20 font-bold tracking-tight">
+        <span className={cn("text-20 font-bold tracking-tight", wordmarkClassName)}>
           <span className="text-foreground">{brand.scout}</span>
           <span className="text-accent">{brand.knock}</span>
         </span>
