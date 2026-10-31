@@ -20,6 +20,7 @@ function fakeProvider(companies: Company[], failure?: Error): CompanyProvider {
   return {
     usesSampleData: true,
     search: async () => companies,
+    findById: async () => null,
     async *stream() {
       for (const company of companies) yield company;
       if (failure) throw failure;

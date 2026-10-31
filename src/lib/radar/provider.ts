@@ -5,6 +5,7 @@ export type CompanyProvider = {
   usesSampleData: boolean;
   search: (query: SearchQuery) => Promise<Company[]>;
   stream: (query: SearchQuery, signal?: AbortSignal) => AsyncIterable<Company>;
+  findById: (id: string) => Promise<Company | null>;
 };
 
 // Os dados de exemplo respondem logo; a espera deixa ver o estado "a procurar".
@@ -43,6 +44,9 @@ export const sampleProvider: CompanyProvider = {
         normalize(company.niche).includes(wantedNiche) &&
         normalize(company.locality).includes(wantedLocality),
     );
+  },
+  async findById(id) {
+    return SAMPLE_COMPANIES.find((company) => company.id === id) ?? null;
   },
   async *stream(query, signal) {
     await wait(SAMPLE_DELAY_MS, signal);

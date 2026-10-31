@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { AccountMenu, AccountMenuFallback } from "@/components/app/account-menu";
 import { AppNav } from "@/components/app/app-nav";
 import { AppTopBar } from "@/components/app/app-top-bar";
+import { Toaster } from "@/components/ui/toaster";
 import { requireUser } from "@/lib/auth/current-user";
 
 export default function DashboardLayout({ children }: LayoutProps<"/painel">) {
@@ -18,6 +19,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/painel">) {
         <AppTopBar />
         <main className="flex flex-1 flex-col">{children}</main>
       </div>
+      <Toaster />
     </div>
   );
 }

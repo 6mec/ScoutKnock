@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { CreateDemoButton } from "@/components/demos/create-demo-button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBreakdown } from "@/components/ui/score-breakdown";
 import { ptPT } from "@/i18n/pt-PT";
@@ -32,6 +33,9 @@ export function CompanyDetail({
         copy.details.noWebsite
       ),
     ],
+    ...(company.phone
+      ? ([[copy.details.phone, company.phone]] as [string, ReactNode][])
+      : []),
     [copy.details.reviews, company.reviewCount],
     [
       copy.details.hours,
@@ -44,6 +48,9 @@ export function CompanyDetail({
       <div className="flex flex-col items-start gap-2">
         {isSample && <Badge variant="amber">{copy.sampleBadge}</Badge>}
         {title}
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <CreateDemoButton companyId={company.id} />
       </div>
       <div className="rounded-lg border border-border bg-surface p-5">
         <ScoreBreakdown opportunity={opportunity} />

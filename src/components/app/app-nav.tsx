@@ -1,9 +1,9 @@
 "use client";
 
-import { House, PanelLeftClose, PanelLeftOpen, Radar } from "lucide-react";
+import { Globe, House, PanelLeftClose, PanelLeftOpen, Radar } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useSyncExternalStore, type ReactNode } from "react";
+import { useSelectedLayoutSegment } from "next/navigation";
+import { Suspense, useSyncExternalStore, type ReactNode } from "react";
 import { Logo } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { ptPT } from "@/i18n/pt-PT";
@@ -12,8 +12,9 @@ import { cn } from "@/lib/utils";
 const copy = ptPT.app;
 const COLLAPSED_KEY = "scoutknock-nav-collapsed";
 const NAV_ITEMS = [
-  { href: "/painel", label: copy.nav.home, icon: House },
-  { href: "/painel/radar", label: copy.nav.radar, icon: Radar },
+  { href: "/painel", segment: null, label: copy.nav.home, icon: House },
+  { href: "/painel/radar", segment: "radar", label: copy.nav.radar, icon: Radar },
+  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe },
 ] as const;
 
 const listeners = new Set<() => void>();
@@ -41,10 +42,51 @@ function writeCollapsed(collapsed: boolean) {
   listeners.forEach((listener) => listener());
 }
 
+function ActiveNavLinks({ collapsed }: { collapsed: boolean }) {
+  return <NavLinks collapsed={collapsed} current={useSelectedLayoutSegment()} />;
+}
+
+// Enquanto o segmento não é conhecido (current undefined), nenhuma ligação fica ativa.
+function NavLinks({
+  collapsed,
+  current,
+}: {
+  collapsed: boolean;
+  current?: string | null;
+}) {
+  return (
+    <ul className="flex flex-3 items-center gap-1 md:flex-1 md:flex-col md:items-stretch">
+      {NAV_ITEMS.map(({ href, segment, label, icon: Icon }) => {
+        const active = current === segment;
+        const link = (
+          <Link
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "focus-ring flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-3 text-12 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
+              "md:flex-row md:justify-start md:gap-3 md:text-14",
+              collapsed && "md:justify-center md:px-0",
+              active && "bg-accent-soft text-accent hovered:text-accent",
+            )}
+          >
+            <Icon aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />
+            <span className={cn(collapsed && "md:sr-only")}>{label}</span>
+          </Link>
+        );
+
+        return (
+          <li key={href} className="flex flex-1 md:flex-none">
+            {collapsed ? <Tooltip content={label}>{link}</Tooltip> : link}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 // Um só menu: barra inferior no telemóvel, coluna lateral a partir de 768 px.
 export function AppNav({ account }: { account: ReactNode }) {
-  const pathname = usePathname();
-  const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
+    const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose;
 
   return (
@@ -65,32 +107,9 @@ export function AppNav({ account }: { account: ReactNode }) {
         <Logo showWordmark={!collapsed} size={collapsed ? 32 : 28} />
       </Link>
 
-      <ul className="flex flex-2 items-center gap-1 md:flex-1 md:flex-col md:items-stretch">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href;
-          const link = (
-            <Link
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "focus-ring flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-3 text-12 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
-                "md:flex-row md:justify-start md:gap-3 md:text-14",
-                collapsed && "md:justify-center md:px-0",
-                active && "bg-accent-soft text-accent hovered:text-accent",
-              )}
-            >
-              <Icon aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />
-              <span className={cn(collapsed && "md:sr-only")}>{label}</span>
-            </Link>
-          );
-
-          return (
-            <li key={href} className="flex flex-1 md:flex-none">
-              {collapsed ? <Tooltip content={label}>{link}</Tooltip> : link}
-            </li>
-          );
-        })}
-      </ul>
+      <Suspense fallback={<NavLinks collapsed={collapsed} />}>
+        <ActiveNavLinks collapsed={collapsed} />
+      </Suspense>
 
       <button
         type="button"

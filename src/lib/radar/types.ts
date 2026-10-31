@@ -10,6 +10,7 @@ export type Company = {
   niche: string;
   locality: string;
   address: string;
+  phone?: string | null;
   website: string | null;
   reviewCount: number;
   hasOpeningHours: boolean;
