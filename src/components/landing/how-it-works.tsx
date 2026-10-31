@@ -52,7 +52,11 @@ function ScoreScreen({ animated }: { animated: boolean }) {
       <div className="type-number flex justify-between text-13">
         <span className="text-muted">{copy.example.company}</span>
         <span className="font-semibold text-accent">
-          <NumberFlow value={score} /> / 100
+          <span className="sr-only">{score}</span>
+          <span aria-hidden="true">
+            <NumberFlow value={score} />
+          </span>{" "}
+          / 100
         </span>
       </div>
       <Progress value={score} label={copy.example.scoreLabel} />

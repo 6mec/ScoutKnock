@@ -63,7 +63,11 @@ export function ScoreChip({
           boxes[level],
         )}
       >
-        <NumberFlow value={score} />
+        {/* O número animado lê-se dígito a dígito: o leitor de ecrã recebe o número inteiro. */}
+        <span className="sr-only">{score}</span>
+        <span aria-hidden="true">
+          <NumberFlow value={score} />
+        </span>
       </span>
       <span className={cn("type-number text-12", levelText[level])}>
         {ptPT.radar.levels[level]}

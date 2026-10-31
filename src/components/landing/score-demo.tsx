@@ -91,7 +91,10 @@ export function ScoreDemo() {
                 scoreColors[opportunity.level],
               )}
             >
-              <NumberFlow value={opportunity.score} />
+              <span className="sr-only">{opportunity.score}</span>
+              <span aria-hidden="true">
+                <NumberFlow value={opportunity.score} />
+              </span>
             </div>
             <p className="type-number text-13 text-muted">
               {example.scoreSuffix} · {levels[opportunity.level]}
