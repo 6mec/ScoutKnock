@@ -1,0 +1,83 @@
+import type { ReasonCode } from "@/lib/radar/types";
+
+// Travão provisório, até o limite de mensagens ser decidido por pack.
+export const DAILY_MESSAGE_LIMIT = 20;
+export const MAX_MESSAGE_LENGTH = 2000;
+
+export const MESSAGE_TONES = ["normal", "shorter", "formal"] as const;
+export type MessageTone = (typeof MESSAGE_TONES)[number];
+
+export type MessageSource = { kind: "company" | "contact"; id: string };
+export type MessageRequest = { source: MessageSource; tone: MessageTone };
+
+// Só dados públicos da empresa e o nome de quem assina.
+export type MessageInput = {
+  companyName: string;
+  niche: string;
+  locality: string;
+  reasons: ReasonCode[];
+  senderName: string | null;
+  tone: MessageTone;
+};
+
+export type MessageErrorCode = "provider" | "limit" | "offline" | "notFound";
+
+export type MessageEvent =
+  | { type: "start"; isSample: boolean }
+  | { type: "text"; text: string }
+  | { type: "done" }
+  | { type: "error"; code: MessageErrorCode };
+
+export type MessageUsage = { inputTokens: number; outputTokens: number };
+
+export function parseMessageRequest(body: unknown): MessageRequest | null {
+  if (typeof body !== "object" || body === null) return null;
+
+  const { source, tone } = body as Record<string, unknown>;
+  const validTone = MESSAGE_TONES.find((value) => value === tone);
+  if (!validTone || typeof source !== "object" || source === null) return null;
+
+  const { kind, id } = source as Record<string, unknown>;
+  if (
+    (kind !== "company" && kind !== "contact") ||
+    typeof id !== "string" ||
+    !id ||
+    id.length > 200
+  ) {
+    return null;
+  }
+
+  return { source: { kind, id }, tone: validTone };
+}
+
+// Haiku 5.5: 0,10 $ por milhão à entrada e 0,50 $ à saída. Sem conversão de
+// moeda: um dólar conta como um euro, o que erra para o lado do excesso.
+export function messageCostEur({ inputTokens, outputTokens }: MessageUsage) {
+  return (inputTokens * 0.1 + outputTokens * 0.5) / 1_000_000;
+}
+
+// A meia-noite em Lisboa, porque o limite é "por dia" para quem usa.
+export function startOfLisbonDay(now: Date) {
+  const date = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Lisbon",
+  }).format(now);
+  const zone = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Lisbon",
+    timeZoneName: "longOffset",
+  })
+    .formatToParts(now)
+    .find((part) => part.type === "timeZoneName")?.value;
+  const offset = zone?.replace("GMT", "") || "+00:00";
+
+  return new Date(`${date}T00:00:00${offset}`).toISOString();
+}
+
+// Sem indicativo não dá para saber o país: o WhatsApp pede então o contacto.
+export function whatsappUrl(message: string, phone?: string | null) {
+  const number = phone?.trim().startsWith("+") ? phone.replace(/\D/g, "") : "";
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
+export function emailUrl(message: string, subject: string) {
+  return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+}

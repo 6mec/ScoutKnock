@@ -15,11 +15,7 @@ Dono do projeto: Daniel (Portugal). Responde-lhe em português de Portugal. Plan
 
 ## Comandos
 
-- Instalar: `npm install`
-- Desenvolvimento: `npm run dev` (http://localhost:3000)
-- Build: `npm run build`
-- Testes: `npm test`
-- Lint: `npm run lint`
+Preencher quando o projeto existir (instalar, dev, build, test, lint).
 
 ## Regras fixas
 
@@ -31,7 +27,6 @@ Dono do projeto: Daniel (Portugal). Responde-lhe em português de Portugal. Plan
 - Cada site demo tem aviso "proposta não oficial" até ser publicado como oficial, e é apagado ao fim de 30 dias se não for aceite.
 - Nenhuma funcionalidade é anunciada como disponível sem estar a funcionar.
 - O custo da API por utilizador não pode passar 30% do preço do pack: respeitar sempre os limites de buscas e demos por pack.
-- O visual e os textos seguem o @docs/marca.md.
 
 ## Como trabalhar
 

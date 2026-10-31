@@ -493,6 +493,63 @@ export const ptPT = {
       noOpeningHours: "Sem horário publicado",
     },
   },
+  messages: {
+    generate: "Gerar mensagem",
+    title: (company: string) => `Mensagem para ${company}`,
+    writing: "A escrever a mensagem…",
+    ready: "Mensagem pronta. Podes editá-la antes de enviar.",
+    label: "Mensagem",
+    sampleBadge: "Exemplo",
+    sampleNotice:
+      "Texto de exemplo, escrito por nós a partir de um modelo. Não foi gerado por IA, porque a IA ainda não está ligada.",
+    warning:
+      "Revê a mensagem antes de enviar. O envio é sempre feito por ti, um contacto de cada vez.",
+    copy: "Copiar",
+    copied: "Copiada",
+    copyFailed: "Não foi possível copiar. Seleciona o texto e copia à mão.",
+    whatsapp: "Abrir no WhatsApp",
+    email: "Abrir no email",
+    emailSubject: (company: string) => `Uma ideia para ${company}`,
+    newVersion: "Gerar outra versão",
+    tones: { normal: "Normal", shorter: "Mais curta", formal: "Mais formal" },
+    replaceWarning: "Isto substitui o texto que editaste.",
+    replaceConfirm: "Substituir",
+    replaceCancel: "Manter o meu texto",
+    retry: "Tentar outra vez",
+    errors: {
+      provider: "Algo correu mal. Tenta outra vez dentro de instantes.",
+      limit:
+        "Chegaste ao limite de 20 mensagens por hoje. Amanhã podes gerar mais.",
+      offline: "Sem ligação à internet. Verifica a rede e tenta outra vez.",
+      notFound: "Não encontrámos os dados desta empresa.",
+    },
+    sample: {
+      noReason: (company: string) =>
+        `Encontrei ${company} ao procurar negócios locais.`,
+      reasons: {
+        noWebsite: (company: string) =>
+          `Ao procurar ${company} online, não encontrei um site.`,
+        slowSite: (company: string) =>
+          `Ao ver o site de ${company}, reparei que demora a abrir.`,
+        notMobileFriendly: (company: string) =>
+          `Ao ver o site de ${company}, reparei que não se adapta bem ao telemóvel.`,
+        outdatedSite: (company: string) =>
+          `Ao ver o site de ${company}, reparei que já tem alguns anos.`,
+        fewReviews: (company: string) =>
+          `Ao procurar ${company} online, vi que ainda há poucas avaliações.`,
+        noOpeningHours: (company: string) =>
+          `Ao procurar ${company} online, não encontrei o horário publicado.`,
+      },
+      templates: {
+        normal: (company: string, reason: string, sender: string | null) =>
+          `Olá, equipa de ${company}.\n\n${reason} Trabalho na criação de sites para negócios locais e lembrei-me de vos escrever.\n\nPosso enviar uma ideia, sem compromisso?${sender ? `\n\n${sender}` : ""}`,
+        shorter: (_company: string, reason: string, sender: string | null) =>
+          `Olá. ${reason} Crio sites para negócios locais. Posso enviar uma ideia, sem compromisso?${sender ? `\n\n${sender}` : ""}`,
+        formal: (company: string, reason: string, sender: string | null) =>
+          `Bom dia.\n\nDirijo-me a ${company} porque trabalho na criação de sites para empresas locais. ${reason}\n\nTeria disponibilidade para receber uma proposta, sem qualquer compromisso?\n\nCom os melhores cumprimentos${sender ? `,\n${sender}` : "."}`,
+      },
+    },
+  },
   dashboard: {
     greeting: "Olá. Vamos encontrar o próximo cliente?",
     newSearch: "Nova busca",

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Field, Input, Textarea } from "@/components/ui/field";
 import { ContactScore } from "@/components/contacts/score-summary";
+import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import {
@@ -98,6 +99,12 @@ export function ContactDialog({
           <ContactScore score={contact.score} />
           <StatusMenu contact={contact} onChange={onStatusChange} />
         </div>
+        <GenerateMessageButton
+          source={{ kind: "contact", id: contact.id }}
+          companyName={contact.company_name}
+          phone={contact.phone}
+          variant="secondary"
+        />
         <dl className="flex flex-col gap-3">
           {rows.map(([label, value]) => (
             <div key={label}>

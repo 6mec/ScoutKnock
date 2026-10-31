@@ -19,7 +19,7 @@ Tom e cores: ver @docs/marca.md. Tratamento por "tu". Os textos devem ir para o 
 
 - Etiqueta pequena: Em construção · lista de espera aberta
 - Título: Bate à porta certa.
-- Subtítulo: Encontra empresas locais que precisam do teu serviço, percebe porquê e chega com a proposta pronta.
+- Subtítulo: Diz-nos o que vendes e onde. Mostramos-te as empresas da zona que mais precisam de ti, com as razões à vista, e deixamos-te a primeira conversa preparada.
 - Botão principal: Entrar na lista de espera
 - Botão secundário: Ver como funciona
 - Nota por baixo: Sem cartão. Só te avisamos quando abrirmos.
@@ -34,54 +34,54 @@ Etiquetas: Sites e landing pages · Social media · Design · Marketing · Fotog
 
 ## Como funciona
 
-Título: Do "por onde começo?" ao primeiro contacto
+Título: Da lista vazia à primeira conversa
 
 Nota por baixo do título: É assim que vai funcionar quando abrirmos.
 
-**1. Encontra**
-Escolhes o teu serviço, um nicho (por exemplo, barbearias) e uma localidade. O ScoutKnock mostra empresas reais dessa zona.
+**1. Procura**
+Escolhes o teu serviço, um nicho (por exemplo, pastelarias) e uma localidade. O ScoutKnock lista empresas reais dessa zona.
 
-**2. Percebe**
-Cada empresa recebe uma nota de oportunidade com os motivos: sem site, site lento, sem versão para telemóvel, poucas avaliações. Ficas a saber porque vale a pena contactar.
+**2. Avalia**
+Cada empresa recebe uma nota de 0 a 100 e a lista do que a justifica: sem site, site lento, sem versão para telemóvel, poucas avaliações. Sabes logo quem merece o teu tempo.
 
-**3. Propõe**
-Recebes uma mensagem de abordagem feita para aquela empresa, que revês e envias tu, e podes mostrar-lhe um site demo com o nome dela. Antes de falares de preço, ela já vê o que podes fazer.
+**3. Bate à porta**
+Tens uma mensagem escrita para aquela empresa, que revês e envias tu, e um site demo com o nome dela para mostrar. Quando falares de preço, ela já viu o resultado.
 
 ## Exemplo da nota (marcado como exemplo)
 
 Etiqueta no cartão: Exemplo ilustrativo
 
-- Barbearia Horizonte — Nota: 90/100 (Forte), calculada por `scoreCompany`
-- Site próprio: não encontrado
-- Presença local: identificada no Google
-- Avaliações: poucas
-- Sugestão: uma página com marcação de horário pode ser o próximo passo.
+- Pastelaria Doce Esquina (Braga) — Nota: 90/100 (Forte), calculada por `scoreCompany`
+- Site próprio: não encontrado (70)
+- Avaliações: poucas, menos de 20 (20)
+- Sugestão: uma página que mostre os doces e deixe encomendar por WhatsApp pode ser o próximo passo.
 
 Nota por baixo: Exemplo para ilustrar o resultado. A empresa e os valores são fictícios.
 
-## Mostra, não contes
+## Site demo
 
-Título: Chega com algo para mostrar
+Título: Chega com a proposta na mão
 
 Nota por baixo do título: É assim que vai funcionar quando abrirmos.
 
-Texto: Em vez de mais uma mensagem genérica, apresenta uma prévia de site feita para aquela empresa. É mais fácil dizer que sim a algo que já parece seu.
+Texto: Uma mensagem a dizer "posso fazer-vos um site" pede um salto de fé. Uma prévia com o nome, os serviços e a morada da empresa pede só um olhar. Dizer que sim fica mais fácil.
 
 Pontos:
-- Demos pensadas para o negócio de cada empresa
-- Boas no computador e no telemóvel
+- Preenchida com os dados públicos da própria empresa
+- Pronta para ver no computador e no telemóvel
 - Se a empresa gostar, publicas como site oficial
+- Traz o aviso "proposta não oficial" até ser aceite
 
 ## Honestidade
 
-Título: Sem promessas mágicas
+Título: O que não vamos prometer
 
-Texto: O ScoutKnock encontra empresas e prepara a abordagem. Fechar o negócio continua a ser trabalho teu. Não prometemos resultados, só uma forma mais direta de chegar às pessoas certas.
+Texto: Não garantimos clientes nem vendas. Garantimos que gastas o teu tempo nas empresas certas e que chegas à conversa preparado. Fechar o negócio continua a ser contigo.
 
 Pontos:
-- Dados de empresas obtidos através da API oficial do Google
-- Mensagens enviadas sempre por ti, uma de cada vez
-- Nada de envios em massa
+- Dados de empresas só pela API oficial do Google
+- Cada mensagem sai das tuas mãos, uma de cada vez
+- Sem envio automático nem em massa
 
 ## Perguntas frequentes
 
@@ -131,7 +131,7 @@ Ordem na página: o formulário fica depois das perguntas frequentes, junto à c
 ## Chamada final
 
 - Título: Bate à porta certa.
-- Texto: Menos procura, mais conversas.
+- Texto: Chega à primeira conversa com tudo preparado.
 - Botão: Entrar na lista de espera
 
 ## Rodapé
@@ -142,9 +142,13 @@ Ordem na página: o formulário fica depois das perguntas frequentes, junto à c
 ## Textos acrescentados na Fase 2 (vindos do desenho)
 
 - Etiquetas de secção: Para quem é · Como funciona · A nota · Site demo · Honestidade · Perguntas
-- Faixa de nichos: Barbearias · Restaurantes · Clínicas dentárias · Ginásios · Oficinas · Cafés · Cabeleireiros · Fisioterapia · Imobiliárias
+- Faixa de nichos: Pastelarias · Restaurantes · Clínicas dentárias · Ginásios · Oficinas · Cafés · Cabeleireiros · Fisioterapia · Imobiliárias
 - Título da nota: Vês os motivos, não só o número
-- Empresas fictícias do herói: Barbearia Horizonte · Navalha & Pente · Barbearia Atlântico · Barbearia do Bairro
+- Empresas fictícias do herói (nicho Pastelarias, Braga). As notas vêm de `scoreCompany`, estas são as esperadas:
+  - Pastelaria Doce Esquina — sem site (70) + menos de 20 avaliações (20) = 90, Forte
+  - Pastelaria Largo do Sol — site lento (25) + sem versão móvel (25) + site antigo (20) = 70, Forte; 80 avaliações, com horário
+  - Confeitaria Bela Vista — sem versão móvel (25) + poucas avaliações (20) + sem horário (10) = 55, Média
+  - Pastelaria Central — site em ordem, 210 avaliações, com horário = 0, Fraca
 
 ## Notas para o Claude Code
 

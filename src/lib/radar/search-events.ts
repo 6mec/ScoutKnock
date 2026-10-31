@@ -1,3 +1,4 @@
+import { readNdjson } from "@/lib/read-ndjson";
 import type { Company, Opportunity, SearchQuery } from "./types";
 import { SERVICE_IDS } from "./types";
 
@@ -31,22 +32,9 @@ export function parseSearchQuery(body: unknown): SearchQuery | null {
   return query.niche && query.locality ? query : null;
 }
 
-// Lê uma linha JSON de cada vez, mesmo que os pedaços da rede as cortem a meio.
-export async function readSearchEvents(
+export function readSearchEvents(
   body: ReadableStream<Uint8Array>,
   onEvent: (event: SearchEvent) => void,
 ) {
-  const reader = body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) return;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() ?? "";
-    lines.filter(Boolean).forEach((line) => onEvent(JSON.parse(line)));
-  }
+  return readNdjson<SearchEvent>(body, onEvent);
 }

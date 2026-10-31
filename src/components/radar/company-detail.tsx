@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { SaveContactButton } from "@/components/contacts/save-contact-button";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
+import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBreakdown } from "@/components/ui/score-breakdown";
 import { ptPT } from "@/i18n/pt-PT";
@@ -51,6 +52,11 @@ export function CompanyDetail({
         {title}
       </div>
       <div className="flex flex-wrap gap-3">
+        <GenerateMessageButton
+          source={{ kind: "company", id: company.id }}
+          companyName={company.name}
+          phone={company.phone}
+        />
         <CreateDemoButton companyId={company.id} />
         <SaveContactButton companyId={company.id} />
       </div>
