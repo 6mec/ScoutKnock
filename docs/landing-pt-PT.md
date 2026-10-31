@@ -36,6 +36,8 @@ Etiquetas: Sites e landing pages · Social media · Design · Marketing · Fotog
 
 Título: Do "por onde começo?" ao primeiro contacto
 
+Nota por baixo do título: É assim que vai funcionar quando abrirmos.
+
 **1. Encontra**
 Escolhes o teu serviço, um nicho (por exemplo, barbearias) e uma localidade. O ScoutKnock mostra empresas reais dessa zona.
 
@@ -61,6 +63,8 @@ Nota por baixo: Exemplo para ilustrar o resultado. A empresa e os valores são f
 
 Título: Chega com algo para mostrar
 
+Nota por baixo do título: É assim que vai funcionar quando abrirmos.
+
 Texto: Em vez de mais uma mensagem genérica, apresenta uma prévia de site feita para aquela empresa. É mais fácil dizer que sim a algo que já parece seu.
 
 Pontos:
@@ -75,7 +79,7 @@ Título: Sem promessas mágicas
 Texto: O ScoutKnock encontra empresas e prepara a abordagem. Fechar o negócio continua a ser trabalho teu. Não prometemos resultados, só uma forma mais direta de chegar às pessoas certas.
 
 Pontos:
-- Dados de empresas obtidos de fontes públicas e oficiais
+- Dados de empresas obtidos através da API oficial do Google
 - Mensagens enviadas sempre por ti, uma de cada vez
 - Nada de envios em massa
 
@@ -91,10 +95,10 @@ Planeamos incluir um teste grátis de 7 dias. Os detalhes e os preços serão an
 Sim, é esse o objetivo. A busca vai funcionar por distrito e concelho em Portugal, e por cidade e bairro no Brasil.
 
 **De onde vêm os dados das empresas?**
-De fontes públicas e oficiais, como o Google Maps através da API oficial. Guardamos apenas informação comercial pública das empresas.
+Da API oficial do Google. Guardamos apenas informação comercial pública das empresas.
 
 **O ScoutKnock envia as mensagens por mim?**
-Não. Geramos a mensagem e tu revês, ajustas e envias. É mais seguro para a tua conta e respeita as regras do WhatsApp e da lei.
+Não. Geramos a mensagem e tu revês, ajustas e envias. É mais seguro para a tua conta, e o envio fica sempre nas tuas mãos.
 
 **Posso contactar qualquer empresa?**
 Podes contactar empresas, mas deves fazê-lo de forma individual, identificares-te e respeitares quem pedir para não ser contactado. Vamos incluir essa informação nos termos de utilização.
@@ -118,10 +122,11 @@ Ainda estamos a fechar os preços. Vão ser planos mensais, com limites de busca
 
 Mensagens:
 
-- Sucesso: Estás na lista. Enviámos-te um email para confirmares o teu endereço.
+- Sucesso (igual se o email já estiver na lista, para não revelar quem está inscrito): Se este email ainda não estiver na lista, enviámos-te um email para o confirmares.
 - Email inválido: Este email não parece válido. Confirma e tenta outra vez.
-- Já registado: Este email já está na lista. Obrigado!
 - Erro geral: Algo correu mal. Tenta outra vez dentro de instantes.
+
+Ordem na página: o formulário fica antes das perguntas frequentes, e o botão da chamada final leva até ele.
 
 ## Chamada final
 
@@ -136,7 +141,8 @@ Mensagens:
 
 ## Notas para o Claude Code
 
-- O formulário guarda emails numa tabela com RLS ativo e sem acesso público de leitura. Qualquer pessoa pode inserir, ninguém pode ler a lista pelo site.
+- O formulário guarda emails numa tabela com RLS ativo e sem acesso público. A inserção é feita só pelo servidor, depois de validar o pedido. Ninguém pode ler a lista pelo site.
+- No cabeçalho, o botão fica só com borda: o verde é para o botão do herói (um botão principal por ecrã).
 - Pedir confirmação do email (duplo opt-in) antes de considerar o contacto válido, e incluir sempre a ligação para sair da lista em todos os emails.
 - Páginas `/privacidade`, `/termos` e `/contacto`: criar com texto provisório e marcar claramente que o conteúdo legal final ainda está em revisão. Não publicar o site com estas páginas vazias.
 - O exemplo da nota tem de aparecer sempre marcado como "Exemplo ilustrativo", nunca como dados reais.

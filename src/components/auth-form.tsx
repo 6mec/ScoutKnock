@@ -50,7 +50,7 @@ export function AuthForm({
             required
             className="h-12 rounded-[12px] border border-border bg-background px-3 text-[16px] outline-none focus-visible:border-accent focus-visible:ring-2 focus-visible:ring-accent"
           />
-          {field.hint && <p className="text-[14px] text-muted">{field.hint}</p>}
+          {field.hint && <p className="text-[16px] sm:text-[14px] text-muted">{field.hint}</p>}
         </div>
       ))}
       {state.status === "error" && (

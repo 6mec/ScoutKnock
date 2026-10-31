@@ -7,6 +7,225 @@ export const ptPT = {
     tagline:
       "Encontra empresas que precisam do teu serviço e chega com a proposta pronta.",
   },
+  landing: {
+    meta: {
+      title: "ScoutKnock — Bate à porta certa",
+      description:
+        "Radar de clientes para freelancers. Encontra empresas locais que precisam do teu serviço e chega com a proposta pronta. Entra na lista de espera.",
+    },
+    joinButton: "Entrar na lista de espera",
+    futureNote: "É assim que vai funcionar quando abrirmos.",
+    nav: {
+      label: "Navegação principal",
+      howItWorks: "Como funciona",
+      faq: "Perguntas",
+    },
+    hero: {
+      badge: "Em construção · lista de espera aberta",
+      title: "Bate à porta certa.",
+      subtitle:
+        "Encontra empresas locais que precisam do teu serviço, percebe porquê e chega com a proposta pronta.",
+      secondary: "Ver como funciona",
+      note: "Sem cartão. Só te avisamos quando abrirmos.",
+    },
+    audience: {
+      title: "Feito para quem vende serviços",
+      body: "Se trabalhas por conta própria ou numa pequena agência, o ScoutKnock ajuda-te a deixar de adivinhar a quem escrever.",
+      tags: [
+        "Sites e landing pages",
+        "Social media",
+        "Design",
+        "Marketing",
+        "Fotografia e vídeo",
+      ],
+    },
+    howItWorks: {
+      title: "Do \"por onde começo?\" ao primeiro contacto",
+      steps: [
+        {
+          title: "Encontra",
+          body: "Escolhes o teu serviço, um nicho (por exemplo, barbearias) e uma localidade. O ScoutKnock mostra empresas reais dessa zona.",
+        },
+        {
+          title: "Percebe",
+          body: "Cada empresa recebe uma nota de oportunidade com os motivos: sem site, site lento, sem versão para telemóvel, poucas avaliações. Ficas a saber porque vale a pena contactar.",
+        },
+        {
+          title: "Propõe",
+          body: "Recebes uma mensagem de abordagem feita para aquela empresa, que revês e envias tu, e podes mostrar-lhe um site demo com o nome dela. Antes de falares de preço, ela já vê o que podes fazer.",
+        },
+      ],
+    },
+    example: {
+      badge: "Exemplo ilustrativo",
+      company: "Barbearia Horizonte",
+      scoreLabel: "Nota",
+      score: "82/100",
+      strength: "Forte",
+      rows: [
+        { label: "Site próprio", value: "não encontrado" },
+        { label: "Presença local", value: "identificada no Google" },
+        { label: "Avaliações", value: "poucas" },
+      ],
+      suggestionLabel: "Sugestão",
+      suggestion: "uma página com marcação de horário pode ser o próximo passo.",
+      note: "Exemplo para ilustrar o resultado. A empresa e os valores são fictícios.",
+    },
+    show: {
+      title: "Chega com algo para mostrar",
+      body: "Em vez de mais uma mensagem genérica, apresenta uma prévia de site feita para aquela empresa. É mais fácil dizer que sim a algo que já parece seu.",
+      points: [
+        "Demos pensadas para o negócio de cada empresa",
+        "Boas no computador e no telemóvel",
+        "Se a empresa gostar, publicas como site oficial",
+      ],
+    },
+    honesty: {
+      title: "Sem promessas mágicas",
+      body: "O ScoutKnock encontra empresas e prepara a abordagem. Fechar o negócio continua a ser trabalho teu. Não prometemos resultados, só uma forma mais direta de chegar às pessoas certas.",
+      points: [
+        "Dados de empresas obtidos através da API oficial do Google",
+        "Mensagens enviadas sempre por ti, uma de cada vez",
+        "Nada de envios em massa",
+      ],
+    },
+    faq: {
+      title: "Perguntas frequentes",
+      items: [
+        {
+          question: "Quando abre?",
+          answer:
+            "Estamos a construir o produto. Quem estiver na lista de espera é avisado primeiro, por email, quando houver data.",
+        },
+        {
+          question: "Vai ter teste grátis?",
+          answer:
+            "Planeamos incluir um teste grátis de 7 dias. Os detalhes e os preços serão anunciados no lançamento.",
+        },
+        {
+          question: "Funciona em Portugal e no Brasil?",
+          answer:
+            "Sim, é esse o objetivo. A busca vai funcionar por distrito e concelho em Portugal, e por cidade e bairro no Brasil.",
+        },
+        {
+          question: "De onde vêm os dados das empresas?",
+          answer:
+            "Da API oficial do Google. Guardamos apenas informação comercial pública das empresas.",
+        },
+        {
+          question: "O ScoutKnock envia as mensagens por mim?",
+          answer:
+            "Não. Geramos a mensagem e tu revês, ajustas e envias. É mais seguro para a tua conta, e o envio fica sempre nas tuas mãos.",
+        },
+        {
+          question: "Posso contactar qualquer empresa?",
+          answer:
+            "Podes contactar empresas, mas deves fazê-lo de forma individual, identificares-te e respeitares quem pedir para não ser contactado. Vamos incluir essa informação nos termos de utilização.",
+        },
+        {
+          question: "Preciso de experiência em vendas?",
+          answer:
+            "Não. A nota e a mensagem sugerida servem de ponto de partida. Quanto mais as adaptares, melhor.",
+        },
+        {
+          question: "Quanto vai custar?",
+          answer:
+            "Ainda estamos a fechar os preços. Vão ser planos mensais, com limites de buscas e de sites demo, e quem estiver na lista de espera saberá primeiro.",
+        },
+      ],
+    },
+    finalCta: {
+      title: "Bate à porta certa.",
+      body: "Menos procura, mais conversas.",
+    },
+    footer: {
+      privacy: "Privacidade",
+      terms: "Termos",
+      contact: "Contacto",
+      copyright: "© 2026 ScoutKnock. Feito em Portugal.",
+    },
+  },
+  waitlist: {
+    title: "Sê dos primeiros a entrar",
+    intro: "Deixa o teu email e avisamos-te quando abrirmos.",
+    emailLabel: "O teu email",
+    emailPlaceholder: "nome@exemplo.pt",
+    serviceLabel: "O que vendes? (opcional)",
+    serviceEmpty: "Escolhe uma opção",
+    services: [
+      { value: "sites", label: "Sites" },
+      { value: "social_media", label: "Social media" },
+      { value: "design", label: "Design" },
+      { value: "marketing", label: "Marketing" },
+      { value: "other", label: "Outro" },
+    ],
+    submit: "Entrar na lista de espera",
+    pending: "Um momento…",
+    privacyBefore:
+      "Usamos o teu email só para te avisar do lançamento. Podes sair da lista quando quiseres. Lê a ",
+    privacyLink: "Política de Privacidade",
+    privacyAfter: ".",
+    messages: {
+      success:
+        "Se este email ainda não estiver na lista, enviámos-te um email para o confirmares.",
+      invalidEmail: "Este email não parece válido. Confirma e tenta outra vez.",
+      closed:
+        "A lista de espera ainda não está aberta. Tenta outra vez mais tarde.",
+      generic: "Algo correu mal. Tenta outra vez dentro de instantes.",
+    },
+    email: {
+      subject: "Confirma o teu email na lista de espera do ScoutKnock",
+      intro:
+        "Pediste para entrar na lista de espera do ScoutKnock. Abre este link para confirmares o teu email:",
+      confirmLink: "Confirmar o meu email",
+      ignore: "Se não foste tu, ignora este email e não voltamos a contactar-te.",
+      unsubscribe: "Sair da lista:",
+    },
+    confirm: {
+      title: "Confirmar o teu email",
+      body: "Carrega no botão para confirmares que queres entrar na lista de espera.",
+      submit: "Confirmar email",
+      success: "Email confirmado. Avisamos-te quando abrirmos.",
+      invalid: "Este link não é válido. Volta a inscrever-te na lista de espera.",
+    },
+    leave: {
+      title: "Sair da lista de espera",
+      body: "Carrega no botão para apagarmos o teu email da lista.",
+      submit: "Sair da lista",
+      success: "Apagámos o teu email da lista.",
+      invalid: "Este link não é válido.",
+    },
+    backHome: "Voltar à página inicial",
+  },
+  legal: {
+    reviewNotice:
+      "Texto provisório. O conteúdo legal final ainda está em revisão.",
+    backHome: "Voltar à página inicial",
+    privacy: {
+      title: "Política de Privacidade",
+      paragraphs: [
+        "Se entrares na lista de espera, guardamos o teu email, o serviço que indicares (opcional) e a data do teu consentimento.",
+        "Usamos estes dados só para te avisar do lançamento do ScoutKnock. Podes sair da lista quando quiseres, com a ligação incluída em cada email, e apagamos o teu email da lista.",
+        "Se não confirmares o teu email, apagamos o registo ao fim de 30 dias.",
+        "Os emails são enviados através do Resend, e os dados ficam guardados no Supabase.",
+        "O responsável pelos dados é Daniel de Aguiar Araujo. Para exerceres os teus direitos, escreve para starkdaniel1113@gmail.com.",
+      ],
+    },
+    terms: {
+      title: "Termos",
+      paragraphs: [
+        "O ScoutKnock ainda está em construção, e por agora esta página serve só para a lista de espera.",
+        "Os termos de utilização completos vão ser publicados aqui antes do lançamento, incluindo as regras sobre o contacto com empresas.",
+      ],
+    },
+    contact: {
+      title: "Contacto",
+      paragraphs: [
+        "Responsável: Daniel de Aguiar Araujo.",
+        "Email de contacto: starkdaniel1113@gmail.com.",
+      ],
+    },
+  },
   auth: {
     fields: {
       email: "Email",
