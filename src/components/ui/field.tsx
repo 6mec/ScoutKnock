@@ -1,11 +1,12 @@
 "use client";
 
-import { ChevronDown, CircleAlert } from "lucide-react";
+import { ChevronDown, CircleAlert, Eye, EyeOff } from "lucide-react";
 import { Label as LabelPrimitive } from "radix-ui";
 import {
   createContext,
   use,
   useId,
+  useState,
   type ComponentProps,
   type ReactNode,
 } from "react";
@@ -114,6 +115,37 @@ export function Input({
       {loading && (
         <Spinner className="absolute top-4 right-3 text-muted" />
       )}
+    </div>
+  );
+}
+
+export function PasswordInput({
+  showLabel,
+  hideLabel,
+  className,
+  ...props
+}: Omit<ComponentProps<typeof Input>, "type"> & {
+  showLabel: string;
+  hideLabel: string;
+}) {
+  const [visible, setVisible] = useState(false);
+  const Icon = visible ? EyeOff : Eye;
+
+  return (
+    <div className="relative">
+      <Input
+        type={visible ? "text" : "password"}
+        className={cn("pr-12", className)}
+        {...props}
+      />
+      <button
+        type="button"
+        aria-label={visible ? hideLabel : showLabel}
+        onClick={() => setVisible((current) => !current)}
+        className="focus-ring absolute top-0.5 right-0.5 inline-flex size-11 items-center justify-center rounded-md text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground"
+      >
+        <Icon aria-hidden="true" size={18} strokeWidth={1.75} />
+      </button>
     </div>
   );
 }

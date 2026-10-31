@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { AuthCard } from "@/components/auth-card";
+import { AuthCard, AuthLink } from "@/components/auth-card";
 import { AuthForm } from "@/components/auth-form";
 import { ptPT } from "@/i18n/pt-PT";
 import { signUp } from "@/lib/auth/actions";
@@ -34,10 +33,7 @@ export default function SignUpPage() {
         ]}
       />
       <p className="text-muted">
-        {copy.hasAccount}{" "}
-        <Link href="/entrar" className="text-accent underline">
-          {copy.signInLink}
-        </Link>
+        {copy.hasAccount} <AuthLink href="/entrar">{copy.signInLink}</AuthLink>
       </p>
     </AuthCard>
   );

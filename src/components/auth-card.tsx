@@ -1,5 +1,6 @@
-import type { ReactNode } from "react";
-import { Logo } from "@/components/logo";
+import Link from "next/link";
+import type { ComponentProps, ReactNode } from "react";
+import { cn } from "@/lib/utils";
 
 export function AuthCard({
   title,
@@ -9,14 +10,18 @@ export function AuthCard({
   children: ReactNode;
 }) {
   return (
-    <main className="flex flex-1 w-full max-w-md mx-auto flex-col justify-center gap-8 px-4 py-12">
-      <Logo />
-      <section className="flex flex-col gap-6 rounded-[12px] border border-border bg-surface p-6">
-        <h1 className="text-[28px] leading-tight font-bold tracking-tight">
-          {title}
-        </h1>
-        {children}
-      </section>
-    </main>
+    <div className="flex flex-col gap-6">
+      <h1 className="type-heading text-24">{title}</h1>
+      {children}
+    </div>
+  );
+}
+
+export function AuthLink({ className, ...props }: ComponentProps<typeof Link>) {
+  return (
+    <Link
+      className={cn("focus-ring rounded-sm text-accent underline", className)}
+      {...props}
+    />
   );
 }

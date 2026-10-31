@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { AuthCard } from "@/components/auth-card";
+import { AuthCard, AuthLink } from "@/components/auth-card";
 import { AuthForm } from "@/components/auth-form";
 import { ptPT } from "@/i18n/pt-PT";
 import { requestPasswordReset } from "@/lib/auth/actions";
@@ -12,10 +11,10 @@ export const metadata: Metadata = { title: copy.title };
 export default function ResetPage() {
   return (
     <AuthCard title={copy.title}>
-      <p className="leading-[1.6] text-muted">{copy.intro}</p>
       <AuthForm
         action={requestPasswordReset}
         submitLabel={copy.submit}
+        intro={<p className="type-body text-muted">{copy.intro}</p>}
         fields={[
           {
             name: "email",
@@ -25,9 +24,9 @@ export default function ResetPage() {
           },
         ]}
       />
-      <Link href="/entrar" className="text-accent underline">
+      <AuthLink href="/entrar" className="self-start">
         {copy.backToSignIn}
-      </Link>
+      </AuthLink>
     </AuthCard>
   );
 }

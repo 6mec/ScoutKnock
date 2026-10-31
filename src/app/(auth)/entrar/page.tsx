@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { AuthCard } from "@/components/auth-card";
+import { AuthCard, AuthLink } from "@/components/auth-card";
 import { AuthForm } from "@/components/auth-form";
 import { ptPT } from "@/i18n/pt-PT";
 import { signIn } from "@/lib/auth/actions";
@@ -31,14 +30,11 @@ export default function SignInPage() {
         ]}
       />
       <div className="flex flex-col gap-2 text-muted">
-        <Link href="/recuperar" className="text-accent underline">
+        <AuthLink href="/recuperar" className="self-start">
           {copy.forgot}
-        </Link>
+        </AuthLink>
         <p>
-          {copy.noAccount}{" "}
-          <Link href="/registar" className="text-accent underline">
-            {copy.signUpLink}
-          </Link>
+          {copy.noAccount} <AuthLink href="/registar">{copy.signUpLink}</AuthLink>
         </p>
       </div>
     </AuthCard>

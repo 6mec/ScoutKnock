@@ -1,6 +1,8 @@
 "use client";
 
 import { useActionState } from "react";
+import { Button } from "@/components/ui/button";
+import { DrawnCheck } from "@/components/ui/drawn-check";
 import { ptPT } from "@/i18n/pt-PT";
 import type { WaitlistState } from "@/lib/waitlist/actions";
 
@@ -24,29 +26,36 @@ export function WaitlistLinkForm({
 
   if (state.status === "success") {
     return (
-      <p role="status" className="leading-[1.6]">
-        {state.message}
-      </p>
+      <div role="status" className="flex flex-col items-start gap-4">
+        <span className="inline-flex size-12 items-center justify-center rounded-pill bg-accent-soft">
+          <DrawnCheck size={24} />
+        </span>
+        <p className="type-body">{state.message}</p>
+      </div>
     );
   }
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
-      <p className="leading-[1.6]">{body}</p>
+      <p className="type-body">{body}</p>
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="token" value={token} />
-      {state.status === "error" && (
-        <p role="alert" className="text-danger">
-          {state.message}
-        </p>
-      )}
-      <button
+      <div aria-live="polite">
+        {state.status === "error" && (
+          <p role="alert" className="text-danger">
+            {state.message}
+          </p>
+        )}
+      </div>
+      <Button
         type="submit"
-        disabled={pending}
-        className="h-12 rounded-[12px] bg-accent px-5 font-bold text-accent-contrast transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60"
+        size="lg"
+        loading={pending}
+        loadingText={ptPT.waitlist.pending}
+        className="w-full"
       >
-        {pending ? ptPT.waitlist.pending : submitLabel}
-      </button>
+        {submitLabel}
+      </Button>
     </form>
   );
 }

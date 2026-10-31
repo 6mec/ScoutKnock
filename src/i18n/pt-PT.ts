@@ -284,7 +284,11 @@ export const ptPT = {
       password: "Palavra-passe",
       newPassword: "Nova palavra-passe",
       passwordHint: "Pelo menos 8 caracteres.",
+      showPassword: "Mostrar palavra-passe",
+      hidePassword: "Esconder palavra-passe",
     },
+    panelPhrase: "Encontra quem precisa do teu serviço.",
+    homeLink: "ScoutKnock, ir para a página inicial",
     signUp: {
       title: "Criar conta",
       submit: "Criar conta",
