@@ -1,3 +1,4 @@
+import { GoogleBudgetError } from "./google-provider";
 import type { CompanyProvider } from "./provider";
 import { scoreCompany } from "./score";
 import type { SearchEvent } from "./search-events";
@@ -27,8 +28,11 @@ export async function* runSearch(
     }
   } catch (error) {
     if (signal?.aborted) return;
-    console.error(`radar: ${error instanceof Error ? error.name : "erro"}`);
-    yield { type: "error", code: "provider" };
+    console.error(`radar: ${error instanceof Error ? error.message || error.name : "erro"}`);
+    yield {
+      type: "error",
+      code: error instanceof GoogleBudgetError ? "budget" : "provider",
+    };
     return;
   }
 

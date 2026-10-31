@@ -42,8 +42,8 @@ Preços: confirmar sempre na página oficial antes de decidir limites (https://d
 3. Edita e define um teto por dia. Sugestão para a fase de testes: **100 pedidos/dia** de pesquisa e o mesmo para detalhes. Sobe depois, com dados reais.
 4. Se uma quota não permitir edição, regista o nome e diz-me: o travão do passo 7 cobre-a.
 
-## 7. Travão de custo no código (pedir ao Claude Code)
-Como o orçamento não corta nada, o código tem de o fazer:
+## 7. Travão de custo no código (já construído)
+Como o orçamento não corta nada, o código tem de o fazer. Os passos exatos para o configurar estão em `docs/pendente.md`.
 - Antes de cada chamada ao Google, somar o custo do dia (e do mês) na tabela `api_costs`. Se passar o teto configurado (`GOOGLE_DAILY_BUDGET_EUR`, `GOOGLE_MONTHLY_BUDGET_EUR` no `.env`), **não chamar** e mostrar ao utilizador uma mensagem honesta ("A busca está temporariamente indisponível").
 - Registar cada chamada com o custo estimado (`provider = google_places`, `kind`, `units`, `cost_eur`).
 - Respeitar a regra do projeto: custo por utilizador ≤ 30% do preço do pack. Exemplo: Inicial 19 € → máximo 5,70 €/mês de API por utilizador. Com 100 buscas, isso dá cerca de 0,057 € por busca, incluindo todas as chamadas que ela fizer (paginação e detalhes contam).

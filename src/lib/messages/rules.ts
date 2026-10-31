@@ -56,22 +56,6 @@ export function messageCostEur({ inputTokens, outputTokens }: MessageUsage) {
   return (inputTokens * 0.1 + outputTokens * 0.5) / 1_000_000;
 }
 
-// A meia-noite em Lisboa, porque o limite é "por dia" para quem usa.
-export function startOfLisbonDay(now: Date) {
-  const date = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Lisbon",
-  }).format(now);
-  const zone = new Intl.DateTimeFormat("en-US", {
-    timeZone: "Europe/Lisbon",
-    timeZoneName: "longOffset",
-  })
-    .formatToParts(now)
-    .find((part) => part.type === "timeZoneName")?.value;
-  const offset = zone?.replace("GMT", "") || "+00:00";
-
-  return new Date(`${date}T00:00:00${offset}`).toISOString();
-}
-
 // Sem indicativo não dá para saber o país: o WhatsApp pede então o contacto.
 export function whatsappUrl(message: string, phone?: string | null) {
   const number = phone?.trim().startsWith("+") ? phone.replace(/\D/g, "") : "";

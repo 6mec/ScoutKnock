@@ -9,10 +9,14 @@ export type EventInput =
         niche: string;
         locality: string;
         count: number;
+        // Chamadas pagas que a busca fez, para medir o custo real.
+        calls: number;
         cancelled: boolean;
       };
     }
   | { type: "demo_created"; data: { demoId: string; niche: string } }
+  | { type: "subscription_started"; data: { plan: string } }
+  | { type: "payment_failed"; data: { status: string } }
   | { type: "error"; data: { area: string; code: string } };
 
 function text(value: string) {
@@ -27,6 +31,7 @@ export function eventData(event: EventInput) {
         niche: text(event.data.niche),
         locality: text(event.data.locality),
         count: event.data.count,
+        calls: event.data.calls,
         cancelled: event.data.cancelled,
       };
     case "demo_created":
@@ -34,6 +39,10 @@ export function eventData(event: EventInput) {
         demoId: text(event.data.demoId),
         niche: text(event.data.niche),
       };
+    case "subscription_started":
+      return { plan: text(event.data.plan) };
+    case "payment_failed":
+      return { status: text(event.data.status) };
     case "error":
       return { area: text(event.data.area), code: text(event.data.code) };
   }

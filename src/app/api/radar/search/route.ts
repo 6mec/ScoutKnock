@@ -12,11 +12,25 @@ export async function POST(request: Request) {
 
   if (!user) return new Response(null, { status: 401 });
 
-  const provider = getCompanyProvider();
+  let calls = 0;
+  const provider = getCompanyProvider({
+    userId: user.id,
+    onCall: () => {
+      calls += 1;
+    },
+  });
   if (!provider) return new Response(null, { status: 503 });
 
   const query = parseSearchQuery(await request.json().catch(() => null));
   if (!query) return new Response(null, { status: 400 });
+
+  // Conta antes de procurar. Se não der para contar, não há busca.
+  const { data: allowed, error: limitError } = await supabase.rpc("consume_search");
+  if (limitError) {
+    await reportError("radar limite", limitError.code, user.id);
+    return new Response(null, { status: 503 });
+  }
+  if (!allowed) return new Response(null, { status: 429 });
 
   const events = runSearch(provider, query, request.signal);
   const encoder = new TextEncoder();
@@ -28,7 +42,7 @@ export async function POST(request: Request) {
     if (logged) return;
     logged = true;
     await logEvent(
-      { type: "search", data: { ...query!, count, cancelled } },
+      { type: "search", data: { ...query!, count, calls, cancelled } },
       user!.id,
     );
   }

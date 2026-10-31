@@ -119,6 +119,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
         return;
       }
       if (response.status === 503) return fail("unavailable");
+      if (response.status === 429) return fail("limit");
       if (!response.ok || !response.body) return fail("provider");
 
       let finished = false;

@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { startOfLisbonDay } from "@/lib/lisbon-time";
 import {
   DAILY_MESSAGE_LIMIT,
   messageCostEur,
-  startOfLisbonDay,
   type MessageUsage,
 } from "./rules";
 

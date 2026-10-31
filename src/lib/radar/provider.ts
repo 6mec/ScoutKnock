@@ -1,3 +1,9 @@
+import {
+  parseGoogleConfig,
+  spendGoogleCall,
+  type GoogleCallKind,
+} from "./google-budget";
+import { createGoogleProvider } from "./google-provider";
 import { SAMPLE_COMPANIES } from "./sample-companies";
 import type { Company, SearchQuery } from "./types";
 
@@ -59,9 +65,31 @@ export const sampleProvider: CompanyProvider = {
   },
 };
 
+// Com chave mas sem tetos e custos válidos, não arranca: nunca há gasto sem travão.
 // Sem fornecedor real, a produção devolve null e nunca mostra dados fictícios.
-export function getCompanyProvider(
-  nodeEnv = process.env.NODE_ENV,
-): CompanyProvider | null {
-  return nodeEnv === "production" ? null : sampleProvider;
+export function getCompanyProvider({
+  userId,
+  onCall,
+  env = process.env,
+}: {
+  userId?: string;
+  onCall?: (kind: GoogleCallKind) => void;
+  env?: Record<string, string | undefined>;
+} = {}): CompanyProvider | null {
+  if (env.GOOGLE_PLACES_API_KEY) {
+    const config = parseGoogleConfig(env);
+    if (!config) return null;
+
+    return createGoogleProvider({
+      config,
+      onCall,
+      spend: async (kind) => {
+        // Só aqui, para este ficheiro não exigir a chave secreta ao ser importado.
+        const { createAdminClient } = await import("@/lib/supabase/admin");
+        return spendGoogleCall(createAdminClient(), config, kind, userId);
+      },
+    });
+  }
+
+  return env.NODE_ENV === "production" ? null : sampleProvider;
 }

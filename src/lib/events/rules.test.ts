@@ -30,9 +30,10 @@ describe("eventData", () => {
           niche: "Barbearias",
           locality: "Porto",
           count: 4,
+          calls: 1,
           cancelled: false,
         },
       }),
-    ).toMatchObject({ count: 4, cancelled: false });
+    ).toMatchObject({ count: 4, calls: 1, cancelled: false });
   });
 });

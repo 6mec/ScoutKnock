@@ -142,8 +142,10 @@ describe("textos", () => {
 
 describe("fornecedor", () => {
   it("nunca usa dados fictícios em produção", () => {
-    expect(getCompanyProvider("production")).toBeNull();
-    expect(getCompanyProvider("development")?.usesSampleData).toBe(true);
+    expect(getCompanyProvider({ env: { NODE_ENV: "production" } })).toBeNull();
+    expect(
+      getCompanyProvider({ env: { NODE_ENV: "development" } })?.usesSampleData,
+    ).toBe(true);
   });
 
   it("procura sem distinguir maiúsculas nem acentos", async () => {

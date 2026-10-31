@@ -462,10 +462,12 @@ export const ptPT = {
     },
     errors: {
       provider: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
-      limit: "Chegaste ao limite de buscas deste mês. Passa para o pack seguinte ou espera pela renovação.",
+      limit: "Chegaste ao limite de buscas deste mês. Vê os planos ou espera pelo próximo mês.",
+      budget: "A busca está temporariamente indisponível. Tenta mais tarde.",
       offline: "Sem ligação à internet. Verifica a rede e tenta outra vez.",
       unavailable: "A busca ainda não está disponível.",
     },
+    attribution: "Dados do Google Maps",
     sampleNotice:
       "Exemplo ilustrativo: as empresas abaixo são fictícias, porque a busca real ainda não está ligada.",
     sampleBadge: "Exemplo ilustrativo",
@@ -659,6 +661,26 @@ export const ptPT = {
     searches: "buscas por mês",
     demos: "sites demo por mês",
     trial: "Teste grátis de 7 dias: em breve.",
+    trialTerms:
+      "O teste grátis dura 7 dias, com 10 buscas e 2 sites demo, e não pede cartão. Se não adicionares um cartão até ao fim, a subscrição cancela sozinha e não pagas nada. Cada conta tem um só teste.",
+    testMode: "Modo de teste: nenhum pagamento é real",
+    perMonth: (price: string) => `${price} por mês`,
+    startTrial: "Começar teste grátis de 7 dias",
+    subscribe: "Subscrever",
+    manage: "Gerir subscrição",
+    pending: "Um momento…",
+    current: "O teu pack",
+    usageLabel: "Utilização deste mês",
+    onLowest: "Sem pack ativo: tens o limite mais baixo.",
+    onPlan: (plan: string) => `Estás no pack ${plan}.`,
+    onTrial: (date: string) => `Estás no teste grátis até ${date}.`,
+    cancelling: "A subscrição termina no fim do período pago.",
+    usage: (searches: number, searchLimit: number, demos: number, demoLimit: number) =>
+      `Este mês: ${searches} de ${searchLimit} buscas e ${demos} de ${demoLimit} sites demo.`,
+    paymentProblem:
+      "O último pagamento falhou. Tens o limite mais baixo até o pagamento ser regularizado em Gerir subscrição.",
+    checkoutSuccess: "Obrigado. O teu pack fica ativo dentro de instantes.",
+    checkoutError: "Não foi possível abrir o pagamento. Tenta outra vez dentro de instantes.",
   },
   account: {
     theme: "Tema",

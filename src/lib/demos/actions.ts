@@ -77,7 +77,7 @@ export async function createDemo(
     if (!name) return { status: "needsName" };
   }
 
-  const company = await getCompanyProvider()?.findById(companyId);
+  const company = await getCompanyProvider({ userId: user.id })?.findById(companyId);
   if (!company) return failure("empresa", null, user.id);
 
   const { data, error } = await supabase

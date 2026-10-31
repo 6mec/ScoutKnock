@@ -15,9 +15,13 @@ import { createClient } from "@/lib/supabase/server";
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 // Os dados da empresa vêm sempre do servidor, nunca do browser.
-async function findCompany(supabase: Supabase, { source }: MessageRequest) {
+async function findCompany(
+  supabase: Supabase,
+  { source }: MessageRequest,
+  userId: string,
+) {
   if (source.kind === "company") {
-    const company = await getCompanyProvider()?.findById(source.id);
+    const company = await getCompanyProvider({ userId })?.findById(source.id);
     if (!company) return null;
 
     return {
@@ -57,7 +61,7 @@ export async function POST(request: Request) {
   const body = parseMessageRequest(await request.json().catch(() => null));
   if (!body) return new Response(null, { status: 400 });
 
-  const company = await findCompany(supabase, body);
+  const company = await findCompany(supabase, body, user.id);
   if (!company) return new Response(null, { status: 404 });
 
   const { data: profile } = await supabase

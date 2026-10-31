@@ -6,7 +6,12 @@ export const MAX_FILTER_LENGTH = 80;
 
 export type ScoredCompany = { company: Company; opportunity: Opportunity };
 export type SearchStep = "reading" | "scoring";
-export type SearchErrorCode = "provider" | "limit" | "offline" | "unavailable";
+export type SearchErrorCode =
+  | "provider"
+  | "limit"
+  | "budget"
+  | "offline"
+  | "unavailable";
 
 export type SearchEvent =
   | { type: "step"; step: SearchStep; status: "active" | "done" }

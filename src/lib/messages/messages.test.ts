@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it, vi } from "vitest";
+import { startOfLisbonDay } from "@/lib/lisbon-time";
 import {
   CLAUDE_MODEL,
   buildClaudeRequest,
@@ -18,7 +19,6 @@ import {
   emailUrl,
   messageCostEur,
   parseMessageRequest,
-  startOfLisbonDay,
   whatsappUrl,
   type MessageInput,
   type MessageUsage,

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getBilling } from "@/lib/billing/stripe";
 import { reportError } from "@/lib/events/log";
 import { parseAuthorName } from "@/lib/demos/rules";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -59,14 +60,37 @@ export async function deleteAccount(confirmation: unknown): Promise<Result> {
   const { supabase, user } = await currentUser();
 
   try {
-    const { error } = await createAdminClient().auth.admin.deleteUser(user.id);
+    const admin = createAdminClient();
+
+    // Primeiro o Stripe: uma conta apagada nunca pode continuar a ser cobrada.
+    // Apagar o cliente cancela logo as subscrições dele.
+    const { data: subscription, error: readError } = await admin
+      .from("subscriptions")
+      .select("stripe_customer_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    // Sem saber se há subscrição, não se apaga: podia ficar a cobrar.
+    if (readError) {
+      await reportError("conta apagar", readError.code, user.id);
+      return { ok: false };
+    }
+    if (subscription) {
+      const billing = getBilling();
+      if (!billing) {
+        await reportError("conta apagar", "sem stripe", user.id);
+        return { ok: false };
+      }
+      await billing.stripe.customers.del(subscription.stripe_customer_id);
+    }
+
+    const { error } = await admin.auth.admin.deleteUser(user.id);
 
     if (error) {
       await reportError("conta apagar", error.code ?? error.status, user.id);
       return { ok: false };
     }
   } catch {
-    await reportError("conta apagar", "sem cliente", user.id);
+    await reportError("conta apagar", "sem cliente ou stripe", user.id);
     return { ok: false };
   }
 

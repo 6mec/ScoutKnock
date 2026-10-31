@@ -33,7 +33,7 @@ async function currentUser() {
 export async function saveContact(companyId: string): Promise<Result> {
   const { supabase, user } = await currentUser();
 
-  const company = await getCompanyProvider()?.findById(companyId);
+  const company = await getCompanyProvider({ userId: user.id })?.findById(companyId);
   if (!company) {
     await reportError("contactos guardar", "sem empresa", user.id);
     return { ok: false };

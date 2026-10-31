@@ -73,6 +73,9 @@ export function CompanyDetail({
             </div>
           ))}
         </dl>
+        {!isSample && (
+          <p className="mt-3 text-13 text-muted">{copy.attribution}</p>
+        )}
       </div>
     </div>
   );
