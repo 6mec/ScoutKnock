@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { SaveContactButton } from "@/components/contacts/save-contact-button";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
 import { Badge } from "@/components/ui/badge";
 import { ScoreBreakdown } from "@/components/ui/score-breakdown";
@@ -51,6 +52,7 @@ export function CompanyDetail({
       </div>
       <div className="flex flex-wrap gap-3">
         <CreateDemoButton companyId={company.id} />
+        <SaveContactButton companyId={company.id} />
       </div>
       <div className="rounded-lg border border-border bg-surface p-5">
         <ScoreBreakdown opportunity={opportunity} />

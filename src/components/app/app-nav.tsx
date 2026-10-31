@@ -1,6 +1,13 @@
 "use client";
 
-import { Globe, House, PanelLeftClose, PanelLeftOpen, Radar } from "lucide-react";
+import {
+  Globe,
+  House,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Radar,
+  Users,
+} from "lucide-react";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { Suspense, useSyncExternalStore, type ReactNode } from "react";
@@ -15,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/painel", segment: null, label: copy.nav.home, icon: House },
   { href: "/painel/radar", segment: "radar", label: copy.nav.radar, icon: Radar },
   { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe },
+  { href: "/painel/contactos", segment: "contactos", label: copy.nav.contacts, icon: Users },
 ] as const;
 
 const listeners = new Set<() => void>();
@@ -55,7 +63,7 @@ function NavLinks({
   current?: string | null;
 }) {
   return (
-    <ul className="flex flex-3 items-center gap-1 md:flex-1 md:flex-col md:items-stretch">
+    <ul className="flex flex-4 items-center gap-1 md:flex-1 md:flex-col md:items-stretch">
       {NAV_ITEMS.map(({ href, segment, label, icon: Icon }) => {
         const active = current === segment;
         const link = (
@@ -63,8 +71,8 @@ function NavLinks({
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "focus-ring flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-3 text-12 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
-              "md:flex-row md:justify-start md:gap-3 md:text-14",
+              "focus-ring flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-12 whitespace-nowrap text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
+              "md:flex-row md:justify-start md:gap-3 md:px-3 md:text-14",
               collapsed && "md:justify-center md:px-0",
               active && "bg-accent-soft text-accent hovered:text-accent",
             )}

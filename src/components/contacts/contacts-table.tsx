@@ -1,0 +1,136 @@
+"use client";
+
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { useState } from "react";
+import { Field, Input } from "@/components/ui/field";
+import { ScoreChip } from "@/components/ui/score-chip";
+import { ptPT } from "@/i18n/pt-PT";
+import {
+  searchContacts,
+  sortContacts,
+  type Contact,
+  type ContactSortKey,
+  type ContactStatus,
+  type SortDirection,
+} from "@/lib/contacts/rules";
+import { formatDay } from "./contacts-board";
+import { StatusMenu } from "./status-menu";
+
+const { contacts: copy } = ptPT;
+const COLUMNS: { key: ContactSortKey; label: string }[] = [
+  { key: "name", label: copy.table.company },
+  { key: "score", label: copy.table.score },
+  { key: "status", label: copy.table.status },
+  { key: "nextAction", label: copy.table.nextAction },
+];
+const ARIA_SORT = { asc: "ascending", desc: "descending" } as const;
+
+export function ContactsTable({
+  contacts,
+  onOpen,
+  onStatusChange,
+}: {
+  contacts: Contact[];
+  onOpen: (id: string) => void;
+  onStatusChange: (id: string, status: ContactStatus) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const [sortKey, setSortKey] = useState<ContactSortKey>("score");
+  const [direction, setDirection] = useState<SortDirection>("desc");
+  const SortIcon = direction === "asc" ? ArrowUp : ArrowDown;
+  const rows = sortContacts(searchContacts(contacts, search), sortKey, direction);
+
+  function sortBy(key: ContactSortKey) {
+    if (key === sortKey) {
+      setDirection((current) => (current === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setDirection(key === "score" ? "desc" : "asc");
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Field label={copy.table.search} className="max-w-md">
+        <Input
+          type="search"
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+        />
+      </Field>
+      {rows.length === 0 ? (
+        <p role="status" className="text-muted">
+          {copy.table.noMatches}
+        </p>
+      ) : (
+        <div
+          tabIndex={0}
+          role="region"
+          aria-label={copy.views.table}
+          className="focus-ring overflow-x-auto rounded-lg border border-border bg-surface"
+        >
+          <table className="w-full min-w-180 text-left text-14">
+            <thead className="border-b border-border">
+              <tr>
+                {COLUMNS.map(({ key, label }) => (
+                  <th
+                    key={key}
+                    scope="col"
+                    aria-sort={sortKey === key ? ARIA_SORT[direction] : undefined}
+                    className="p-1 font-medium"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => sortBy(key)}
+                      className="focus-ring inline-flex min-h-11 items-center gap-1.5 rounded-sm px-3 text-muted hovered:text-foreground"
+                    >
+                      {label}
+                      {sortKey === key && (
+                        <SortIcon aria-hidden="true" size={14} strokeWidth={1.75} />
+                      )}
+                    </button>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((contact) => (
+                <tr key={contact.id} className="border-b border-border last:border-b-0">
+                  <th scope="row" className="p-1 font-medium">
+                    <button
+                      type="button"
+                      onClick={() => onOpen(contact.id)}
+                      className="focus-ring block min-h-11 w-full rounded-sm px-3 text-left underline-offset-2 hovered:underline"
+                    >
+                      {contact.company_name}
+                      <span className="block text-13 font-normal text-muted">
+                        {contact.locality}
+                      </span>
+                    </button>
+                  </th>
+                  <td className="px-4 py-2">
+                    <ScoreChip score={contact.score} />
+                  </td>
+                  <td className="px-4 py-2">
+                    <div className="flex flex-col items-start gap-1">
+                      <span>{copy.statuses[contact.status]}</span>
+                      <StatusMenu contact={contact} onChange={onStatusChange} />
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">
+                    {contact.next_action ?? "–"}
+                    {contact.next_action_at && (
+                      <span className="type-number block text-13 text-muted">
+                        {formatDay(contact.next_action_at)}
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -13,7 +13,7 @@ No dia 30 (1 de dezembro de 2026): plataforma online, com pagamentos ativos, apr
 3. Pontuação de oportunidade: nota de 0 a 100 com os motivos (sem site, site lento ou antigo, sem versão móvel, poucas avaliações, sem horário).
 4. Mensagem por IA: abordagem para WhatsApp e email, que o freelancer revê e envia ele próprio.
 5. Site demo: página gerada para a empresa (nome, serviços, morada, contacto), subdomínio próprio, 3 modelos gerais que se adaptam ao nicho pelos textos e pelas cores, botão "Publicar como oficial".
-6. CRM: leads com estados (novo, contactado, respondeu, proposta, cliente, perdido) e notas.
+6. CRM: leads com estados (por contactar, contactado, respondeu, proposta, ganho, perdido) e notas.
 7. Pagamentos e limites: subscrições Stripe, teste grátis de 7 dias, limites por pack.
 
 Versão 2 (não construir agora): portfólio do freelancer, copiloto de vendas, apps de telemóvel.

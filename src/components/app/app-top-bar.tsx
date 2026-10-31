@@ -9,6 +9,7 @@ import { ptPT } from "@/i18n/pt-PT";
 const PAGE_TITLES: Record<string, string> = {
   radar: ptPT.app.nav.radar,
   demos: ptPT.app.nav.demos,
+  contactos: ptPT.app.nav.contacts,
   ui: ptPT.uiPreview.title,
 };
 
