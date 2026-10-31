@@ -396,3 +396,10 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
 }
+
+@utility canvas-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--border-subtle) 50%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--border-subtle) 50%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+}

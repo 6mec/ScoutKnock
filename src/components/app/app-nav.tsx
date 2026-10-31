@@ -1,0 +1,116 @@
+"use client";
+
+import { House, PanelLeftClose, PanelLeftOpen, Radar } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useSyncExternalStore, type ReactNode } from "react";
+import { Logo } from "@/components/ui/logo";
+import { Tooltip } from "@/components/ui/tooltip";
+import { ptPT } from "@/i18n/pt-PT";
+import { cn } from "@/lib/utils";
+
+const copy = ptPT.app;
+const COLLAPSED_KEY = "scoutknock-nav-collapsed";
+const NAV_ITEMS = [
+  { href: "/painel", label: copy.nav.home, icon: House },
+  { href: "/painel/radar", label: copy.nav.radar, icon: Radar },
+] as const;
+
+const listeners = new Set<() => void>();
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+// O menu recolhido é só uma preferência: sem armazenamento, fica aberto.
+function readCollapsed() {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeCollapsed(collapsed: boolean) {
+  try {
+    localStorage.setItem(COLLAPSED_KEY, collapsed ? "1" : "0");
+  } catch {
+    return;
+  }
+  listeners.forEach((listener) => listener());
+}
+
+// Um só menu: barra inferior no telemóvel, coluna lateral a partir de 768 px.
+export function AppNav({ account }: { account: ReactNode }) {
+  const pathname = usePathname();
+  const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
+  const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose;
+
+  return (
+    <nav
+      aria-label={copy.nav.label}
+      className={cn(
+        "fixed inset-x-0 bottom-0 z-30 flex items-center gap-1 border-t border-border bg-surface px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]",
+        "md:sticky md:top-0 md:h-dvh md:shrink-0 md:flex-col md:items-stretch md:gap-2 md:border-t-0 md:border-r md:px-3 md:py-5",
+        "md:transition-[width] md:duration-(--duration-base) md:ease-out",
+        collapsed ? "md:w-16" : "md:w-58",
+      )}
+    >
+      <Link
+        href="/painel"
+        aria-label={copy.nav.homeLogo}
+        className="focus-ring mb-4 hidden h-11 items-center overflow-hidden rounded-sm px-1 md:flex"
+      >
+        <Logo showWordmark={!collapsed} size={collapsed ? 32 : 28} />
+      </Link>
+
+      <ul className="flex flex-2 items-center gap-1 md:flex-1 md:flex-col md:items-stretch">
+        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+          const active = pathname === href;
+          const link = (
+            <Link
+              href={href}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "focus-ring flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-3 text-12 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
+                "md:flex-row md:justify-start md:gap-3 md:text-14",
+                collapsed && "md:justify-center md:px-0",
+                active && "bg-accent-soft text-accent hovered:text-accent",
+              )}
+            >
+              <Icon aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />
+              <span className={cn(collapsed && "md:sr-only")}>{label}</span>
+            </Link>
+          );
+
+          return (
+            <li key={href} className="flex flex-1 md:flex-none">
+              {collapsed ? <Tooltip content={label}>{link}</Tooltip> : link}
+            </li>
+          );
+        })}
+      </ul>
+
+      <button
+        type="button"
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? copy.nav.expand : copy.nav.collapse}
+        onClick={() => writeCollapsed(!collapsed)}
+        className={cn(
+          "focus-ring hidden min-h-11 items-center rounded-md px-3 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground md:flex",
+          collapsed && "justify-center px-0",
+        )}
+      >
+        <ToggleIcon aria-hidden="true" size={20} strokeWidth={1.75} />
+      </button>
+
+      <div
+        data-collapsed={collapsed || undefined}
+        className="group/account flex-1 md:flex-none"
+      >
+        {account}
+      </div>
+    </nav>
+  );
+}

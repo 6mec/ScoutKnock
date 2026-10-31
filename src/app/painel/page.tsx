@@ -1,47 +1,37 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { ptPT } from "@/i18n/pt-PT";
-import { signOut } from "@/lib/auth/actions";
-import { requireUser } from "@/lib/auth/current-user";
 
 const { dashboard: copy } = ptPT;
 
 export const metadata: Metadata = {
-  title: copy.title,
+  title: ptPT.app.nav.home,
   robots: { index: false },
 };
 
 export default function DashboardPage() {
   return (
-    <main className="flex flex-1 w-full max-w-3xl mx-auto flex-col gap-8 px-4 py-12">
-      <h1 className="text-[28px] leading-tight font-bold tracking-tight">
-        {copy.title}
-      </h1>
-      <Suspense fallback={<p className="text-muted">{copy.loading}</p>}>
-        <DashboardContent />
-      </Suspense>
-    </main>
-  );
-}
-
-async function DashboardContent() {
-  const user = await requireUser();
-
-  return (
-    <section className="flex flex-col gap-6 rounded-[12px] border border-border bg-surface p-6">
-      <p className="text-muted">
-        {copy.signedInAs}{" "}
-        <span className="break-all text-foreground">{user.email}</span>
-      </p>
-      <p className="leading-[1.6]">{copy.empty}</p>
-      <form action={signOut}>
-        <button
-          type="submit"
-          className="h-12 rounded-[12px] border border-border px-5 font-bold transition-colors hover:bg-background focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        >
-          {copy.signOut}
-        </button>
-      </form>
-    </section>
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-10 lg:px-8 lg:py-14">
+      <div className="flex flex-col items-start gap-6">
+        <h2 className="type-heading text-32 lg:text-44">{copy.greeting}</h2>
+        <Button asChild size="lg">
+          <Link href="/painel/radar">{copy.newSearch}</Link>
+        </Button>
+      </div>
+      <ol className="grid gap-3 md:grid-cols-3">
+        {copy.steps.map((step, index) => (
+          <li
+            key={step}
+            className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5"
+          >
+            <span className="type-number text-14 text-accent">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <p className="type-body">{step}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }

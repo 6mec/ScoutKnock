@@ -121,11 +121,11 @@ export function UiPreview() {
   const opportunity = scoreCompany(company, "website_creation");
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-12">
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-12">
       <Toaster />
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex flex-col gap-2">
-          <h1 className="type-heading text-32">{copy.title}</h1>
+          <h2 className="type-heading text-32">{copy.title}</h2>
           <p className="type-body text-muted">{copy.intro}</p>
         </div>
         <Button
@@ -568,6 +568,6 @@ export function UiPreview() {
           </State>
         </Row>
       </Section>
-    </main>
+    </div>
   );
 }

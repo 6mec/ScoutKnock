@@ -30,14 +30,11 @@ const levelClass: Record<ScoreLevel, string> = {
 
 export default function RadarPage({ searchParams }: PageProps<"/painel/radar">) {
   return (
-    <main className="flex flex-1 w-full max-w-3xl mx-auto flex-col gap-8 px-4 py-12">
-      <h1 className="text-[28px] leading-tight font-bold tracking-tight">
-        {copy.title}
-      </h1>
+    <div className="flex flex-1 w-full max-w-3xl mx-auto flex-col gap-8 px-4 py-12">
       <Suspense fallback={<p className="text-muted">{copy.loading}</p>}>
         <RadarContent searchParams={searchParams} />
       </Suspense>
-    </main>
+    </div>
   );
 }
 

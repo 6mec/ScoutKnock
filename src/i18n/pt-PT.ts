@@ -435,7 +435,6 @@ export const ptPT = {
   },
   radar: {
     title: "Radar",
-    navLabel: "Menu do painel",
     sampleNotice:
       "Exemplo ilustrativo: as empresas abaixo são fictícias, porque a busca real ainda não está ligada.",
     sampleBadge: "Exemplo ilustrativo",
@@ -465,10 +464,35 @@ export const ptPT = {
     },
   },
   dashboard: {
-    title: "Painel",
-    loading: "A carregar…",
-    signedInAs: "Entraste como",
-    empty: "A tua conta está pronta. Ainda não há ferramentas disponíveis aqui.",
-    signOut: "Sair",
+    greeting: "Olá. Vamos encontrar o próximo cliente?",
+    newSearch: "Nova busca",
+    steps: [
+      "Escolhe o serviço, o nicho e a localidade.",
+      "Vê as empresas ordenadas pela nota de oportunidade.",
+      "Abre uma empresa e percebe os motivos da nota.",
+    ],
+  },
+  app: {
+    nav: {
+      label: "Menu do painel",
+      home: "Início",
+      homeLogo: "ScoutKnock, ir para o início do painel",
+      radar: "Radar",
+      collapse: "Recolher menu",
+      expand: "Expandir menu",
+    },
+    account: {
+      label: "Conta",
+      signOut: "Sair",
+    },
+    commands: {
+      label: "Paleta de comandos",
+      trigger: "Comandos",
+      placeholder: "Escreve um comando…",
+      empty: "Nenhum comando encontrado.",
+      newSearch: "Nova busca",
+      goHome: "Ir para o início",
+      goRadar: "Ir para o Radar",
+    },
   },
 };
