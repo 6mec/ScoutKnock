@@ -587,8 +587,19 @@ export const ptPT = {
       body: "O teu nome aparece no aviso da demo, para a empresa saber quem fez a proposta.",
       label: "O teu nome",
     },
+    form: {
+      title: "Criar site demo",
+      body: "A demo mostra o que escreveres aqui. Podes mudar tudo depois.",
+      warning:
+        "Escreve só dados públicos da empresa que tu próprio confirmaste, por exemplo no site dela ou com um telefonema. Não escrevas dados pessoais.",
+      referenceTitle: "Para consulta",
+    },
     editor: {
       companyName: "Nome da empresa",
+      niche: "Nicho",
+      locality: "Localidade",
+      address: "Morada",
+      phone: "Telefone (opcional)",
       headline: "Título pequeno",
       intro: "Texto de apresentação",
       template: "Modelo",

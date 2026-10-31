@@ -12,6 +12,10 @@ import {
 
 const content = {
   companyName: " Barbearia Horizonte ",
+  niche: "Barbearias",
+  locality: "Porto",
+  address: "Rua A, 1",
+  phone: null,
   template: "bold",
   accentColor: DEMO_COLORS.blue,
   headline: "Barbearias · Porto",

@@ -12,9 +12,13 @@ import { saveDemo, setDemoSent } from "@/lib/demos/actions";
 import {
   DEMO_COLORS,
   DEMO_TEMPLATES,
+  MAX_ADDRESS,
   MAX_COMPANY_NAME,
   MAX_HEADLINE,
   MAX_INTRO,
+  MAX_LOCALITY,
+  MAX_NICHE,
+  MAX_PHONE,
   parseDemoContent,
   type DemoColorName,
   type DemoContent,
@@ -41,6 +45,10 @@ export function DemoEditor({
   const [view, setView] = useState<"desktop" | "mobile">("desktop");
   const [content, setContent] = useState<DemoContent>({
     companyName: demo.company_name,
+    niche: demo.niche,
+    locality: demo.locality,
+    address: demo.address,
+    phone: demo.phone,
     template: demo.template,
     accentColor: demo.accent_color,
     headline: demo.headline,
@@ -100,6 +108,35 @@ export function DemoEditor({
             maxLength={MAX_COMPANY_NAME}
             onChange={(event) => update({ companyName: event.target.value })}
             required
+          />
+        </Field>
+        <Field label={copy.editor.niche}>
+          <Input
+            value={content.niche}
+            maxLength={MAX_NICHE}
+            onChange={(event) => update({ niche: event.target.value })}
+          />
+        </Field>
+        <Field label={copy.editor.locality}>
+          <Input
+            value={content.locality}
+            maxLength={MAX_LOCALITY}
+            onChange={(event) => update({ locality: event.target.value })}
+          />
+        </Field>
+        <Field label={copy.editor.address}>
+          <Input
+            value={content.address}
+            maxLength={MAX_ADDRESS}
+            onChange={(event) => update({ address: event.target.value })}
+          />
+        </Field>
+        <Field label={copy.editor.phone}>
+          <Input
+            type="tel"
+            value={content.phone ?? ""}
+            maxLength={MAX_PHONE}
+            onChange={(event) => update({ phone: event.target.value })}
           />
         </Field>
         <Field label={copy.editor.headline}>
@@ -244,6 +281,10 @@ export function DemoEditor({
             demo={{
               ...demo,
               company_name: content.companyName,
+              niche: content.niche,
+              locality: content.locality,
+              address: content.address,
+              phone: content.phone?.trim() || null,
               template: content.template,
               accent_color: content.accentColor,
               headline: content.headline,

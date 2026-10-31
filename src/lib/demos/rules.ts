@@ -19,9 +19,21 @@ export const MAX_COMPANY_NAME = 120;
 export const MAX_HEADLINE = 120;
 export const MAX_INTRO = 400;
 export const MAX_AUTHOR_NAME = 80;
+export const MAX_NICHE = 80;
+export const MAX_LOCALITY = 80;
+export const MAX_ADDRESS = 200;
+export const MAX_PHONE = 40;
 
-export type DemoContent = {
+// O que o freelancer escreve no formulário. Nada disto vem do Google.
+export type DemoDraft = {
   companyName: string;
+  niche: string;
+  locality: string;
+  address: string;
+  phone: string | null;
+};
+
+export type DemoContent = DemoDraft & {
   template: DemoTemplate;
   accentColor: string;
   headline: string;
@@ -49,11 +61,21 @@ export type OwnDemo = PublicDemo & {
   created_at: string;
 };
 
+// Cerca de 62 bits aleatórios: o endereço não se adivinha e a demo não se lista.
+// Rejeita os bytes acima do último múltiplo, para nenhuma letra sair mais vezes.
 export function createDemoSlug() {
-  // O resto da divisão enviesa muito pouco e o código não é um segredo de autenticação.
-  return Array.from(crypto.getRandomValues(new Uint8Array(SLUG_LENGTH)))
-    .map((byte) => SLUG_ALPHABET[byte % SLUG_ALPHABET.length])
-    .join("");
+  const limit = 256 - (256 % SLUG_ALPHABET.length);
+  let slug = "";
+
+  while (slug.length < SLUG_LENGTH) {
+    for (const byte of crypto.getRandomValues(new Uint8Array(SLUG_LENGTH))) {
+      if (byte < limit && slug.length < SLUG_LENGTH) {
+        slug += SLUG_ALPHABET[byte % SLUG_ALPHABET.length];
+      }
+    }
+  }
+
+  return slug;
 }
 
 // A mesma empresa do mesmo nicho começa sempre com a mesma cor.
@@ -68,16 +90,59 @@ export function parseAuthorName(value: unknown) {
   return name && name.length <= MAX_AUTHOR_NAME ? name : null;
 }
 
-export function parseDemoContent(value: unknown): DemoContent | null {
+export function parseDemoDraft(value: unknown): DemoDraft | null {
   if (typeof value !== "object" || value === null) return null;
 
-  const { companyName, template, accentColor, headline, intro } = value as Record<
+  const { companyName, niche, locality, address, phone } = value as Record<
     string,
     unknown
   >;
 
   if (
     typeof companyName !== "string" ||
+    typeof niche !== "string" ||
+    typeof locality !== "string" ||
+    typeof address !== "string" ||
+    (typeof phone !== "string" && phone !== null && phone !== undefined)
+  ) {
+    return null;
+  }
+
+  const draft = {
+    companyName: companyName.trim(),
+    niche: niche.trim(),
+    locality: locality.trim(),
+    address: address.trim(),
+    phone: phone?.trim() || null,
+  };
+
+  if (
+    !draft.companyName ||
+    !draft.niche ||
+    !draft.locality ||
+    !draft.address ||
+    draft.companyName.length > MAX_COMPANY_NAME ||
+    draft.niche.length > MAX_NICHE ||
+    draft.locality.length > MAX_LOCALITY ||
+    draft.address.length > MAX_ADDRESS ||
+    (draft.phone?.length ?? 0) > MAX_PHONE
+  ) {
+    return null;
+  }
+
+  return draft;
+}
+
+export function parseDemoContent(value: unknown): DemoContent | null {
+  const draft = parseDemoDraft(value);
+  if (!draft) return null;
+
+  const { template, accentColor, headline, intro } = value as Record<
+    string,
+    unknown
+  >;
+
+  if (
     typeof headline !== "string" ||
     typeof intro !== "string"
   ) {
@@ -86,7 +151,6 @@ export function parseDemoContent(value: unknown): DemoContent | null {
 
   const validTemplate = DEMO_TEMPLATES.find((id) => id === template);
   const content = {
-    companyName: companyName.trim(),
     headline: headline.trim(),
     intro: intro.trim(),
   };
@@ -95,15 +159,13 @@ export function parseDemoContent(value: unknown): DemoContent | null {
     !validTemplate ||
     typeof accentColor !== "string" ||
     !COLOR_VALUES.includes(accentColor) ||
-    !content.companyName ||
     !content.headline ||
     !content.intro ||
-    content.companyName.length > MAX_COMPANY_NAME ||
     content.headline.length > MAX_HEADLINE ||
     content.intro.length > MAX_INTRO
   ) {
     return null;
   }
 
-  return { ...content, template: validTemplate, accentColor };
+  return { ...draft, ...content, template: validTemplate, accentColor };
 }

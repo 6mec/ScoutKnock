@@ -57,7 +57,7 @@ export function CompanyDetail({
           companyName={company.name}
           phone={company.phone}
         />
-        <CreateDemoButton companyId={company.id} />
+        <CreateDemoButton company={company} isSample={isSample} />
         <SaveContactButton companyId={company.id} />
       </div>
       <div className="rounded-lg border border-border bg-surface p-5">

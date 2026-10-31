@@ -4,13 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
 import { logEvent, reportError } from "@/lib/events/log";
-import { getCompanyProvider } from "@/lib/radar/provider";
+import { parseCompanyId } from "@/lib/contacts/rules";
 import { createClient } from "@/lib/supabase/server";
 import {
   colorForNiche,
   createDemoSlug,
   parseAuthorName,
   parseDemoContent,
+  parseDemoDraft,
 } from "./rules";
 
 const { demos: copy } = ptPT;
@@ -43,12 +44,31 @@ async function failure(
   return { status: "error", message: copy.errors.generic };
 }
 
-// Os dados da empresa vêm sempre do fornecedor, nunca do browser.
+export async function findMyDemo(companyIdValue: unknown) {
+  const companyId = parseCompanyId(companyIdValue);
+  if (!companyId) return null;
+
+  const { supabase } = await currentUser();
+  const { data } = await supabase
+    .from("demo_sites")
+    .select("id")
+    .eq("company_id", companyId)
+    .maybeSingle();
+
+  return (data?.id as string | undefined) ?? null;
+}
+
+// Grava o place_id e o que o freelancer escreveu: não há cópia nem chamada ao Google.
 export async function createDemo(
-  companyId: string,
+  companyIdValue: unknown,
+  draftValue: unknown,
   authorName?: string,
 ): Promise<CreateDemoResult> {
   const { supabase, user } = await currentUser();
+
+  const companyId = parseCompanyId(companyIdValue);
+  const draft = parseDemoDraft(draftValue);
+  if (!companyId || !draft) return failure("dados", null, user.id);
 
   const findExisting = () =>
     supabase
@@ -77,22 +97,19 @@ export async function createDemo(
     if (!name) return { status: "needsName" };
   }
 
-  const company = await getCompanyProvider({ userId: user.id })?.findById(companyId);
-  if (!company) return failure("empresa", null, user.id);
-
   const { data, error } = await supabase
     .from("demo_sites")
     .insert({
       user_id: user.id,
       slug: createDemoSlug(),
-      company_id: company.id,
-      company_name: company.name,
-      niche: company.niche,
-      locality: company.locality,
-      address: company.address,
-      phone: company.phone ?? null,
-      accent_color: colorForNiche(company.niche),
-      headline: `${company.niche} · ${company.locality}`,
+      company_id: companyId,
+      company_name: draft.companyName,
+      niche: draft.niche,
+      locality: draft.locality,
+      address: draft.address,
+      phone: draft.phone,
+      accent_color: colorForNiche(draft.niche),
+      headline: `${draft.niche} · ${draft.locality}`,
       intro: copy.defaultIntro,
       author_name: name,
     })
@@ -112,7 +129,7 @@ export async function createDemo(
   }
 
   await logEvent(
-    { type: "demo_created", data: { demoId: data.id, niche: company.niche } },
+    { type: "demo_created", data: { demoId: data.id, niche: draft.niche } },
     user.id,
   );
   revalidatePath(GALLERY_PATH);
@@ -131,6 +148,10 @@ export async function saveDemo(
     .from("demo_sites")
     .update({
       company_name: content.companyName,
+      niche: content.niche,
+      locality: content.locality,
+      address: content.address,
+      phone: content.phone,
       template: content.template,
       accent_color: content.accentColor,
       headline: content.headline,
