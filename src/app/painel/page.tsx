@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Logo } from "@/components/logo";
 import { ptPT } from "@/i18n/pt-PT";
 import { signOut } from "@/lib/auth/actions";
 import { requireUser } from "@/lib/auth/current-user";
@@ -15,7 +14,6 @@ export const metadata: Metadata = {
 export default function DashboardPage() {
   return (
     <main className="flex flex-1 w-full max-w-3xl mx-auto flex-col gap-8 px-4 py-12">
-      <Logo />
       <h1 className="text-[28px] leading-tight font-bold tracking-tight">
         {copy.title}
       </h1>

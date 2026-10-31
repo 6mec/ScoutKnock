@@ -1,0 +1,73 @@
+import type { Company } from "./types";
+
+const unchecked = { isSlow: null, isMobileFriendly: null, isOutdated: null };
+
+// Empresas fictícias, só para desenvolvimento. Nunca são usadas em produção.
+export const SAMPLE_COMPANIES: Company[] = [
+  {
+    id: "sample-1",
+    name: "Barbearia Horizonte",
+    niche: "Barbearias",
+    locality: "Porto",
+    address: "Rua de Exemplo, 12, Porto",
+    website: null,
+    reviewCount: 12,
+    hasOpeningHours: true,
+    site: unchecked,
+  },
+  {
+    id: "sample-2",
+    name: "Barbearia Fictícia do Bairro",
+    niche: "Barbearias",
+    locality: "Porto",
+    address: "Avenida de Exemplo, 40, Porto",
+    website: "https://barbearia-ficticia.example",
+    reviewCount: 8,
+    hasOpeningHours: false,
+    site: { isSlow: true, isMobileFriendly: false, isOutdated: true },
+  },
+  {
+    id: "sample-3",
+    name: "Corte Exemplo",
+    niche: "Barbearias",
+    locality: "Porto",
+    address: "Praça de Exemplo, 3, Porto",
+    website: "https://corte-exemplo.example",
+    reviewCount: 64,
+    hasOpeningHours: true,
+    site: { isSlow: true, isMobileFriendly: false, isOutdated: false },
+  },
+  {
+    id: "sample-4",
+    name: "Barbearia Modelo",
+    niche: "Barbearias",
+    locality: "Porto",
+    address: "Travessa de Exemplo, 7, Porto",
+    website: "https://barbearia-modelo.example",
+    reviewCount: 210,
+    hasOpeningHours: true,
+    site: { isSlow: false, isMobileFriendly: true, isOutdated: false },
+  },
+  {
+    id: "sample-5",
+    name: "Tasca Fictícia",
+    niche: "Restaurantes",
+    locality: "Lisboa",
+    address: "Rua de Exemplo, 88, Lisboa",
+    website: null,
+    reviewCount: 150,
+    hasOpeningHours: true,
+    site: unchecked,
+  },
+  {
+    id: "sample-6",
+    name: "Restaurante Exemplo",
+    niche: "Restaurantes",
+    locality: "Lisboa",
+    address: "Largo de Exemplo, 5, Lisboa",
+    website: "https://restaurante-exemplo.example",
+    reviewCount: 340,
+    hasOpeningHours: false,
+    site: unchecked,
+  },
+];

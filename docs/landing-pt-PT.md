@@ -51,7 +51,7 @@ Recebes uma mensagem de abordagem feita para aquela empresa, que revês e envias
 
 Etiqueta no cartão: Exemplo ilustrativo
 
-- Barbearia Horizonte — Nota: 82/100 (Forte)
+- Barbearia Horizonte — Nota: 90/100 (Forte)
 - Site próprio: não encontrado
 - Presença local: identificada no Google
 - Avaliações: poucas
