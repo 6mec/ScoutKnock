@@ -15,7 +15,11 @@ Dono do projeto: Daniel (Portugal). Responde-lhe em português de Portugal. Plan
 
 ## Comandos
 
-Preencher quando o projeto existir (instalar, dev, build, test, lint).
+- Instalar: `npm install`
+- Desenvolvimento: `npm run dev` (http://localhost:3000)
+- Build: `npm run build`
+- Testes: `npm test`
+- Lint: `npm run lint`
 
 ## Regras fixas
 
