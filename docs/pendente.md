@@ -8,9 +8,11 @@ Sem cada um destes pontos, o site não pode abrir ao público:
 
 - **SMTP próprio no Supabase:** sem ele, ninguém de fora se regista. Ver "Emails".
 - **Domínio verificado e envio real dos emails.** Ver "Emails".
-- **Termos do Google sobre guardar dados das empresas.** Ver "Google Places".
+- **Validar com jurista a leitura dos termos do Google (docs/termos-google.md).** Ver "Google Places".
 - **Chave do Google Places e modo real do Stripe, com faturação certificada.** Ver as secções respetivas.
 - **Textos legais validados.**
+- **Identificação do responsável pelo tratamento:** nome, NIF, morada e contacto, por decidir e preencher na política de privacidade. Hoje a página só tem o nome e o email.
+- **Prazo de conservação dos eventos:** por decidir e publicar na política de privacidade. O rascunho sugere 12 meses, e 30 dias para os erros. Depois de decidido, é preciso apagar os eventos quando o prazo acabar, o que ainda não está construído.
 
 ## Limites dos packs
 
@@ -60,13 +62,20 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 
 ## Google Places
 
-**Estado:** pendente: precisa de chave e de uma decisão legal.
+**Estado:** pendente: precisa de chave e de validação por um jurista.
 
 **Funciona hoje:** o Radar com os dados de exemplo (`sample-companies`), só em desenvolvimento.
 
 **Testado só com respostas simuladas do Google, nunca com a API a sério:** pedido, conversão dos resultados, erros, páginas, travão de custo e registo em `api_costs`.
 
-**Bloqueia a produção: decisão legal por tomar (Daniel).** Os termos do Google dizem: "You must not pre-fetch, cache, or store Places API content beyond the allowed exceptions", e a única exceção indicada é o `place_id`. Hoje, Contactos e Sites demo guardam nome, morada, telefone e site da empresa. Com dados reais, isto precisa de ser validado ou alterado antes de abrir ao público. Fonte: developers.google.com/maps/documentation/places/web-service/policies (consultada a 31/10/2026).
+**O que já foi aplicado:** os Contactos guardam só o `place_id` e o que o freelancer escreve, e os dados do Google são pedidos ao abrir o contacto. Os Sites demo guardam o `place_id` e o que o freelancer escreve. Latitude e longitude não são pedidas nem guardadas.
+
+**Bloqueia a produção: validar com jurista a leitura dos termos do Google (docs/termos-google.md).** Perguntas em aberto:
+
+- Se o CRM, mesmo só com o `place_id`, cai na proibição de listagens e diretórios.
+- Se dados escritos e confirmados pelo freelancer chegam para os Sites demo, sobretudo com os dados do Google visíveis ao lado no formulário.
+- Se é permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota, para escrever a mensagem.
+- Como fazer a atribuição quando não se mostra mapa.
 
 **Para ligar (em desenvolvimento):**
 
@@ -85,13 +94,13 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 - [ ] Depois de 10 buscas de teste, comparar o custo estimado com o gasto real no Cloud Console e corrigir os custos configurados:
   - Chamadas por busca: `select data->>'calls', data->>'count' from public.events where type = 'search' order by created_at desc;`
   - Custo por tipo: `select kind, count(*), sum(cost_eur) from public.api_costs where provider = 'google_places' group by kind;`
-- [ ] A atribuição cumpre as regras. Os termos pedem o logótipo do Google quando os dados aparecem sem mapa, e hoje só existe o texto "Dados do Google Maps" no detalhe da empresa.
+- [ ] A atribuição cumpre as regras. Os termos pedem o logótipo do Google quando os dados aparecem sem mapa, e hoje só existe o texto "Dados do Google Maps" no Radar, no contacto e no formulário da demo.
 
 **Limitações conhecidas:**
 
 - Os sinais do site (lento, sem versão móvel, antigo) ficam por verificar e não dão pontos, por isso as notas de empresas com site serão baixas.
-- Guardar um contacto, criar uma demo ou gerar uma mensagem a partir do Radar faz uma chamada paga de detalhes. Estas chamadas ficam em `api_costs` por utilizador, mas não entram nas chamadas da busca.
-- Os tetos são do projeto inteiro: até os limites dos packs estarem ligados, um só utilizador pode esgotar o teto de todos.
+- Abrir um contacto ou gerar uma mensagem faz uma chamada paga de detalhes, que conta para o limite de aberturas do pack. Guardar um contacto e criar uma demo não fazem chamadas. As chamadas de detalhes ficam em `api_costs` por utilizador, mas não entram nas chamadas da busca.
+- Os tetos de custo são do projeto inteiro. Os limites dos packs reduzem o risco, mas muitos utilizadores em simultâneo podem esgotar o teto de todos.
 - O alerta aos 80% do teto, previsto no guia, não está construído.
 
 ## Pagamentos (Stripe)
