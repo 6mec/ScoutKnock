@@ -42,7 +42,6 @@ export function StatusMenu({
           ref={triggerRef}
           data-status-menu={contact.id}
           variant="secondary"
-          size="sm"
           aria-label={`${copy.changeStatus}: ${contact.label}, ${copy.statuses[contact.status]}`}
         >
           {copy.changeStatus}

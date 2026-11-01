@@ -21,7 +21,7 @@ Nenhuma. A seguinte é a T4, quando o Daniel disser.
 Botão no ecrã da demo, 5 €/mês, Stripe em modo de teste. Sem domínio ainda: servir em caminho (por exemplo /s/nome), com o modelo de subdomínio preparado e desligado. O aviso "proposta não oficial" e a data de apagamento só desaparecem com a subscrição ativa. Cancelamento e falha de pagamento com regras simples e honestas. Só o dono publica e cancela. Testes com eventos simulados. Páginas demo com noindex.
 
 ### T5. Revisão crítica do aspeto e da experiência (só proposta)
-Percorrer todos os ecrãs. Para cada um, até 3 melhorias concretas por impacto, com capturas do atual: o que parece genérico, o que não tem personalidade, onde falta feedback (carregamento, vazio, erro, sucesso), onde o texto não ajuda. Manter cores atuais, escuro por defeito, acessibilidade e honestidade. **Não implementar sem o Daniel escolher.**
+Percorrer todos os ecrãs. Para cada um, até 3 melhorias concretas por impacto, com capturas do atual: o que parece genérico, o que não tem personalidade, onde falta feedback (carregamento, vazio, erro, sucesso), onde o texto não ajuda. Manter cores atuais, escuro por defeito, acessibilidade e honestidade. **Não implementar sem o Daniel escolher.** Incluir, no diálogo do contacto: "Gerar mensagem" a toda a largura e "Gerar seguimento" não; e o canal selecionado pouco visível.
 
 ### T6. Experiência ponta a ponta com dados de exemplo
 Como utilizador novo: entrar, primeira busca, abrir empresa, gerar mensagem, criar demo, guardar contacto, ver o painel. Listar o que falha, confunde ou parece inacabado e corrigir o que for pequeno depois de aprovado o plano.
