@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { connection } from "next/server";
 import { Suspense } from "react";
 import { DemoView } from "@/components/demos/demo-view";
@@ -33,7 +33,14 @@ async function Content({ params }: Pick<PageProps<"/demo/[slug]">, "params">) {
     .maybeSingle();
 
   if (error) await reportError("demo pública", error.code);
-  if (!data) notFound();
+  if (!data) {
+    // Publicada entretanto: o link antigo que a empresa recebeu continua a servir.
+    const { data: name } = await supabase.rpc("official_name_for_demo", {
+      demo_slug: slug,
+    });
+    if (name) redirect(`/s/${name as string}`);
+    notFound();
+  }
 
   return <DemoView demo={data as PublicDemo} />;
 }

@@ -1,3 +1,5 @@
+import type { OfficialSite } from "./official-rules";
+
 export const DEMO_TEMPLATES = ["classic", "bold", "soft"] as const;
 export type DemoTemplate = (typeof DEMO_TEMPLATES)[number];
 
@@ -57,9 +59,19 @@ export type OwnDemo = PublicDemo & {
   id: string;
   slug: string;
   status: "draft" | "sent";
-  expires_at: string;
+  // Vazio num site oficial, que não tem data de apagamento.
+  expires_at: string | null;
   created_at: string;
+  official_sites?: OfficialSite | null;
 };
+
+// Inclui os sites oficiais, que não têm data de validade.
+export function activeDemoFilter(now = new Date()) {
+  return `expires_at.gt.${now.toISOString()},expires_at.is.null`;
+}
+
+export const OWN_DEMO_COLUMNS =
+  "*, official_sites(name, status, cancel_at_period_end, period_end, name_reserved_until)";
 
 // Cerca de 62 bits aleatórios: o endereço não se adivinha e a demo não se lista.
 // Rejeita os bytes acima do último múltiplo, para nenhuma letra sair mais vezes.

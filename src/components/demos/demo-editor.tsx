@@ -9,6 +9,7 @@ import { Field, Input, Textarea } from "@/components/ui/field";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { saveDemo, setDemoSent } from "@/lib/demos/actions";
+import { isLive } from "@/lib/demos/official-rules";
 import {
   DEMO_COLORS,
   DEMO_TEMPLATES,
@@ -26,6 +27,7 @@ import {
 } from "@/lib/demos/rules";
 import { cn } from "@/lib/utils";
 import { DemoView } from "./demo-view";
+import { OfficialSiteSection, type Publishing } from "./official-site-section";
 
 const { demos: copy } = ptPT;
 const COLOR_NAMES = Object.keys(DEMO_COLORS) as DemoColorName[];
@@ -35,10 +37,13 @@ const optionClasses =
 export function DemoEditor({
   demo,
   expiresLabel,
+  publishing,
 }: {
   demo: OwnDemo;
-  expiresLabel: string;
+  expiresLabel: string | null;
+  publishing: Publishing;
 }) {
+  const official = isLive(demo.official_sites);
   const router = useRouter();
   const [saving, startSaving] = useTransition();
   const [sending, startSending] = useTransition();
@@ -80,7 +85,9 @@ export function DemoEditor({
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(
-        `${window.location.origin}/demo/${demo.slug}`,
+        official && publishing.url
+          ? publishing.url
+          : `${window.location.origin}/demo/${demo.slug}`,
       );
       toast.success(copy.editor.linkCopied);
     } catch {
@@ -90,17 +97,24 @@ export function DemoEditor({
 
   return (
     <div className="grid flex-1 lg:grid-cols-[380px_minmax(0,1fr)]">
+      <div className="flex flex-col border-border bg-background lg:border-r">
       <form
         onSubmit={handleSave}
-        className="flex flex-col gap-5 border-border bg-background p-4 lg:border-r lg:p-8"
+        className="flex flex-col gap-5 p-4 lg:p-8"
       >
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant={demo.status === "sent" ? "accent" : "outline"}>
-            {copy.status[demo.status]}
-          </Badge>
-          <Badge variant="amber">{copy.unofficial}</Badge>
+          {official ? (
+            <Badge variant="accent">{copy.official.badge}</Badge>
+          ) : (
+            <>
+              <Badge variant={demo.status === "sent" ? "accent" : "outline"}>
+                {copy.status[demo.status]}
+              </Badge>
+              <Badge variant="amber">{copy.unofficial}</Badge>
+            </>
+          )}
         </div>
-        <p className="text-14 text-muted">{expiresLabel}</p>
+        {expiresLabel && <p className="text-14 text-muted">{expiresLabel}</p>}
 
         <Field label={copy.editor.companyName}>
           <Input
@@ -230,18 +244,27 @@ export function DemoEditor({
             <Link2 aria-hidden="true" size={16} strokeWidth={1.75} />
             {copy.editor.copyLink}
           </Button>
-          <Button
-            variant="secondary"
-            onClick={handleSent}
-            loading={sending}
-            loadingText={copy.editor.saving}
-            className="flex-1"
-          >
-            {demo.status === "draft" ? copy.editor.markSent : copy.editor.markDraft}
-          </Button>
+          {!official && (
+            <Button
+              variant="secondary"
+              onClick={handleSent}
+              loading={sending}
+              loadingText={copy.editor.saving}
+              className="flex-1"
+            >
+              {demo.status === "draft" ? copy.editor.markSent : copy.editor.markDraft}
+            </Button>
+          )}
         </div>
         <p className="text-13 text-muted">{copy.editor.linkHint}</p>
       </form>
+      <OfficialSiteSection
+        demoId={demo.id}
+        companyName={demo.company_name}
+        site={demo.official_sites}
+        publishing={publishing}
+      />
+      </div>
 
       <section
         aria-label={copy.editor.preview}
@@ -278,6 +301,7 @@ export function DemoEditor({
         >
           <DemoView
             preview
+            official={official}
             demo={{
               ...demo,
               company_name: content.companyName,

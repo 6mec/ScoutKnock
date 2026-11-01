@@ -93,9 +93,10 @@ describe("endereço e indexação", () => {
 
   it("as demos levam noindex no cabeçalho", async () => {
     const rules = await nextConfig.headers?.();
-    expect(rules).toContainEqual({
-      source: "/demo/:path*",
-      headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+    const demo = rules?.find((rule) => rule.source === "/demo/:path*");
+    expect(demo?.headers).toContainEqual({
+      key: "X-Robots-Tag",
+      value: "noindex, nofollow",
     });
   });
 });

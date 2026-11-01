@@ -13,15 +13,22 @@ Fonte de verdade da fila de trabalho. Quem escreve as tarefas: o Daniel e o assi
 
 ## Em curso
 
-Nenhuma. A seguinte é a T4, quando o Daniel disser.
+### T1. Lançamento só em Portugal
+Plano aprovado. Interruptor `MARKETS_ENABLED=PT`, sem Brasil visível, localidades só de Portugal, Stripe só em euros. Ajuste aprovado: em modo de exemplo, quando se procura numa localidade sem empresas de exemplo, mostrar "Em modo de exemplo, só há empresas no Porto e em Lisboa" e acrescentar empresas fictícias em mais concelhos (Braga, Coimbra), marcadas como exemplo.
 
 ## Próximas (por ordem)
+
+### T2. Navegação e contraste do login
+Cabeçalho da landing: com sessão, "Ir para o painel" (/painel); sem sessão, "Entrar" (/entrar) ao lado do botão da lista de espera. Logótipo da app leva a /painel; menu da conta com "Ver o site". Corrigir o contraste do cartão de login (título e etiquetas), diagnosticar a causa (animação de entrada ou cor), medir antes e depois, em escuro e claro.
+
+### T3. Mensagens de abordagem
+Ver `docs/mensagens.md`. Substituir o SYSTEM do `claude-provider.ts` e os modelos de exemplo; passar o serviço do Radar e o canal ao gerador; botão "Gerar seguimento" (uma vez por empresa); a mensagem nunca afirma que existe demo se não existir; a página /bot lê nome e email da configuração.
 
 ### T4. Publicar como oficial (modo de teste)
 Botão no ecrã da demo, 5 €/mês, Stripe em modo de teste. Sem domínio ainda: servir em caminho (por exemplo /s/nome), com o modelo de subdomínio preparado e desligado. O aviso "proposta não oficial" e a data de apagamento só desaparecem com a subscrição ativa. Cancelamento e falha de pagamento com regras simples e honestas. Só o dono publica e cancela. Testes com eventos simulados. Páginas demo com noindex.
 
 ### T5. Revisão crítica do aspeto e da experiência (só proposta)
-Percorrer todos os ecrãs. Para cada um, até 3 melhorias concretas por impacto, com capturas do atual: o que parece genérico, o que não tem personalidade, onde falta feedback (carregamento, vazio, erro, sucesso), onde o texto não ajuda. Manter cores atuais, escuro por defeito, acessibilidade e honestidade. **Não implementar sem o Daniel escolher.** Incluir, no diálogo do contacto: "Gerar mensagem" a toda a largura e "Gerar seguimento" não; e o canal selecionado pouco visível.
+Percorrer todos os ecrãs. Para cada um, até 3 melhorias concretas por impacto, com capturas do atual: o que parece genérico, o que não tem personalidade, onde falta feedback (carregamento, vazio, erro, sucesso), onde o texto não ajuda. Manter cores atuais, escuro por defeito, acessibilidade e honestidade. **Não implementar sem o Daniel escolher.**
 
 ### T6. Experiência ponta a ponta com dados de exemplo
 Como utilizador novo: entrar, primeira busca, abrir empresa, gerar mensagem, criar demo, guardar contacto, ver o painel. Listar o que falha, confunde ou parece inacabado e corrigir o que for pequeno depois de aprovado o plano.
@@ -40,12 +47,6 @@ Lista de licenças das dependências e fontes em `docs/licencas.md`; confirmar q
 
 ## Feitas
 
-- T3. Mensagens de abordagem (01/11/2026). Instruções da IA e modelos do `docs/mensagens.md`, com serviço e canal, aviso para confirmar observações do site, seguimento único 3 dias depois do último contacto e `/bot` a ler o contacto da configuração.
-  Por avaliar com chave real: a qualidade das mensagens da IA. Política de privacidade e perguntas para o jurista atualizadas quanto ao que vai para a Anthropic.
-- T2. Navegação e contraste do login (01/11/2026). A navegação já estava certa e foi só confirmada. As páginas de autenticação deixam de desvanecer ao entrar, e as etiquetas de todos os formulários passam a 14 px, peso 500, na cor do texto (15,08 no escuro e 19,22 no claro).
-  O aviso "1 Issue" do Next, visto numa captura em desenvolvimento, não se reproduziu em 36 aberturas sem erros na consola; causa por confirmar.
-- T1. Lançamento só em Portugal (01/11/2026). Interruptor `MARKETS_ENABLED`, Radar com os 18 distritos, as 2 regiões e os 308 concelhos, preços só em euros, landing sem Brasil.
-  Empresas de exemplo também em Braga e Coimbra; por isso a nota diz "só há empresas no Porto, em Lisboa, em Braga e em Coimbra".
 - Painel do utilizador (6 blocos em /painel).
 - Verificação dos sites com proteção SSRF, desligada por omissão.
 - Google Places, Stripe em teste, emails e travões de custo, tudo desligado ou simulado.

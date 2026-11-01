@@ -92,6 +92,7 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 - Se dados escritos e confirmados pelo freelancer chegam para os Sites demo, sobretudo com os dados do Google visíveis ao lado no formulário.
 - Se é permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota, com o serviço escolhido e o canal da mensagem, para a escrever.
 - Como fazer a atribuição quando não se mostra mapa.
+- Se podemos publicar um site oficial indexável com dados de uma empresa, tendo como prova só a confirmação do freelancer (data, hora e utilizador gravados). Se essa prova deve sobreviver ao apagamento da conta, o que hoje não acontece, e se o link "Pedir remoção deste site" chega.
 - Se podemos visitar automaticamente um endereço de site obtido do Google, mesmo sem guardar o resultado.
 - Se, no futuro, poderíamos guardar só um sinal calculado com data. Hoje nada é guardado.
 - Se visitar sites de terceiros sem autorização levanta outra questão, além de respeitar o `robots.txt`, e se a página `/bot` chega como informação.
@@ -187,6 +188,46 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 - Faturação certificada (InvoiceXpress ou Moloni) e IVA (OSS na UE, clientes BR). Não está construída.
 - Regras das redes de cartões para testes grátis e lembretes do fim do teste. O Stripe não envia estes lembretes em modo de teste.
 - Termos de subscrição e direito de cancelamento, com os textos legais.
+
+## Sites oficiais
+
+**Estado:** construídos e desligados. Precisam da migração `20261112000000_official_sites.sql`, de chaves de teste do Stripe e da validação por um jurista. Testados só com eventos e um Stripe imitados, nunca com o Stripe a sério.
+
+**Regras em vigor:**
+
+- Só a subscrição `active` torna o site oficial, em `/s/nome`, sem aviso nem data de apagamento e com indexação permitida.
+- Enquanto o Stripe tenta cobrar (`past_due`), o site continua no ar e o dono vê um aviso.
+- Cancelado, continua no ar até ao fim do período pago.
+- Terminado (`canceled` ou `unpaid`), `/s/nome` deixa de abrir, volta a demo com o aviso e é apagada 30 dias depois. O nome fica guardado para o antigo dono durante esses 30 dias.
+- A confirmação de que a empresa aceitou fica gravada com data, hora e utilizador, em `official_sites`.
+- O site é independente do pack do freelancer.
+
+**Para ligar o modo de teste:**
+
+1. No Stripe, em modo de teste, criar o produto "Site oficial" com um preço mensal de 5 € e colocar o id em `STRIPE_PRICE_OFFICIAL_SITE_EUR`.
+2. Colocar em `OFFICIAL_SITE_REMOVAL_CONTACT` o email que recebe os pedidos de remoção.
+3. No portal do cliente, não permitir mudar o preço das subscrições de site. Se o preço mudar, o site deixa de receber atualizações, e o erro fica registado.
+4. Nas definições de cobrança do Stripe, escolher quantas tentativas há antes de a subscrição terminar. É isso que decide quanto tempo um site fica no ar com o pagamento em falha.
+
+**Verificar com o modo de teste:**
+
+- [ ] Publicar com o cartão `4242 4242 4242 4242`: o site fica oficial só depois do webhook.
+- [ ] Um pack ativo não muda ao publicar, cancelar ou terminar um site.
+- [ ] Cartão que falha na renovação: site no ar e aviso ao dono. Quando o Stripe desistir, volta a demo.
+- [ ] Cancelar e anular o cancelamento, nos dois sítios: ecrã da demo e portal.
+- [ ] Apagar a conta cancela as subscrições de site no Stripe.
+
+**Para ligar o subdomínio (precisa de domínio):** configurar um DNS curinga e os domínios na Vercel, e colocar `OFFICIAL_SITES_BASE_DOMAIN`. O encaminhamento de `nome.dominio` para `/s/nome` já está em `src/proxy.ts`.
+
+**Bloqueia o lançamento dos sites oficiais:** antes de lançar, ao ligar `OFFICIAL_SITES_BASE_DOMAIN`, servir os sites num domínio separado da aplicação, ou garantir que os cookies de sessão não passam para os subdomínios. Hoje os sites partilham o domínio com a aplicação, o que continua a ser assim em `/s/nome`.
+
+**Por decidir (Daniel):** faturação e IVA destes 5 €, com a faturação certificada. Não há contacto de remoção por definir no código: é só o valor da variável.
+
+**Limitações conhecidas:**
+
+- Apagar a conta do freelancer apaga também o registo da confirmação.
+- O `script-src` da política de segurança inclui `'unsafe-inline'`, porque o Next usa scripts em linha. A proteção principal é o texto nunca ser tratado como HTML.
+- Com os sites em `/s/nome`, todos partilham o mesmo domínio.
 
 ## Emails
 

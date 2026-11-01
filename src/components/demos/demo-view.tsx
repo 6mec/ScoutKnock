@@ -17,9 +17,14 @@ const MUTED = "text-[#4B5563]";
 export function DemoView({
   demo,
   preview = false,
+  official = false,
+  removalContact,
 }: {
   demo: PublicDemo;
   preview?: boolean;
+  // Só um site oficial perde o aviso de proposta não oficial.
+  official?: boolean;
+  removalContact?: string | null;
 }) {
   const Title = preview ? "p" : "h1";
   const Section = preview ? "p" : "h2";
@@ -30,12 +35,14 @@ export function DemoView({
 
   return (
     <div className={cn("@container w-full flex-1", SURFACES[demo.template])}>
-      <p
-        role="note"
-        className="bg-[#FFB547] px-4 py-2.5 text-center text-14 font-semibold text-[#0B0F14]"
-      >
-        {copy.notice(demo.author_name, demo.company_name)}
-      </p>
+      {!official && (
+        <p
+          role="note"
+          className="bg-[#FFB547] px-4 py-2.5 text-center text-14 font-semibold text-[#0B0F14]"
+        >
+          {copy.notice(demo.author_name, demo.company_name)}
+        </p>
+      )}
       <div
         style={isBold ? { backgroundColor: demo.accent_color } : undefined}
         className={cn(isBold && "text-[#FFFFFF]")}
@@ -65,7 +72,8 @@ export function DemoView({
           </p>
           {demo.phone && (
             <Call
-              href={preview ? undefined : `tel:${demo.phone.replace(/\s/g, "")}`}
+              // Só algarismos e +: o texto do freelancer nunca vira outro tipo de ligação.
+              href={preview ? undefined : `tel:${demo.phone.replace(/[^\d+]/g, "")}`}
               style={
                 isBold
                   ? { color: demo.accent_color }
@@ -128,6 +136,16 @@ export function DemoView({
           )}
         </ul>
       </div>
+      {official && !preview && removalContact && (
+        <footer className="mx-auto max-w-240 px-6 pb-8">
+          <a
+            href={`mailto:${removalContact}?subject=${encodeURIComponent(copy.official.removalSubject(demo.company_name))}`}
+            className={cn("inline-flex min-h-11 items-center text-14 underline", MUTED)}
+          >
+            {copy.official.removal}
+          </a>
+        </footer>
+      )}
     </div>
   );
 }

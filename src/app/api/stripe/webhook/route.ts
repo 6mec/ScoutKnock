@@ -48,6 +48,24 @@ export async function POST(request: Request) {
         if (error) throw new Error(error.code);
         return data === true;
       },
+      applyOfficialSite: async (update) => {
+        const { data, error } = await createAdminClient().rpc(
+          "apply_official_site_event",
+          {
+            event_id: update.eventId,
+            event_type: update.eventType,
+            target_demo: update.demoId,
+            target_user: update.userId,
+            subscription_id: update.subscriptionId,
+            new_status: update.status,
+            new_cancel_at_period_end: update.cancelAtPeriodEnd,
+            new_period_end: update.periodEnd,
+          },
+        );
+        if (error) throw new Error(error.code);
+        return data as "applied" | "duplicate" | "missing";
+      },
+      onOfficialProblem: (reason) => reportError("site oficial webhook", reason),
       onStarted: (userId, plan) =>
         logEvent({ type: "subscription_started", data: { plan: plan ?? "" } }, userId),
       onPaymentFailed: (userId, status) =>

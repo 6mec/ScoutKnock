@@ -1,11 +1,24 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { subdomainRewritePath } from "@/lib/demos/official-rules";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 
 const PROTECTED_PATHS = ["/painel", "/nova-palavra-passe"];
 const GUEST_PATHS = ["/entrar", "/registar", "/recuperar"];
 
 export async function proxy(request: NextRequest) {
+  // A raiz só passa por aqui para o modelo de subdomínio, desligado sem domínio.
+  if (request.nextUrl.pathname === "/") {
+    const rewritePath = subdomainRewritePath(
+      request.headers.get("host"),
+      "/",
+      process.env.OFFICIAL_SITES_BASE_DOMAIN,
+    );
+    return rewritePath
+      ? NextResponse.rewrite(new URL(rewritePath, request.url))
+      : NextResponse.next();
+  }
+
   const { url, publishableKey } = getSupabaseConfig();
   let response = NextResponse.next({ request });
 
@@ -54,6 +67,7 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/painel/:path*",
     "/nova-palavra-passe",
     "/entrar",

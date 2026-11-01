@@ -1,6 +1,12 @@
 import type Stripe from "stripe";
 import { PLANS } from "@/lib/account/rules";
+import {
+  OFFICIAL_SITE_METADATA_KIND,
+  parseRemovalContact,
+} from "@/lib/demos/official-rules";
 import { parseMarkets, type Market } from "@/lib/markets";
+
+const OFFICIAL_CHECKOUT_MINUTES = 120;
 
 export type PlanId = (typeof PLANS)[number]["id"];
 export type Currency = "eur" | "brl";
@@ -14,6 +20,8 @@ export type BillingConfig = {
   webhookSecret: string;
   siteUrl: string;
   prices: Record<PlanId, { eur: string; brl?: string }>;
+  // Sem preço ou contacto de remoção, só a publicação fica desligada.
+  officialSite: { priceId: string; removalContact: string } | null;
 };
 
 // Só uma subscrição paga em dia dá os limites do pack. Teste, pagamento falhado,
@@ -68,7 +76,55 @@ export function parseBillingConfig(
     prices[id] = withBrazil ? { eur, brl } : { eur };
   }
 
-  return { secretKey, webhookSecret, siteUrl, prices };
+  const priceId = env.STRIPE_PRICE_OFFICIAL_SITE_EUR;
+  const removalContact = parseRemovalContact(env.OFFICIAL_SITE_REMOVAL_CONTACT);
+
+  return {
+    secretKey,
+    webhookSecret,
+    siteUrl,
+    prices,
+    officialSite:
+      priceId?.startsWith("price_") && removalContact
+        ? { priceId, removalContact }
+        : null,
+  };
+}
+
+// Sem teste grátis. Cada site tem a sua subscrição, e a marca nunca vem do browser.
+export function buildOfficialCheckoutParams({
+  config,
+  priceId,
+  customerId,
+  userId,
+  demoId,
+  now = Date.now(),
+}: {
+  config: BillingConfig;
+  priceId: string;
+  customerId: string;
+  userId: string;
+  demoId: string;
+  now?: number;
+}): Stripe.Checkout.SessionCreateParams {
+  const returnUrl = new URL(`/painel/demos/${demoId}`, config.siteUrl);
+
+  return {
+    mode: "subscription",
+    customer: customerId,
+    line_items: [{ price: priceId, quantity: 1 }],
+    success_url: `${returnUrl}?publicacao=sucesso`,
+    cancel_url: returnUrl.toString(),
+    // Acaba antes da reserva do nome, para um pagamento nunca ficar sem site.
+    expires_at: Math.floor(now / 1000) + OFFICIAL_CHECKOUT_MINUTES * 60,
+    subscription_data: {
+      metadata: {
+        kind: OFFICIAL_SITE_METADATA_KIND,
+        demo_id: demoId,
+        user_id: userId,
+      },
+    },
+  };
 }
 
 export function planForPrice(config: BillingConfig, priceId?: string) {

@@ -71,6 +71,8 @@ function deps(current = subscription(), applied = true) {
       void update;
       return applied;
     }),
+    applyOfficialSite: vi.fn(async () => "applied" as const),
+    onOfficialProblem: vi.fn(async () => {}),
     onStarted: vi.fn(async () => {}),
     onPaymentFailed: vi.fn(async () => {}),
     onUnknownUser: vi.fn(async () => {}),

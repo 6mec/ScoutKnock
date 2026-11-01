@@ -8,6 +8,7 @@ Levar também: `legal-rascunhos.md`, `termos-google.md`, `reembolso-rascunho.md`
 3. Os dados escritos e confirmados pelo freelancer chegam para os sites demo, com os dados do Google visíveis ao lado no formulário?
 4. É permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota, com o serviço escolhido pelo freelancer e o canal da mensagem, para a escrever?
 5. Como cumprir a atribuição do Google quando os dados aparecem sem mapa?
+5a. Podemos publicar um site oficial indexável com dados de uma empresa, tendo como prova só a confirmação do freelancer (data, hora e utilizador gravados)? Essa prova deve sobreviver ao apagamento da conta do freelancer, o que hoje não acontece? O link "Pedir remoção deste site" chega?
 6. Podemos visitar automaticamente o site de uma empresa (endereço obtido do Google) para verificar sinais (velocidade, versão móvel, antiguidade)? Podemos guardar o sinal calculado, com data?
 
 ## Sites demo com nome de empresas reais

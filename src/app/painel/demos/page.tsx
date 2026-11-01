@@ -8,7 +8,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
 import { requireUser } from "@/lib/auth/current-user";
-import type { OwnDemo } from "@/lib/demos/rules";
+import { isLive } from "@/lib/demos/official-rules";
+import { OWN_DEMO_COLUMNS, activeDemoFilter, type OwnDemo } from "@/lib/demos/rules";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 
@@ -37,8 +38,8 @@ async function Gallery() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("demo_sites")
-    .select("*")
-    .gt("expires_at", new Date().toISOString())
+    .select(OWN_DEMO_COLUMNS)
+    .or(activeDemoFilter())
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -46,7 +47,7 @@ async function Gallery() {
     return <p role="alert">{copy.errors.generic}</p>;
   }
 
-  const demos = data as OwnDemo[];
+  const demos = data as unknown as OwnDemo[];
 
   if (demos.length === 0) {
     return (
@@ -72,15 +73,23 @@ async function Gallery() {
           >
             <div aria-hidden="true" inert className="h-44 overflow-hidden">
               <div className="pointer-events-none w-[250%] origin-top-left scale-40">
-                <DemoView demo={demo} preview />
+                <DemoView
+                  demo={demo}
+                  preview
+                  official={isLive(demo.official_sites)}
+                />
               </div>
             </div>
             <div className="relative flex flex-col gap-2 border-t border-border bg-surface p-4">
               <p className="truncate font-semibold">{demo.company_name}</p>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <Badge variant={demo.status === "sent" ? "accent" : "outline"}>
-                  {copy.status[demo.status]}
-                </Badge>
+                {isLive(demo.official_sites) ? (
+                  <Badge variant="accent">{copy.official.badge}</Badge>
+                ) : (
+                  <Badge variant={demo.status === "sent" ? "accent" : "outline"}>
+                    {copy.status[demo.status]}
+                  </Badge>
+                )}
                 <span className="type-number text-12 text-muted">
                   {dateFormat.format(new Date(demo.created_at))}
                 </span>

@@ -11,6 +11,7 @@ import {
   hasLiveSubscription,
   parsePlanId,
 } from "./rules";
+import { ensureStripeCustomer } from "./customer";
 import { getBilling } from "./stripe";
 
 const PLANS_PATH = "/painel/planos";
@@ -54,20 +55,12 @@ export async function startCheckout(planValue: unknown) {
       });
       url = portal.url;
     } else {
-      let customerId: string | undefined = row?.stripe_customer_id;
-
-      if (!customerId) {
-        const customer = await stripe.customers.create(
-          { email: user.email, metadata: { user_id: user.id } },
-          { idempotencyKey: `customer-${user.id}` },
-        );
-        customerId = customer.id;
-
-        const { error: saveError } = await admin
-          .from("subscriptions")
-          .insert({ user_id: user.id, stripe_customer_id: customerId });
-        if (saveError) throw new Error(saveError.code);
-      }
+      const customerId = await ensureStripeCustomer(
+        admin,
+        stripe,
+        user,
+        row?.stripe_customer_id,
+      );
 
       const { data: profile } = await supabase
         .from("profiles")

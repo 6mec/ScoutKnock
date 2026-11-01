@@ -726,6 +726,46 @@ export const ptPT = {
     empty: "Ainda não tens sites demo. Abre uma empresa no Radar para criares o primeiro.",
     defaultIntro: "Fala connosco. Encontras aqui a nossa morada e o nosso contacto.",
     status: { draft: "Rascunho", sent: "Enviada" },
+    official: {
+      title: "Site oficial",
+      badge: "Oficial",
+      publish: "Publicar como oficial",
+      unavailable: "A publicação ainda não está disponível, porque os pagamentos não estão ligados.",
+      testMode: "Modo de teste",
+      dialogBody: (price: number) =>
+        `O site passa a estar público, sem o aviso de proposta não oficial e sem data de apagamento, enquanto a subscrição estiver ativa. Custa ${price} € por mês, por site. Podes cancelar quando quiseres.`,
+      nameLabel: "Nome no endereço",
+      nameHelp: "Letras minúsculas, números e hífens, de 3 a 40 caracteres.",
+      confirm: "Confirmo que a empresa aceitou publicar este site e que os dados estão corretos.",
+      continue: "Continuar para o pagamento",
+      cancelDialog: "Cancelar",
+      pending: "Um momento…",
+      confirming: "Estamos à espera da confirmação do pagamento. O site só fica oficial depois disso.",
+      refresh: "Atualizar",
+      paymentProblem: "O último pagamento falhou. O site continua no ar enquanto o Stripe tenta cobrar. Atualiza o pagamento para não sair do ar.",
+      updatePayment: "Atualizar pagamento",
+      cancel: "Cancelar subscrição do site",
+      cancelWarning: (date: string) =>
+        `O site continua no ar até ${date}. Depois volta a ser uma demo com o aviso, e é apagado ao fim de 30 dias.`,
+      cancelWarningNoDate:
+        "O site continua no ar até ao fim do período pago. Depois volta a ser uma demo com o aviso, e é apagado ao fim de 30 dias.",
+      cancelConfirm: "Cancelar no fim do período",
+      keepShort: "Manter",
+      keep: "Manter o site",
+      cancelRequested: "Pedido enviado. O estado atualiza quando o Stripe confirmar.",
+      endsOn: (date: string) => `A subscrição termina a ${date}. Até lá, o site continua no ar.`,
+      ending: "A subscrição termina no fim do período pago.",
+      ended: (name: string, date: string) =>
+        `O site saiu do ar e voltou a ser uma demo. O nome ${name} fica guardado para ti até ${date}.`,
+      removal: "Pedir remoção deste site",
+      removalSubject: (company: string) => `Pedido de remoção do site de ${company}`,
+      errors: {
+        taken: "Este nome já está a ser usado. Escolhe outro.",
+        invalid: "Este nome não é válido. Usa letras minúsculas, números e hífens.",
+        unavailable: "A publicação ainda não está disponível.",
+        error: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
+      },
+    },
     view: {
       call: "Ligar",
       contact: "Contacto",
@@ -902,7 +942,7 @@ export const ptPT = {
     passwordEmailSent: "Enviámos-te um email com o link.",
     deleteTitle: "Apagar conta",
     deleteWarning:
-      "Isto apaga a tua conta, os teus contactos e as tuas demos. Não dá para desfazer.",
+      "Isto apaga a tua conta, os teus contactos e as tuas demos, e os teus sites oficiais saem do ar. Não dá para desfazer.",
     deleteConfirm: "Escreve APAGAR para confirmar",
     errors: {
       generic: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
