@@ -10,12 +10,14 @@ import { ScoreBreakdown } from "@/components/ui/score-breakdown";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
-import {
-  getContactCompany,
-  removeContact,
-  saveContactDetails,
-  type ContactCompany,
-} from "@/lib/contacts/actions";
+import { SiteCheckNote } from "@/components/radar/site-check-note";
+import { removeContact, saveContactDetails } from "@/lib/contacts/actions";
+import type {
+  ContactCompany,
+  ContactCompanyEvent,
+} from "@/lib/contacts/company-events";
+import type { SiteCheckStatus } from "@/lib/radar/search-events";
+import { readNdjson } from "@/lib/read-ndjson";
 import {
   MAX_CONFIRMED_CONTACT,
   MAX_LABEL,
@@ -33,7 +35,13 @@ const dateTimeFormat = new Intl.DateTimeFormat("pt-PT", {
   timeZone: "Europe/Lisbon",
 });
 
-function CompanySection({ company }: { company: ContactCompany | null }) {
+function CompanySection({
+  company,
+  siteCheck,
+}: {
+  company: ContactCompany | null;
+  siteCheck?: SiteCheckStatus;
+}) {
   if (!company) {
     return (
       <div role="status" className="flex flex-col gap-2">
@@ -91,6 +99,9 @@ function CompanySection({ company }: { company: ContactCompany | null }) {
         </Badge>
       )}
       <ScoreBreakdown opportunity={company.opportunity} />
+      <div role="status">
+        <SiteCheckNote status={siteCheck} />
+      </div>
       <dl className="flex flex-col gap-3">
         {rows.map(([label, value]) => (
           <div key={label}>
@@ -132,14 +143,54 @@ export function ContactDialog({
   const [removing, startRemoving] = useTransition();
   // Cada abertura é uma chamada paga: nunca repetir por o efeito correr outra vez.
   const requested = useRef(false);
+  const controller = useRef<AbortController | null>(null);
+  const pendingAbort = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [siteCheck, setSiteCheck] = useState<SiteCheckStatus>();
 
   useEffect(() => {
-    if (requested.current) return;
-    requested.current = true;
+    clearTimeout(pendingAbort.current);
+    if (!requested.current) {
+      requested.current = true;
+      const current = new AbortController();
+      controller.current = current;
 
-    getContactCompany(contact.id)
-      .then(setCompany)
-      .catch(() => setCompany({ status: "unavailable" }));
+      async function load() {
+        const response = await fetch(`/api/contacts/${contact.id}/company`, {
+          method: "POST",
+          signal: current.signal,
+        });
+        if (!response.ok || !response.body) throw new Error("contacto");
+
+        await readNdjson<ContactCompanyEvent>(response.body, (event) => {
+          if (event.type === "company") setCompany(event.company);
+          if (event.type === "site_start") setSiteCheck("checking");
+          if (event.type === "site_done") {
+            setSiteCheck(event.status);
+            if (event.status === "checked") {
+              const { opportunity } = event;
+              setCompany((value) =>
+                value?.status === "ok" ? { ...value, opportunity } : value,
+              );
+            }
+          }
+        });
+      }
+
+      load()
+        .then(() => {
+          setCompany((value) => value ?? { status: "unavailable" });
+          setSiteCheck((value) => (value === "checking" ? "failed" : value));
+        })
+        .catch(() => {
+          setCompany((value) => value ?? { status: "unavailable" });
+          setSiteCheck((value) => (value === "checking" ? "failed" : value));
+        });
+    }
+
+    // Adiado: em desenvolvimento o React corre os efeitos duas vezes, e a chamada é paga.
+    return () => {
+      pendingAbort.current = setTimeout(() => controller.current?.abort(), 0);
+    };
   }, [contact.id]);
 
   function handleSubmit(event: FormEvent) {
@@ -186,7 +237,7 @@ export function ContactDialog({
         <div className="flex flex-wrap items-center justify-end gap-3">
           <StatusMenu contact={contact} onChange={onStatusChange} />
         </div>
-        <CompanySection company={company} />
+        <CompanySection company={company} siteCheck={siteCheck} />
         {found && (
           <GenerateMessageButton
             source={{ kind: "contact", id: contact.id }}

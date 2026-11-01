@@ -1,15 +1,19 @@
+import { thirdPartyKind } from "./site-rules";
 import type {
   Company,
   Opportunity,
   ReasonCode,
   ScoreLevel,
   ServiceId,
+  SiteObservation,
+  ThirdPartyKind,
 } from "./types";
 
 const FEW_REVIEWS_LIMIT = 20;
 
 const WEBSITE_CREATION_POINTS: Record<ReasonCode, number> = {
   noWebsite: 70,
+  noOwnWebsite: 70,
   slowSite: 25,
   notMobileFriendly: 25,
   outdatedSite: 20,
@@ -17,11 +21,18 @@ const WEBSITE_CREATION_POINTS: Record<ReasonCode, number> = {
   noOpeningHours: 10,
 };
 
+function notOwnKind(company: Company): ThirdPartyKind | null {
+  if (company.website === null) return null;
+  return thirdPartyKind(company.website) ?? company.site.notOwn ?? null;
+}
+
 function websiteCreationReasons(company: Company): ReasonCode[] {
   const reasons: ReasonCode[] = [];
 
   if (company.website === null) {
     reasons.push("noWebsite");
+  } else if (notOwnKind(company)) {
+    reasons.push("noOwnWebsite");
   } else {
     if (company.site.isSlow === true) reasons.push("slowSite");
     if (company.site.isMobileFriendly === false) {
@@ -61,10 +72,15 @@ export function scoreCompany(
   service: ServiceId,
 ): Opportunity {
   const { points, reasons: findReasons } = SCORING[service];
-  const reasons = findReasons(company).map((code) => ({
-    code,
-    points: points[code],
-  }));
+  const kind = notOwnKind(company);
+  const reasons = findReasons(company).map((code) => {
+    const observed: SiteObservation | undefined =
+      code === "noOwnWebsite" && kind
+        ? { kind: "thirdParty", thirdParty: kind }
+        : company.site.observed?.[code];
+
+    return { code, points: points[code], ...(observed ? { observed } : {}) };
+  });
   const score = reasons.reduce((total, reason) => total + reason.points, 0);
 
   return { score, level: scoreLevel(score), reasons };

@@ -41,8 +41,17 @@ export function RadarResults({
   const visible = results.filter(
     ({ opportunity }) => filter === "all" || opportunity.level === filter,
   );
+  // A nota pode mudar com a verificação: a folha aberta não salta para outra empresa.
   const selected =
-    visible.find(({ company }) => company.id === selectedId) ?? visible[0];
+    visible.find(({ company }) => company.id === selectedId) ??
+    (sheetOpen
+      ? results.find(({ company }) => company.id === selectedId)
+      : undefined) ??
+    visible[0];
+  const siteChecks = results.filter(({ siteCheck }) => siteCheck);
+  const checkingSites = siteChecks.filter(
+    ({ siteCheck }) => siteCheck === "checking",
+  ).length;
 
   return (
     <MotionConfig reducedMotion="user">
@@ -67,6 +76,16 @@ export function RadarResults({
             <Button variant="secondary" size="sm" onClick={onNewSearch}>
               {copy.newSearch}
             </Button>
+            <p
+              role="status"
+              data-testid="site-check-summary"
+              className="w-full text-13 text-muted empty:hidden"
+            >
+              {siteChecks.length > 0 &&
+                (checkingSites > 0
+                  ? copy.siteCheck.summaryChecking(checkingSites)
+                  : copy.siteCheck.summaryDone)}
+            </p>
             <div
               role="group"
               aria-label={copy.filterLabel}
@@ -100,7 +119,7 @@ export function RadarResults({
             <LayoutGroup>
               <ul>
                 <AnimatePresence initial={false} mode="popLayout">
-                  {visible.map(({ company, opportunity }) => {
+                  {visible.map(({ company, opportunity, siteCheck }) => {
                     const isSelected = isWide && company.id === selected?.company.id;
                     const reason = opportunity.reasons[0];
 
@@ -138,6 +157,11 @@ export function RadarResults({
                               {company.locality} ·{" "}
                               {reason ? copy.reasons[reason.code] : copy.noReasons}
                             </span>
+                            {siteCheck === "checking" && (
+                              <span className="block truncate text-13 text-muted">
+                                {copy.siteCheck.checking}
+                              </span>
+                            )}
                           </span>
                         </button>
                       </motion.li>

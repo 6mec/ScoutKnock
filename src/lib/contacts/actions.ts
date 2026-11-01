@@ -3,9 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { reportError } from "@/lib/events/log";
-import { lookupCompanyForUser } from "@/lib/radar/lookup-server";
-import { scoreCompany } from "@/lib/radar/score";
-import { SERVICE_IDS, type Opportunity } from "@/lib/radar/types";
 import { createClient } from "@/lib/supabase/server";
 import {
   isContactStatus,
@@ -55,47 +52,6 @@ export async function saveContact(
 
   revalidatePath(CONTACTS_PATH);
   return { ok: true };
-}
-
-export type ContactCompany =
-  | {
-      status: "ok";
-      isSample: boolean;
-      name: string;
-      address: string;
-      phone: string | null;
-      website: string | null;
-      reviewCount: number;
-      hasOpeningHours: boolean;
-      opportunity: Opportunity;
-    }
-  | { status: "limit" | "unavailable" };
-
-// Os dados do Google vêm na hora e ficam só no ecrã: nada disto é gravado.
-export async function getContactCompany(id: string): Promise<ContactCompany> {
-  const { supabase, user } = await currentUser();
-  const { data: contact } = await supabase
-    .from("contacts")
-    .select("company_id")
-    .eq("id", id)
-    .maybeSingle();
-  if (!contact) return { status: "unavailable" };
-
-  const lookup = await lookupCompanyForUser(supabase, contact.company_id, user.id);
-  if (lookup.status !== "ok") return lookup;
-
-  const { company, isSample } = lookup;
-  return {
-    status: "ok",
-    isSample,
-    name: company.name,
-    address: company.address,
-    phone: company.phone ?? null,
-    website: company.website,
-    reviewCount: company.reviewCount,
-    hasOpeningHours: company.hasOpeningHours,
-    opportunity: scoreCompany(company, SERVICE_IDS[0]),
-  };
 }
 
 async function updateContact(

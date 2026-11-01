@@ -2,6 +2,7 @@ import { logEvent, reportError } from "@/lib/events/log";
 import { getCompanyProvider } from "@/lib/radar/provider";
 import { runSearch } from "@/lib/radar/run-search";
 import { parseSearchQuery } from "@/lib/radar/search-events";
+import { getSiteChecker } from "@/lib/radar/site-checker";
 import { createClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -32,10 +33,27 @@ export async function POST(request: Request) {
   }
   if (!allowed) return new Response(null, { status: 429 });
 
-  const events = runSearch(provider, query, request.signal);
+  const events = runSearch(
+    provider,
+    query,
+    request.signal,
+    getSiteChecker({ userId: user.id, kind: "search" }),
+  );
   const encoder = new TextEncoder();
   let count = 0;
   let logged = false;
+  const sites = { pending: false, checked: 0, failed: 0, skipped: 0 };
+
+  // Só contagens: os endereços e os resultados não ficam guardados.
+  async function logSites(cancelled: boolean) {
+    if (!sites.pending) return;
+    sites.pending = false;
+    const { checked, failed, skipped } = sites;
+    await logEvent(
+      { type: "site_checks", data: { checked, failed, skipped, cancelled } },
+      user!.id,
+    );
+  }
 
   // Conta também a busca cancelada, porque o fornecedor pode já ter sido pago.
   async function logSearch(cancelled: boolean) {
@@ -52,12 +70,22 @@ export async function POST(request: Request) {
       const { done, value } = await events.next();
       if (done) {
         await logSearch(true);
+        await logSites(true);
         controller.close();
         return;
       }
 
       if (value.type === "company") count += 1;
       if (value.type === "done") await logSearch(false);
+      if (value.type === "sites_start") {
+        sites.pending = true;
+        sites.skipped = value.skipped.length;
+      }
+      if (value.type === "site") {
+        if (value.status === "checked") sites.checked += 1;
+        else sites.failed += 1;
+      }
+      if (value.type === "sites_done") await logSites(false);
       if (value.type === "error") {
         logged = true;
         await reportError("radar busca", value.code, user.id);
@@ -67,6 +95,7 @@ export async function POST(request: Request) {
     async cancel() {
       await events.return(undefined);
       await logSearch(true);
+      await logSites(true);
     },
   });
 

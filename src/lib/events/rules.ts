@@ -14,6 +14,10 @@ export type EventInput =
         cancelled: boolean;
       };
     }
+  | {
+      type: "site_checks";
+      data: { checked: number; failed: number; skipped: number; cancelled: boolean };
+    }
   | { type: "demo_created"; data: { demoId: string; niche: string } }
   | { type: "subscription_started"; data: { plan: string } }
   | { type: "payment_failed"; data: { status: string } }
@@ -32,6 +36,13 @@ export function eventData(event: EventInput) {
         locality: text(event.data.locality),
         count: event.data.count,
         calls: event.data.calls,
+        cancelled: event.data.cancelled,
+      };
+    case "site_checks":
+      return {
+        checked: event.data.checked,
+        failed: event.data.failed,
+        skipped: event.data.skipped,
         cancelled: event.data.cancelled,
       };
     case "demo_created":

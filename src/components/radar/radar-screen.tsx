@@ -35,7 +35,11 @@ type State = {
 type Action =
   | { type: "start" }
   | { type: "reset" }
+  | { type: "sitesInterrupted" }
   | { type: "event"; event: SearchEvent };
+
+const byScore = (a: ScoredCompany, b: ScoredCompany) =>
+  b.opportunity.score - a.opportunity.score;
 
 const initialState: State = {
   phase: "idle",
@@ -49,6 +53,18 @@ function reducer(state: State, action: Action): State {
     return { ...initialState, phase: "searching" };
   }
   if (action.type === "reset") return { ...initialState, returning: true };
+  if (action.type === "sitesInterrupted") {
+    return {
+      ...state,
+      companies: state.companies
+        .map((item) =>
+          item.siteCheck === "checking"
+            ? { ...item, siteCheck: "failed" as const }
+            : item,
+        )
+        .sort(byScore),
+    };
+  }
 
   const { event } = action;
   switch (event.type) {
@@ -63,12 +79,41 @@ function reducer(state: State, action: Action): State {
         companies: [
           ...state.companies,
           { company: event.company, opportunity: event.opportunity },
-        ].sort((a, b) => b.opportunity.score - a.opportunity.score),
+        ].sort(byScore),
       };
     case "done":
       return { ...state, phase: "results" };
     case "error":
       return { ...state, phase: "error", error: event.code };
+    case "sites_start":
+      return {
+        ...state,
+        companies: state.companies.map((item) => {
+          if (event.checking.includes(item.company.id)) {
+            return { ...item, siteCheck: "checking" as const };
+          }
+          return event.skipped.includes(item.company.id)
+            ? { ...item, siteCheck: "skipped" as const }
+            : item;
+        }),
+      };
+    // A nota muda no sítio: a lista só se reordena no fim, para não fugir debaixo do dedo.
+    case "site":
+      return {
+        ...state,
+        companies: state.companies.map((item) => {
+          if (item.company.id !== event.id) return item;
+          return event.status === "checked"
+            ? {
+                company: { ...item.company, site: event.site },
+                opportunity: event.opportunity,
+                siteCheck: "checked" as const,
+              }
+            : { ...item, siteCheck: "failed" as const };
+        }),
+      };
+    case "sites_done":
+      return { ...state, companies: [...state.companies].sort(byScore) };
   }
 }
 
@@ -121,6 +166,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
 
     const fail = (code: SearchErrorCode) =>
       dispatch({ type: "event", event: { type: "error", code } });
+    let finished = false;
 
     try {
       const response = await fetch("/api/radar/search", {
@@ -138,7 +184,6 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
       if (response.status === 429) return fail("limit");
       if (!response.ok || !response.body) return fail("provider");
 
-      let finished = false;
       await readSearchEvents(response.body, (event) => {
         finished ||= event.type === "done" || event.type === "error";
         dispatch({ type: "event", event });
@@ -146,7 +191,13 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
 
       // A ligação fechou sem o servidor dizer que terminou.
       if (!finished) fail("provider");
+      else dispatch({ type: "sitesInterrupted" });
     } catch {
+      // Os resultados já chegaram: só a verificação dos sites ficou a meio.
+      if (finished) {
+        if (!controller.signal.aborted) dispatch({ type: "sitesInterrupted" });
+        return;
+      }
       if (controller.signal.aborted) {
         dispatch({ type: "reset" });
         return;
@@ -155,7 +206,10 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
     }
   }
 
-  const reset = () => dispatch({ type: "reset" });
+  const reset = () => {
+    controllerRef.current?.abort();
+    dispatch({ type: "reset" });
+  };
 
   if (state.phase === "results" && state.companies.length > 0) {
     return (

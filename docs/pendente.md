@@ -78,6 +78,9 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 - Se dados escritos e confirmados pelo freelancer chegam para os Sites demo, sobretudo com os dados do Google visíveis ao lado no formulário.
 - Se é permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota, para escrever a mensagem.
 - Como fazer a atribuição quando não se mostra mapa.
+- Se podemos visitar automaticamente um endereço de site obtido do Google, mesmo sem guardar o resultado.
+- Se, no futuro, poderíamos guardar só um sinal calculado com data. Hoje nada é guardado.
+- Se visitar sites de terceiros sem autorização levanta outra questão, além de respeitar o `robots.txt`, e se a página `/bot` chega como informação.
 
 **Para ligar (em desenvolvimento):**
 
@@ -100,10 +103,42 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 
 **Limitações conhecidas:**
 
-- Os sinais do site (lento, sem versão móvel, antigo) ficam por verificar e não dão pontos, por isso as notas de empresas com site serão baixas.
 - Abrir um contacto ou gerar uma mensagem faz uma chamada paga de detalhes, que conta para o limite de aberturas do pack. Guardar um contacto e criar uma demo não fazem chamadas. As chamadas de detalhes ficam em `api_costs` por utilizador, mas não entram nas chamadas da busca.
 - Os tetos de custo são do projeto inteiro. Os limites dos packs reduzem o risco, mas muitos utilizadores em simultâneo podem esgotar o teto de todos.
 - O alerta aos 80% do teto, previsto no guia, não está construído.
+
+## Verificação dos sites
+
+**Estado:** construída e desligada. Precisa da migração `20261110000000_site_checks.sql` e da validação por um jurista (ver "Google Places").
+
+**Funciona hoje:** só com sites simulados nesta máquina. Nunca visitou um site real. Com dados de exemplo não corre, porque as empresas são fictícias. Os endereços de redes sociais, páginas de ligações e reservas já valem como "Sem site próprio" assim que a busca real estiver ligada, sem visita nenhuma.
+
+**O que guarda:** nada dos sites. `events` fica com contagens (`site_checks`) e `api_costs` com o número de verificações, a custo 0, sem endereços. Abrir o mesmo contacto volta a verificar.
+
+**Para ligar:**
+
+1. Publicar o site, para `/bot` ser público, e colocar `SITE_URL` com o endereço público.
+2. Definir `SITE_CHECKS_ENABLED=true` e `SITE_CHECKS_DAILY_LIMIT`.
+3. Quando alguém pedir exclusão por email, juntar o domínio a `SITE_CHECKS_EXCLUDED_HOSTS`.
+
+**Confirmar antes de produção:**
+
+- [ ] Tempo máximo na Vercel. Documentação de 24/08/2026: com Fluid compute, 300 s por omissão e no máximo no plano Hobby, incluindo respostas em streaming. A busca mais os 25 s de verificação cabem nisso. Confirmar no projeto real que o Fluid compute está ativo.
+- [ ] Região das funções. A Vercel usa `iad1` (Estados Unidos) por omissão, o que torna sites portugueses e brasileiros mais lentos na medição. Escolher a região antes de confiar em "Site lento".
+
+**Rever na primeira utilização:**
+
+- [ ] Amostra de 20 sites reais, para confirmar se os motivos são justos, sobretudo "Site lento" e "Sem versão para telemóvel".
+- [ ] A lista de terceiros e os sinais de domínio estacionado, em `src/lib/radar/site-rules.ts`.
+
+**Limitações conhecidas:**
+
+- O limite de 1 visita por site a cada 60 s fica na memória de cada instância do servidor. Com várias instâncias em simultâneo, o mesmo site pode receber mais de uma visita.
+- Dentro desse minuto, o segundo pedido mostra "Não foi possível verificar", por isso repetir a mesma busca logo a seguir fica sem sinais.
+- A geração de mensagens não usa os sinais verificados, só os motivos que não precisam de visita, incluindo "Sem site próprio".
+- Lê só o HTML inicial: em sites montados por JavaScript, os sinais podem ficar por concluir, e nesse caso não dão pontos.
+
+**Por decidir (Daniel):** texto da página `/bot`, que usa o email de contacto atual.
 
 ## Pagamentos (Stripe)
 

@@ -1,10 +1,16 @@
 import { readNdjson } from "@/lib/read-ndjson";
-import type { Company, Opportunity, SearchQuery } from "./types";
+import type { Company, Opportunity, SearchQuery, SiteSignals } from "./types";
 import { SERVICE_IDS } from "./types";
 
 export const MAX_FILTER_LENGTH = 80;
 
-export type ScoredCompany = { company: Company; opportunity: Opportunity };
+// Sem estado, a empresa não tem site para verificar ou a verificação está desligada.
+export type SiteCheckStatus = "checking" | "checked" | "failed" | "skipped";
+export type ScoredCompany = {
+  company: Company;
+  opportunity: Opportunity;
+  siteCheck?: SiteCheckStatus;
+};
 export type SearchStep = "reading" | "scoring";
 export type SearchErrorCode =
   | "provider"
@@ -17,7 +23,18 @@ export type SearchEvent =
   | { type: "step"; step: SearchStep; status: "active" | "done" }
   | ({ type: "company" } & ScoredCompany)
   | { type: "done"; count: number }
-  | { type: "error"; code: SearchErrorCode };
+  | { type: "error"; code: SearchErrorCode }
+  // Depois de "done": os resultados já estão no ecrã e a nota vai-se atualizando.
+  | { type: "sites_start"; checking: string[]; skipped: string[] }
+  | {
+      type: "site";
+      id: string;
+      status: "checked";
+      site: SiteSignals;
+      opportunity: Opportunity;
+    }
+  | { type: "site"; id: string; status: "failed" }
+  | { type: "sites_done"; checked: number; failed: number; skipped: number };
 
 export function parseSearchQuery(body: unknown): SearchQuery | null {
   if (typeof body !== "object" || body === null) return null;

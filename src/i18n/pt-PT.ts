@@ -499,12 +499,50 @@ export const ptPT = {
     levels: { strong: "Forte", medium: "Média", weak: "Fraca" },
     reasons: {
       noWebsite: "Sem site",
+      noOwnWebsite: "Sem site próprio",
       slowSite: "Site lento",
       notMobileFriendly: "Sem versão para telemóvel",
       outdatedSite: "Site antigo",
       fewReviews: "Poucas avaliações (menos de 20)",
       noOpeningHours: "Sem horário publicado",
     },
+    observations: {
+      responseTime: (seconds: string) =>
+        `O site demorou ${seconds} s a responder na nossa verificação.`,
+      noViewport: "Não encontrámos indicação de versão para telemóvel.",
+      copyright: (year: number) => `A página indica © ${year}.`,
+      legacyTech: {
+        flash: "A página usa Flash.",
+        frameset: "A página usa molduras (frameset).",
+        marquee: "A página usa texto em movimento (marquee).",
+      },
+      noHttps: "O endereço indicado abre sem ligação segura (HTTPS).",
+      thirdParty: {
+        social: "O endereço indicado é uma página numa rede social.",
+        linkPage: "O endereço indicado é uma página de ligações.",
+        booking: "O endereço indicado é uma página de reservas de terceiros.",
+        parked: "O domínio parece estacionado ou à venda.",
+      },
+    },
+    siteCheck: {
+      checking: "A verificar o site…",
+      checked: "Site verificado agora.",
+      failed: "Não foi possível verificar o site.",
+      skipped: "Site não verificado nesta busca.",
+      summaryChecking: (count: number) =>
+        count === 1 ? "A verificar 1 site…" : `A verificar ${count} sites…`,
+      summaryDone: "Verificação dos sites concluída.",
+    },
+  },
+  bot: {
+    title: "ScoutKnockBot",
+    paragraphs: [
+      "O ScoutKnockBot é o verificador automático do ScoutKnock, uma plataforma que ajuda freelancers a encontrar empresas locais que possam precisar dos seus serviços.",
+      "Visita a página inicial do site de uma empresa quando ela surge numa busca ou quando um freelancer abre esse contacto. Verifica o tempo de resposta, a indicação de versão para telemóvel, a ligação segura e sinais de antiguidade.",
+      "Faz poucos pedidos por site, não envia formulários, não executa o conteúdo da página e não guarda os resultados.",
+      "Respeita o robots.txt. Para impedir as visitas, acrescenta ao teu robots.txt: User-agent: ScoutKnockBot e Disallow: /.",
+      "Para pedires a exclusão do teu domínio, escreve para starkdaniel1113@gmail.com e indica o domínio. O responsável é Daniel de Aguiar Araujo.",
+    ],
   },
   messages: {
     generate: "Gerar mensagem",
@@ -544,6 +582,8 @@ export const ptPT = {
       reasons: {
         noWebsite: (company: string) =>
           `Ao procurar ${company} online, não encontrei um site.`,
+        noOwnWebsite: (company: string) =>
+          `Ao procurar ${company} online, não encontrei um site próprio.`,
         slowSite: (company: string) =>
           `Ao ver o site de ${company}, reparei que demora a abrir.`,
         notMobileFriendly: (company: string) =>

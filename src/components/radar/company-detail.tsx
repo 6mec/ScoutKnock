@@ -6,11 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { ScoreBreakdown } from "@/components/ui/score-breakdown";
 import { ptPT } from "@/i18n/pt-PT";
 import type { ScoredCompany } from "@/lib/radar/search-events";
+import { SiteCheckNote } from "./site-check-note";
 
 const { radar: copy } = ptPT;
 
 export function CompanyDetail({
-  scored: { company, opportunity },
+  scored: { company, opportunity, siteCheck },
   isSample,
   title,
 }: {
@@ -62,6 +63,9 @@ export function CompanyDetail({
       </div>
       <div className="rounded-lg border border-border bg-surface p-5">
         <ScoreBreakdown opportunity={opportunity} />
+        <div className="mt-3">
+          <SiteCheckNote status={siteCheck} />
+        </div>
       </div>
       <div className="rounded-lg border border-border bg-surface p-5">
         <h3 className="text-14 font-bold">{copy.details.title}</h3>
