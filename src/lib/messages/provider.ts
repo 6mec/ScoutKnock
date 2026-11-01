@@ -20,13 +20,19 @@ export function buildSampleMessage({
   reasons,
   senderName,
   tone,
+  service,
 }: MessageInput) {
   const first = reasons[0];
   const reason = first
     ? sample.reasons[first](companyName)
     : sample.noReason(companyName);
 
-  return sample.templates[tone](companyName, reason, senderName);
+  return sample.templates[tone](
+    companyName,
+    reason,
+    ptPT.radar.services[service].toLowerCase(),
+    senderName,
+  );
 }
 
 function wait(ms: number, signal?: AbortSignal) {

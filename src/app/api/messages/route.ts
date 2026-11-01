@@ -2,13 +2,13 @@ import { reportError } from "@/lib/events/log";
 import { recordMessageCost, reserveMessage } from "@/lib/messages/limit";
 import { getMessageProvider } from "@/lib/messages/provider";
 import {
+  citesSiteCheck,
   parseMessageRequest,
   type MessageEvent,
   type MessageRequest,
 } from "@/lib/messages/rules";
 import { lookupCompanyForUser } from "@/lib/radar/lookup-server";
 import { scoreCompany } from "@/lib/radar/score";
-import { SERVICE_IDS } from "@/lib/radar/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -70,15 +70,19 @@ export async function POST(request: Request) {
     }
   }
 
+  const reasons = scoreCompany(company, body.service).reasons.map(
+    (reason) => reason.code,
+  );
+
   const pieces = provider.write(
     {
       companyName: company.name,
       niche: company.niche,
-      reasons: scoreCompany(company, SERVICE_IDS[0]).reasons.map(
-        (reason) => reason.code,
-      ),
+      reasons,
       senderName: (profile?.display_name as string | null) ?? null,
       tone: body.tone,
+      channel: body.channel,
+      service: body.service,
     },
     {
       signal: request.signal,
@@ -99,7 +103,13 @@ export async function POST(request: Request) {
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
-      controller.enqueue(encode({ type: "start", isSample: provider.isSample }));
+      controller.enqueue(
+        encode({
+          type: "start",
+          isSample: provider.isSample,
+          citesSiteCheck: citesSiteCheck(reasons),
+        }),
+      );
     },
     async pull(controller) {
       try {

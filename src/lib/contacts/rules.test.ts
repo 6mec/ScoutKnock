@@ -23,6 +23,7 @@ function contact(values: Partial<Contact>): Contact {
     confirmed_contact: null,
     status: "to_contact",
     last_contacted_at: null,
+    follow_up_at: null,
     next_action: null,
     next_action_at: null,
     notes: null,

@@ -6,7 +6,7 @@ Levar também: `legal-rascunhos.md`, `termos-google.md`, `reembolso-rascunho.md`
 1. Guardar só o `place_id` e o que o freelancer escreve: cumpre os termos do Google?
 2. O CRM, mesmo só com o `place_id`, cai na proibição de "listagens e diretórios"?
 3. Os dados escritos e confirmados pelo freelancer chegam para os sites demo, com os dados do Google visíveis ao lado no formulário?
-4. É permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota para escrever a mensagem?
+4. É permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota, com o serviço escolhido pelo freelancer e o canal da mensagem, para a escrever?
 5. Como cumprir a atribuição do Google quando os dados aparecem sem mapa?
 6. Podemos visitar automaticamente o site de uma empresa (endereço obtido do Google) para verificar sinais (velocidade, versão móvel, antiguidade)? Podemos guardar o sinal calculado, com data?
 

@@ -231,6 +231,7 @@ function RadarSearch({
       <RadarResults
         results={state.companies}
         isSample={isSample}
+        service={values.service}
         onNewSearch={reset}
       />
     );

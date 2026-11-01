@@ -379,7 +379,11 @@ describe("limites", () => {
       SITE_CHECKS_ENABLED: "true",
       SITE_CHECKS_DAILY_LIMIT: "100",
       SITE_URL: "https://exemplo.pt",
+      BOT_CONTACT_NAME: "Nome de Teste",
+      BOT_CONTACT_EMAIL: "bot@exemplo.pt",
     };
+    expect(parseSiteCheckConfig({ ...valid, BOT_CONTACT_NAME: "" })).toBeNull();
+    expect(parseSiteCheckConfig({ ...valid, BOT_CONTACT_EMAIL: "sem-arroba" })).toBeNull();
     expect(parseSiteCheckConfig(valid)?.userAgent).toBe(
       "ScoutKnockBot/1.0 (+https://exemplo.pt/bot)",
     );

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScoreBreakdown } from "@/components/ui/score-breakdown";
 import { ptPT } from "@/i18n/pt-PT";
 import type { ScoredCompany } from "@/lib/radar/search-events";
+import type { ServiceId } from "@/lib/radar/types";
 import { SiteCheckNote } from "./site-check-note";
 
 const { radar: copy } = ptPT;
@@ -13,10 +14,12 @@ const { radar: copy } = ptPT;
 export function CompanyDetail({
   scored: { company, opportunity, siteCheck },
   isSample,
+  service,
   title,
 }: {
   scored: ScoredCompany;
   isSample: boolean;
+  service: ServiceId;
   title: ReactNode;
 }) {
   const rows: [string, ReactNode][] = [
@@ -57,6 +60,7 @@ export function CompanyDetail({
           source={{ kind: "company", id: company.id }}
           companyName={company.name}
           phone={company.phone}
+          service={service}
         />
         <CreateDemoButton company={company} isSample={isSample} />
         <SaveContactButton companyId={company.id} />

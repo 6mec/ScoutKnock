@@ -1,4 +1,4 @@
-import type { ReasonCode } from "@/lib/radar/types";
+import { SERVICE_IDS, type ReasonCode, type ServiceId } from "@/lib/radar/types";
 
 // Travão provisório, até o limite de mensagens ser decidido por pack.
 export const DAILY_MESSAGE_LIMIT = 20;
@@ -7,8 +7,16 @@ export const MAX_MESSAGE_LENGTH = 2000;
 export const MESSAGE_TONES = ["normal", "shorter", "formal"] as const;
 export type MessageTone = (typeof MESSAGE_TONES)[number];
 
+export const MESSAGE_CHANNELS = ["whatsapp", "email"] as const;
+export type MessageChannel = (typeof MESSAGE_CHANNELS)[number];
+
 export type MessageSource = { kind: "company" | "contact"; id: string };
-export type MessageRequest = { source: MessageSource; tone: MessageTone };
+export type MessageRequest = {
+  source: MessageSource;
+  tone: MessageTone;
+  channel: MessageChannel;
+  service: ServiceId;
+};
 
 // O nome de quem assina nunca vai para o Claude: junta-se no fim, no servidor.
 export type MessageInput = {
@@ -17,7 +25,16 @@ export type MessageInput = {
   reasons: ReasonCode[];
   senderName: string | null;
   tone: MessageTone;
+  channel: MessageChannel;
+  service: ServiceId;
 };
+
+const SITE_CHECK_REASONS: ReasonCode[] = ["slowSite", "notMobileFriendly", "outdatedSite"];
+
+// Estes motivos vêm da nossa verificação, e a mensagem fala deles na primeira pessoa.
+export function citesSiteCheck(reasons: ReasonCode[]) {
+  return reasons.some((reason) => SITE_CHECK_REASONS.includes(reason));
+}
 
 export type MessageErrorCode =
   | "provider"
@@ -27,7 +44,7 @@ export type MessageErrorCode =
   | "notFound";
 
 export type MessageEvent =
-  | { type: "start"; isSample: boolean }
+  | { type: "start"; isSample: boolean; citesSiteCheck: boolean }
   | { type: "text"; text: string }
   | { type: "done" }
   | { type: "error"; code: MessageErrorCode };
@@ -37,9 +54,19 @@ export type MessageUsage = { inputTokens: number; outputTokens: number };
 export function parseMessageRequest(body: unknown): MessageRequest | null {
   if (typeof body !== "object" || body === null) return null;
 
-  const { source, tone } = body as Record<string, unknown>;
+  const { source, tone, channel, service } = body as Record<string, unknown>;
   const validTone = MESSAGE_TONES.find((value) => value === tone);
-  if (!validTone || typeof source !== "object" || source === null) return null;
+  const validChannel = MESSAGE_CHANNELS.find((value) => value === channel);
+  const validService = SERVICE_IDS.find((value) => value === service);
+  if (
+    !validTone ||
+    !validChannel ||
+    !validService ||
+    typeof source !== "object" ||
+    source === null
+  ) {
+    return null;
+  }
 
   const { kind, id } = source as Record<string, unknown>;
   if (
@@ -51,7 +78,12 @@ export function parseMessageRequest(body: unknown): MessageRequest | null {
     return null;
   }
 
-  return { source: { kind, id }, tone: validTone };
+  return {
+    source: { kind, id },
+    tone: validTone,
+    channel: validChannel,
+    service: validService,
+  };
 }
 
 // Haiku 5.5: 0,10 $ por milhão à entrada e 0,50 $ à saída. Sem conversão de

@@ -55,7 +55,7 @@ export function Field({
   return (
     <FieldContext value={{ id, describedBy, invalid: Boolean(error) }}>
       <div className={cn("flex flex-col gap-2", className)}>
-        <LabelPrimitive.Root htmlFor={id} className="text-13 text-muted">
+        <LabelPrimitive.Root htmlFor={id} className="text-14 font-medium text-foreground">
           {label}
         </LabelPrimitive.Root>
         {children}

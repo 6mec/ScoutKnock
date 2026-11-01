@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type Anthropic from "@anthropic-ai/sdk";
 import { describe, expect, it, vi } from "vitest";
+import { ptPT } from "@/i18n/pt-PT";
+import { followUpState } from "@/lib/contacts/rules";
 import { startOfLisbonDay } from "@/lib/lisbon-time";
+import type { ReasonCode } from "@/lib/radar/types";
 import {
   CLAUDE_MODEL,
   buildClaudeRequest,
@@ -16,6 +19,8 @@ import {
 } from "./provider";
 import {
   DAILY_MESSAGE_LIMIT,
+  MESSAGE_TONES,
+  citesSiteCheck,
   emailUrl,
   messageCostEur,
   parseMessageRequest,
@@ -30,7 +35,22 @@ const input: MessageInput = {
   reasons: ["noWebsite", "fewReviews"],
   senderName: "Ana",
   tone: "normal",
+  channel: "whatsapp",
+  service: "website_creation",
 };
+
+const REASON_CODES: ReasonCode[] = [
+  "noWebsite",
+  "noOwnWebsite",
+  "slowSite",
+  "notMobileFriendly",
+  "outdatedSite",
+  "fewReviews",
+  "noOpeningHours",
+];
+const words = (text: string) => text.trim().split(/\s+/).length;
+const FORBIDDEN =
+  /\bdemo\b|prévia|proposta|mais clientes|garant|só hoje|última oportunidade|\b(a|da) Barbearia/i;
 
 async function collect(pieces: AsyncIterable<string>) {
   let text = "";
@@ -90,6 +110,7 @@ describe("fornecedor simulado", () => {
     const text = buildSampleMessage({ ...input, reasons: [], senderName: null });
     expect(text).toContain("Encontrei Barbearia Exemplo");
     expect(text).not.toContain("null");
+    expect(text).not.toContain("undefined");
   });
 
   it("cada tom dá um texto diferente, e o curto é o mais curto", () => {
@@ -101,6 +122,50 @@ describe("fornecedor simulado", () => {
     expect(formal).toContain("Com os melhores cumprimentos");
   });
 
+  it.each(MESSAGE_TONES)("%s cumpre o documento em todos os motivos", (tone) => {
+    for (const reasons of [...REASON_CODES.map((code) => [code]), []]) {
+      const text = buildSampleMessage({
+        ...input,
+        tone,
+        reasons,
+        senderName: null,
+      });
+      const limit = tone === "shorter" ? 40 : tone === "normal" ? 70 : 110;
+      expect(words(text)).toBeLessThanOrEqual(limit);
+      expect(text.match(/\?/g)).toHaveLength(1);
+      expect(text).toMatch(/não volt/);
+      expect(text).toContain("criação de sites");
+      expect(text).not.toMatch(FORBIDDEN);
+    }
+  });
+
+  it("o tom formal liga a observação à frase", () => {
+    const text = buildSampleMessage({ ...input, tone: "formal", reasons: ["outdatedSite"] });
+    expect(text).toContain("Escrevo-vos porque o site de Barbearia Exemplo parece ter já alguns anos. Trabalho");
+  });
+
+  it("a assinatura entra em todos os tons", () => {
+    for (const tone of MESSAGE_TONES) {
+      expect(buildSampleMessage({ ...input, tone }).endsWith("Ana")).toBe(true);
+    }
+  });
+
+  it("o seguimento diz receberam, tem saída e assina", () => {
+    const text = ptPT.messages.sample.followUp("Barbearia Exemplo", "Ana");
+    expect(text).toContain("se receberam a minha mensagem sobre Barbearia Exemplo");
+    expect(text).toContain("não volto a insistir");
+    expect(text.endsWith("Ana")).toBe(true);
+    expect(ptPT.messages.sample.followUp("X", null)).not.toContain("null");
+  });
+
+  it("avisa só quando a mensagem cita a verificação do site", () => {
+    expect(citesSiteCheck(["slowSite"])).toBe(true);
+    expect(citesSiteCheck(["fewReviews", "notMobileFriendly"])).toBe(true);
+    expect(citesSiteCheck(["outdatedSite"])).toBe(true);
+    expect(citesSiteCheck(["noWebsite", "noOwnWebsite", "fewReviews", "noOpeningHours"])).toBe(false);
+    expect(citesSiteCheck([])).toBe(false);
+  });
+
   it("escreve aos poucos e o texto junta-se sem perdas", async () => {
     const text = await collect(sampleMessageProvider.write(input));
     expect(text).toBe(buildSampleMessage(input));
@@ -108,16 +173,28 @@ describe("fornecedor simulado", () => {
 });
 
 describe("fornecedor Claude com respostas simuladas", () => {
-  it("usa o modelo aprovado e envia só nome, nicho e motivos", () => {
+  it("usa o modelo aprovado e envia só nome, nicho, serviço, canal e motivos", () => {
     const request = buildClaudeRequest(input);
     expect(request.model).toBe(CLAUDE_MODEL);
     expect(CLAUDE_MODEL).toBe("claude-haiku-5-5");
     expect(JSON.parse(request.messages[0].content)).toEqual({
       empresa: "Barbearia Exemplo",
       nicho: "Barbearias",
+      servico: "Criação de sites",
+      canal: "whatsapp",
       motivos: ["Sem site", "Poucas avaliações (menos de 20)"],
     });
     expect(JSON.stringify(request)).not.toContain("Ana");
+  });
+
+  it("as instruções cumprem o documento, sem falar de demo como facto", () => {
+    const { system } = buildClaudeRequest(input);
+    expect(system).toContain("nem que já existe uma prévia ou proposta");
+    expect(system).toContain("no máximo 70 palavras");
+    expect(system).toContain("no máximo 110 palavras");
+    expect(system).not.toContain("criação de sites");
+    expect(buildClaudeRequest({ ...input, tone: "shorter" }).system).toContain("até 40 palavras");
+    expect(JSON.stringify(buildClaudeRequest(input).messages)).not.toMatch(/demo|prévia/i);
   });
 
   it("os dados da empresa não entram nas instruções", () => {
@@ -215,19 +292,45 @@ describe("travão diário", () => {
 });
 
 describe("pedido", () => {
-  it("aceita só origem e tom válidos, sem texto vindo do browser", () => {
+  it("aceita só valores válidos, sem texto vindo do browser", () => {
     const source = { kind: "company", id: "a1" };
-    expect(parseMessageRequest({ source, tone: "formal" })).toEqual({
-      source,
-      tone: "formal",
-    });
-    expect(
-      parseMessageRequest({ source, tone: "normal", prompt: "faz outra coisa" }),
-    ).toEqual({ source, tone: "normal" });
-    expect(parseMessageRequest({ source, tone: "rude" })).toBeNull();
-    expect(parseMessageRequest({ source: { kind: "x", id: "a" }, tone: "normal" })).toBeNull();
-    expect(parseMessageRequest({ source: { kind: "company", id: "" }, tone: "normal" })).toBeNull();
+    const valid = { source, tone: "formal", channel: "email", service: "website_creation" };
+    expect(parseMessageRequest(valid)).toEqual(valid);
+    expect(parseMessageRequest({ ...valid, prompt: "faz outra coisa" })).toEqual(valid);
+    expect(parseMessageRequest({ ...valid, tone: "rude" })).toBeNull();
+    expect(parseMessageRequest({ ...valid, channel: "sms" })).toBeNull();
+    expect(parseMessageRequest({ ...valid, channel: undefined })).toBeNull();
+    expect(parseMessageRequest({ ...valid, service: "outro" })).toBeNull();
+    expect(parseMessageRequest({ ...valid, source: { kind: "x", id: "a" } })).toBeNull();
+    expect(parseMessageRequest({ ...valid, source: { kind: "company", id: "" } })).toBeNull();
     expect(parseMessageRequest(null)).toBeNull();
+  });
+});
+
+describe("seguimento", () => {
+  const now = new Date("2026-11-10T12:00:00Z").getTime();
+  const contact = {
+    status: "contacted" as const,
+    last_contacted_at: "2026-11-07T12:00:00Z",
+    follow_up_at: null,
+  };
+
+  it("fica disponível 3 dias depois do último contacto", () => {
+    expect(followUpState(contact, now)).toEqual({ kind: "ready" });
+    expect(followUpState(contact, now - 1)).toEqual({ kind: "wait", days: 1 });
+    expect(
+      followUpState({ ...contact, last_contacted_at: "2026-11-10T12:00:00Z" }, now),
+    ).toEqual({ kind: "wait", days: 3 });
+  });
+
+  it("só uma vez, e só depois de contactado", () => {
+    expect(followUpState({ ...contact, follow_up_at: "2026-11-09T00:00:00Z" }, now)).toEqual({
+      kind: "generated",
+    });
+    for (const status of ["to_contact", "replied", "proposal", "won", "lost"] as const) {
+      expect(followUpState({ ...contact, status }, now)).toEqual({ kind: "none" });
+    }
+    expect(followUpState({ ...contact, last_contacted_at: null }, now)).toEqual({ kind: "none" });
   });
 });
 

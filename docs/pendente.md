@@ -65,15 +65,16 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 - [ ] A chave é aceite. O SDK envia-a no cabeçalho `Authorization`, e isto só se confirma com uma chave real.
 - [ ] A mensagem aparece sem a etiqueta "Exemplo".
 - [ ] Demora menos de 10 segundos (checklist do dia 30).
-- [ ] O tom e a qualidade do texto são bons em várias empresas. As instruções estão em `src/lib/messages/claude-provider.ts` e ainda não foram experimentadas com o modelo.
+- [ ] O tom e a qualidade do texto são bons: gerar 20 mensagens e seguir a checklist da secção 4 de `docs/mensagens.md`. As instruções estão em `src/lib/messages/claude-provider.ts` e ainda não foram experimentadas com o modelo.
 - [ ] Surge uma linha `message` em `api_costs`, com um custo plausível.
 
-**Por decidir (Daniel):**
+**Seguimento:** usa um modelo fixo com o nome escrito pelo freelancer, sem chamadas ao Google nem à Anthropic. Fica disponível 3 dias depois do último contacto, só uma vez por empresa, e precisa da migração `20261111000000_contact_follow_up.sql`.
 
-- Limite de mensagens por pack. Até lá vale o travão provisório de 20 por dia.
-- Texto dos modelos de exemplo em `src/i18n/pt-PT.ts`, em `messages.sample`.
+**Aviso "Antes de enviar, abre o site":** aparece quando os motivos incluem a verificação do site. Com o Google ligado, a mensagem ainda não recebe os sinais verificados, por isso esse aviso só aparece hoje com os dados de exemplo.
 
-**Ainda não feito:** mensagens em português do Brasil e em inglês, que entram com as traduções.
+**Por decidir (Daniel):** limite de mensagens por pack. Até lá vale o travão provisório de 20 por dia.
+
+**Ainda não feito:** mensagens em português do Brasil e em inglês, que entram com as traduções; motivos próprios por serviço, quando houver mais serviços; guardar o serviço no contacto, que hoje usa o único que existe.
 
 ## Google Places
 
@@ -89,7 +90,7 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 
 - Se o CRM, mesmo só com o `place_id`, cai na proibição de listagens e diretórios.
 - Se dados escritos e confirmados pelo freelancer chegam para os Sites demo, sobretudo com os dados do Google visíveis ao lado no formulário.
-- Se é permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota, para escrever a mensagem.
+- Se é permitido enviar à Anthropic o nome da empresa, o nicho e os motivos da nota, com o serviço escolhido e o canal da mensagem, para a escrever.
 - Como fazer a atribuição quando não se mostra mapa.
 - Se podemos visitar automaticamente um endereço de site obtido do Google, mesmo sem guardar o resultado.
 - Se, no futuro, poderíamos guardar só um sinal calculado com data. Hoje nada é guardado.
@@ -131,7 +132,7 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 **Para ligar:**
 
 1. Publicar o site, para `/bot` ser público, e colocar `SITE_URL` com o endereço público.
-2. Definir `SITE_CHECKS_ENABLED=true` e `SITE_CHECKS_DAILY_LIMIT`.
+2. Definir `SITE_CHECKS_ENABLED=true`, `SITE_CHECKS_DAILY_LIMIT`, `BOT_CONTACT_NAME` e `BOT_CONTACT_EMAIL`, e publicar de novo, porque a página `/bot` é gerada no build.
 3. Quando alguém pedir exclusão por email, juntar o domínio a `SITE_CHECKS_EXCLUDED_HOSTS`.
 
 **Confirmar antes de produção:**
@@ -151,7 +152,7 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 - A geração de mensagens não usa os sinais verificados, só os motivos que não precisam de visita, incluindo "Sem site próprio".
 - Lê só o HTML inicial: em sites montados por JavaScript, os sinais podem ficar por concluir, e nesse caso não dão pontos.
 
-**Por decidir (Daniel):** texto da página `/bot`, que usa o email de contacto atual.
+**Por decidir (Daniel):** texto da página `/bot`, e o nome e o email a mostrar nela.
 
 ## Pagamentos (Stripe)
 

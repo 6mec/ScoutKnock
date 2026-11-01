@@ -13,11 +13,19 @@ export type SiteCheckConfig = {
   excludedHosts: string[];
 };
 
-// Sem interruptor, teto ou página pública do robô, não há verificações. A busca segue igual.
+export function parseBotContact(env: Record<string, string | undefined>) {
+  const name = env.BOT_CONTACT_NAME?.trim();
+  const email = env.BOT_CONTACT_EMAIL?.trim();
+
+  return name && email?.includes("@") ? { name, email } : null;
+}
+
+// Sem interruptor, teto, página pública do robô ou contacto nessa página, não há
+// verificações. A busca segue igual.
 export function parseSiteCheckConfig(
   env: Record<string, string | undefined>,
 ): SiteCheckConfig | null {
-  if (env.SITE_CHECKS_ENABLED !== "true") return null;
+  if (env.SITE_CHECKS_ENABLED !== "true" || !parseBotContact(env)) return null;
 
   const dailyLimit = Number(env.SITE_CHECKS_DAILY_LIMIT);
   if (!env.SITE_CHECKS_DAILY_LIMIT?.trim() || !Number.isInteger(dailyLimit) || dailyLimit <= 0) {

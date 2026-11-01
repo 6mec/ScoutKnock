@@ -277,7 +277,7 @@ export const ptPT = {
         "Sites demo: mostram o que o freelancer escreve, têm o aviso de proposta não oficial e são apagados ao fim de 30 dias.",
         "Stripe, quando estiver ligado: trata os pagamentos e recebe o teu email. Não guardamos dados de cartão.",
         "Google, quando estiver ligado: recebe o nicho e a localidade de cada busca e o identificador da empresa que abrires.",
-        "Anthropic, quando estiver ligado: recebe o nome da empresa, o nicho e os motivos, para escrever a mensagem.",
+        "Anthropic, quando estiver ligado: recebe o nome da empresa, o nicho, os motivos, o serviço que escolheste e o canal da mensagem, para a escrever.",
         "O responsável pelos dados é Daniel de Aguiar Araujo. Para exerceres os teus direitos, escreve para starkdaniel1113@gmail.com.",
       ],
     },
@@ -550,8 +550,9 @@ export const ptPT = {
       "Visita a página inicial do site de uma empresa quando ela surge numa busca ou quando um freelancer abre esse contacto. Verifica o tempo de resposta, a indicação de versão para telemóvel, a ligação segura e sinais de antiguidade.",
       "Faz poucos pedidos por site, não envia formulários, não executa o conteúdo da página e não guarda os resultados.",
       "Respeita o robots.txt. Para impedir as visitas, acrescenta ao teu robots.txt: User-agent: ScoutKnockBot e Disallow: /.",
-      "Para pedires a exclusão do teu domínio, escreve para starkdaniel1113@gmail.com e indica o domínio. O responsável é Daniel de Aguiar Araujo.",
     ],
+    contact: (name: string, email: string) =>
+      `Para pedires a exclusão do teu domínio, escreve para ${email} e indica o domínio. O responsável é ${name}.`,
   },
   messages: {
     generate: "Gerar mensagem",
@@ -564,6 +565,9 @@ export const ptPT = {
       "Texto de exemplo, escrito por nós a partir de um modelo. Não foi gerado por IA, porque a IA ainda não está ligada.",
     warning:
       "Revê a mensagem antes de enviar. O envio é sempre feito por ti, um contacto de cada vez.",
+    checkSiteWarning: "Antes de enviar, abre o site e confirma a observação.",
+    channelLabel: "Canal",
+    channels: { whatsapp: "WhatsApp", email: "Email" },
     copy: "Copiar",
     copied: "Copiada",
     copyFailed: "Não foi possível copiar. Seleciona o texto e copia à mão.",
@@ -587,30 +591,32 @@ export const ptPT = {
     },
     sample: {
       noReason: (company: string) =>
-        `Encontrei ${company} ao procurar negócios locais.`,
+        `Encontrei ${company} ao procurar negócios da zona.`,
       reasons: {
         noWebsite: (company: string) =>
           `Ao procurar ${company} online, não encontrei um site.`,
         noOwnWebsite: (company: string) =>
-          `Ao procurar ${company} online, não encontrei um site próprio.`,
+          `Vi que ${company} está online, mas não encontrei um site próprio.`,
         slowSite: (company: string) =>
-          `Ao ver o site de ${company}, reparei que demora a abrir.`,
+          `Ao abrir o site de ${company}, reparei que demora um pouco a carregar.`,
         notMobileFriendly: (company: string) =>
-          `Ao ver o site de ${company}, reparei que não se adapta bem ao telemóvel.`,
+          `Ao abrir o site de ${company} no telemóvel, não me pareceu adaptado ao ecrã.`,
         outdatedSite: (company: string) =>
-          `Ao ver o site de ${company}, reparei que já tem alguns anos.`,
+          `O site de ${company} parece ter já alguns anos.`,
         fewReviews: (company: string) =>
-          `Ao procurar ${company} online, vi que ainda há poucas avaliações.`,
+          `Vi que ${company} tem ainda poucas avaliações online.`,
         noOpeningHours: (company: string) =>
-          `Ao procurar ${company} online, não encontrei o horário publicado.`,
+          `Não encontrei o horário de ${company} publicado online.`,
       },
+      followUp: (company: string, sender: string | null) =>
+        `Olá de novo! Só para confirmar se receberam a minha mensagem sobre ${company}. Se não for o momento, sem problema: não volto a insistir.${sender ? `\n\n${sender}` : ""}`,
       templates: {
-        normal: (company: string, reason: string, sender: string | null) =>
-          `Olá, equipa de ${company}.\n\n${reason} Trabalho na criação de sites para negócios locais e lembrei-me de vos escrever.\n\nPosso enviar uma ideia, sem compromisso?${sender ? `\n\n${sender}` : ""}`,
-        shorter: (_company: string, reason: string, sender: string | null) =>
-          `Olá. ${reason} Crio sites para negócios locais. Posso enviar uma ideia, sem compromisso?${sender ? `\n\n${sender}` : ""}`,
-        formal: (company: string, reason: string, sender: string | null) =>
-          `Bom dia.\n\nDirijo-me a ${company} porque trabalho na criação de sites para empresas locais. ${reason}\n\nTeria disponibilidade para receber uma proposta, sem qualquer compromisso?\n\nCom os melhores cumprimentos${sender ? `,\n${sender}` : "."}`,
+        normal: (_company: string, reason: string, service: string, sender: string | null) =>
+          `Olá! ${reason} Faço ${service} para negócios locais e tenho uma ideia simples que talvez vos interesse. Posso enviá-la? Se preferirem não receber mensagens minhas, digam e não volto a escrever.${sender ? `\n\n${sender}` : ""}`,
+        shorter: (_company: string, reason: string, service: string, sender: string | null) =>
+          `Olá! ${reason} Faço ${service} para negócios locais. Posso mostrar-vos uma ideia rápida? Se não fizer sentido, digam e não volto a escrever.${sender ? `\n\n${sender}` : ""}`,
+        formal: (_company: string, reason: string, service: string, sender: string | null) =>
+          `Bom dia,\n\nEscrevo-vos porque ${reason.charAt(0).toLowerCase()}${reason.slice(1, -1)}. Trabalho com ${service} para empresas locais e gostaria de vos apresentar uma ideia, sem qualquer compromisso.\n\nTeriam disponibilidade para a receber? Se preferirem não ser contactados, indiquem-no e não voltarei a escrever.\n\nCom os melhores cumprimentos${sender ? `,\n${sender}` : "."}`,
       },
     },
   },
@@ -802,6 +808,19 @@ export const ptPT = {
     saving: "A guardar…",
     saved: "Guardado",
     remove: "Remover contacto",
+    followUp: {
+      generate: "Gerar seguimento",
+      view: "Ver seguimento",
+      pending: "A preparar…",
+      availableIn: (days: number) =>
+        days === 1
+          ? "O seguimento fica disponível daqui a 1 dia."
+          : `O seguimento fica disponível daqui a ${days} dias.`,
+      title: (name: string) => `Seguimento para ${name}`,
+      once: "Só há um seguimento por empresa. Se não responderem, não voltes a insistir.",
+      label: "Mensagem de seguimento",
+      error: "Não foi possível preparar o seguimento. Tenta outra vez.",
+    },
     removeWarning: "Isto apaga o contacto e as tuas notas. Não dá para desfazer.",
     removeConfirm: "Remover",
     removeCancel: "Cancelar",

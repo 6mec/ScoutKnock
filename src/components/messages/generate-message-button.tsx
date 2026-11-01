@@ -10,14 +10,17 @@ import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import {
   MAX_MESSAGE_LENGTH,
+  MESSAGE_CHANNELS,
   MESSAGE_TONES,
   emailUrl,
   whatsappUrl,
+  type MessageChannel,
   type MessageErrorCode,
   type MessageEvent,
   type MessageSource,
   type MessageTone,
 } from "@/lib/messages/rules";
+import { SERVICE_IDS, type ServiceId } from "@/lib/radar/types";
 import { readNdjson } from "@/lib/read-ndjson";
 
 const { messages: copy } = ptPT;
@@ -34,11 +37,13 @@ export function GenerateMessageButton({
   source,
   companyName,
   phone,
+  service = SERVICE_IDS[0],
   variant = "primary",
 }: {
   source: MessageSource;
   companyName: string;
   phone?: string | null;
+  service?: ServiceId;
   variant?: "primary" | "secondary";
 }) {
   const router = useRouter();
@@ -50,21 +55,28 @@ export function GenerateMessageButton({
   const [isSample, setIsSample] = useState(false);
   const [errorCode, setErrorCode] = useState<MessageErrorCode>("provider");
   const [tone, setTone] = useState<MessageTone>("normal");
+  const [channel, setChannel] = useState<MessageChannel>(phone ? "whatsapp" : "email");
+  const [citesSite, setCitesSite] = useState(false);
   const [edited, setEdited] = useState(false);
-  const [pendingTone, setPendingTone] = useState<MessageTone | null>(null);
+  const [pending, setPending] = useState<{
+    tone: MessageTone;
+    channel: MessageChannel;
+  } | null>(null);
 
   useEffect(() => () => controller.current?.abort(), []);
 
-  async function generate(nextTone: MessageTone) {
+  async function generate(nextTone: MessageTone, nextChannel = channel) {
     controller.current?.abort();
     const current = new AbortController();
     controller.current = current;
 
     setTone(nextTone);
+    setChannel(nextChannel);
     setStatus("writing");
     setText("");
     setEdited(false);
-    setPendingTone(null);
+    setPending(null);
+    setCitesSite(false);
 
     function fail(code: MessageErrorCode) {
       setErrorCode(code);
@@ -75,7 +87,12 @@ export function GenerateMessageButton({
       const response = await fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ source, tone: nextTone }),
+        body: JSON.stringify({
+          source,
+          tone: nextTone,
+          channel: nextChannel,
+          service,
+        }),
         signal: current.signal,
       });
 
@@ -91,7 +108,10 @@ export function GenerateMessageButton({
       let finished = false;
       await readNdjson<MessageEvent>(response.body, (event) => {
         if (current.signal.aborted) return;
-        if (event.type === "start") setIsSample(event.isSample);
+        if (event.type === "start") {
+          setIsSample(event.isSample);
+          setCitesSite(event.citesSiteCheck);
+        }
         if (event.type === "text") setText((value) => value + event.text);
         if (event.type === "done") {
           finished = true;
@@ -116,9 +136,9 @@ export function GenerateMessageButton({
     if (!next) controller.current?.abort();
   }
 
-  function requestTone(next: MessageTone) {
-    if (edited) setPendingTone(next);
-    else generate(next);
+  function requestVersion(nextTone: MessageTone, nextChannel: MessageChannel) {
+    if (edited) setPending({ tone: nextTone, channel: nextChannel });
+    else generate(nextTone, nextChannel);
   }
 
   async function handleCopy() {
@@ -203,6 +223,14 @@ export function GenerateMessageButton({
           <p className="rounded-md border border-border p-3 text-14 text-muted">
             {copy.warning}
           </p>
+          {citesSite && (
+            <p
+              data-testid="site-check-warning"
+              className="rounded-md border border-amber p-3 text-14 text-amber"
+            >
+              {copy.checkSiteWarning}
+            </p>
+          )}
           {status === "ready" && hasText && (
             <div className="flex flex-wrap gap-2">
               <Button onClick={handleCopy}>{copy.copy}</Button>
@@ -223,41 +251,67 @@ export function GenerateMessageButton({
             </div>
           )}
           {status === "ready" &&
-            (pendingTone ? (
+            (pending ? (
               <div className="flex flex-col gap-3 rounded-md border border-border-strong p-4">
                 <p>{copy.replaceWarning}</p>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="secondary"
-                    onClick={() => generate(pendingTone)}
+                    onClick={() => generate(pending.tone, pending.channel)}
                   >
                     {copy.replaceConfirm}
                   </Button>
-                  <Button variant="ghost" onClick={() => setPendingTone(null)}>
+                  <Button variant="ghost" onClick={() => setPending(null)}>
                     {copy.replaceCancel}
                   </Button>
                 </div>
               </div>
             ) : (
-              <div
-                role="group"
-                aria-labelledby="message-new-version"
-                className="flex flex-col gap-2"
-              >
-                <p id="message-new-version" className="text-13 text-muted">
-                  {copy.newVersion}
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {MESSAGE_TONES.map((value) => (
-                    <Button
-                      key={value}
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => requestTone(value)}
-                    >
-                      {copy.tones[value]}
-                    </Button>
-                  ))}
+              <div className="flex flex-col gap-3">
+                <div
+                  role="group"
+                  aria-labelledby="message-channel"
+                  className="flex flex-col gap-2"
+                >
+                  <p id="message-channel" className="text-13 text-muted">
+                    {copy.channelLabel}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {MESSAGE_CHANNELS.map((value) => (
+                      <Button
+                        key={value}
+                        variant={value === channel ? "secondary" : "ghost"}
+                        size="sm"
+                        aria-pressed={value === channel}
+                        onClick={() => {
+                          if (value !== channel) requestVersion(tone, value);
+                        }}
+                      >
+                        {copy.channels[value]}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+                <div
+                  role="group"
+                  aria-labelledby="message-new-version"
+                  className="flex flex-col gap-2"
+                >
+                  <p id="message-new-version" className="text-13 text-muted">
+                    {copy.newVersion}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {MESSAGE_TONES.map((value) => (
+                      <Button
+                        key={value}
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => requestVersion(value, channel)}
+                      >
+                        {copy.tones[value]}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
               </div>
             ))}

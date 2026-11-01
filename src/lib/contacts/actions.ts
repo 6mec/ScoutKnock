@@ -2,9 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 import {
+  followUpState,
   isContactStatus,
   marksLastContact,
   parseCompanyId,
@@ -103,6 +105,55 @@ export async function saveContactDetails(
     next_action_at: details.nextActionAt,
     notes: details.notes,
   });
+}
+
+// Modelo fixo com o nome que o freelancer escreveu: sem chamadas ao Google nem à
+// Anthropic. Reabrir mostra o mesmo seguimento e nunca conta como outro.
+export async function getFollowUp(
+  id: string,
+): Promise<{ ok: true; text: string; generatedAt: string } | { ok: false }> {
+  const { supabase, user } = await currentUser();
+  const { data: contact } = await supabase
+    .from("contacts")
+    .select("label, status, last_contacted_at, follow_up_at")
+    .eq("id", id)
+    .maybeSingle();
+  if (!contact) return { ok: false };
+
+  let generatedAt = contact.follow_up_at as string | null;
+
+  if (!generatedAt) {
+    if (followUpState(contact, Date.now()).kind !== "ready") return { ok: false };
+
+    const now = new Date().toISOString();
+    const { data, error } = await supabase
+      .from("contacts")
+      .update({ follow_up_at: now })
+      .eq("id", id)
+      .is("follow_up_at", null)
+      .select("id");
+    if (error || !data?.length) {
+      await reportError("contactos seguimento", error?.code ?? "sem linha", user.id);
+      return { ok: false };
+    }
+    generatedAt = now;
+    revalidatePath(CONTACTS_PATH);
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("display_name")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  return {
+    ok: true,
+    generatedAt,
+    text: ptPT.messages.sample.followUp(
+      contact.label as string,
+      (profile?.display_name as string | null) ?? null,
+    ),
+  };
 }
 
 export async function removeContact(id: string): Promise<Result> {

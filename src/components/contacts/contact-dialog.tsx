@@ -27,6 +27,7 @@ import {
   type ContactDetails,
   type ContactStatus,
 } from "@/lib/contacts/rules";
+import { FollowUpButton } from "./follow-up-button";
 import { StatusMenu } from "./status-menu";
 
 const { contacts: copy } = ptPT;
@@ -246,6 +247,7 @@ export function ContactDialog({
             variant="secondary"
           />
         )}
+        <FollowUpButton contact={contact} phone={found?.phone} />
         <dl>
           <dt className="text-13 text-muted">{copy.details.lastContact}</dt>
           <dd>

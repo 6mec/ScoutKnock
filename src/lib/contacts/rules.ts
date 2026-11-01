@@ -22,6 +22,7 @@ export type Contact = {
   confirmed_contact: string | null;
   status: ContactStatus;
   last_contacted_at: string | null;
+  follow_up_at: string | null;
   next_action: string | null;
   next_action_at: string | null;
   notes: string | null;
@@ -46,6 +47,32 @@ export function isContactStatus(value: unknown): value is ContactStatus {
 // Passar a estes estados significa que houve contacto com a empresa.
 export function marksLastContact(status: ContactStatus) {
   return status === "contacted" || status === "replied" || status === "proposal";
+}
+
+export const FOLLOW_UP_AFTER_DAYS = 3;
+const DAY_MS = 86_400_000;
+
+export type FollowUpState =
+  | { kind: "none" }
+  | { kind: "wait"; days: number }
+  | { kind: "ready" }
+  | { kind: "generated" };
+
+// Um só seguimento por empresa, e só depois de dar tempo para responderem.
+export function followUpState(
+  contact: Pick<Contact, "status" | "last_contacted_at" | "follow_up_at">,
+  now: number,
+): FollowUpState {
+  if (contact.follow_up_at) return { kind: "generated" };
+  if (contact.status !== "contacted" || !contact.last_contacted_at) {
+    return { kind: "none" };
+  }
+
+  const left =
+    new Date(contact.last_contacted_at).getTime() + FOLLOW_UP_AFTER_DAYS * DAY_MS - now;
+  return left <= 0
+    ? { kind: "ready" }
+    : { kind: "wait", days: Math.ceil(left / DAY_MS) };
 }
 
 function isValidDate(value: string) {

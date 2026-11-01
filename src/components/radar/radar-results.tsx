@@ -12,7 +12,7 @@ import { ScoreChip } from "@/components/ui/score-chip";
 import { ptPT } from "@/i18n/pt-PT";
 import { duration, ease } from "@/lib/motion";
 import type { ScoredCompany } from "@/lib/radar/search-events";
-import type { ScoreLevel } from "@/lib/radar/types";
+import type { ScoreLevel, ServiceId } from "@/lib/radar/types";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { CompanyDetail } from "./company-detail";
@@ -24,10 +24,12 @@ const transition = { duration: duration.fast, ease: ease.out };
 export function RadarResults({
   results,
   isSample,
+  service,
   onNewSearch,
 }: {
   results: ScoredCompany[];
   isSample: boolean;
+  service: ServiceId;
   onNewSearch: () => void;
 }) {
   const isWide = useMediaQuery("(min-width: 1024px)");
@@ -183,6 +185,7 @@ export function RadarResults({
                   key={selected.company.id}
                   scored={selected}
                   isSample={isSample}
+                  service={service}
                   title={
                     <h2 className="type-heading text-32">
                       {selected.company.name}
@@ -200,6 +203,7 @@ export function RadarResults({
                   <CompanyDetail
                     scored={selected}
                     isSample={isSample}
+                    service={service}
                     title={
                       <DialogTitle className="text-24">
                         {selected.company.name}

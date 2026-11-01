@@ -22,7 +22,7 @@ describe("política de privacidade provisória", () => {
   it("a frase da Anthropic diz só o que lhe é enviado, e quando", () => {
     const sentence = privacy.filter((text) => text.includes("Anthropic"));
     expect(sentence).toEqual([
-      "Anthropic, quando estiver ligado: recebe o nome da empresa, o nicho e os motivos, para escrever a mensagem.",
+      "Anthropic, quando estiver ligado: recebe o nome da empresa, o nicho, os motivos, o serviço que escolheste e o canal da mensagem, para a escrever.",
     ]);
   });
 
