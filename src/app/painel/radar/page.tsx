@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { RadarScreen } from "@/components/radar/radar-screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
+import { enabledMarkets } from "@/lib/markets";
 import { getCompanyProvider } from "@/lib/radar/provider";
 
 const { radar: copy } = ptPT;
@@ -35,5 +36,7 @@ async function Content() {
     );
   }
 
-  return <RadarScreen isSample={provider.usesSampleData} />;
+  return (
+    <RadarScreen isSample={provider.usesSampleData} markets={enabledMarkets()} />
+  );
 }

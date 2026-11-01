@@ -8,6 +8,8 @@ No dia 30 (1 de dezembro de 2026): plataforma online, com pagamentos ativos, apr
 
 ## Âmbito da versão 1 (tudo funcional no dia 30)
 
+**Lançamento só em Portugal.** O que abaixo fala do Brasil fica construído mas desligado, e liga-se com `MARKETS_ENABLED=PT,BR`.
+
 1. Contas e login: email ou Google, recuperação de palavra-passe, painel do utilizador.
 2. Radar de empresas: busca por serviço, nicho e localidade (distrito/concelho em PT, cidade/bairro no BR) via Google Places API.
 3. Pontuação de oportunidade: nota de 0 a 100 com os motivos (sem site, site lento ou antigo, sem versão móvel, poucas avaliações, sem horário).

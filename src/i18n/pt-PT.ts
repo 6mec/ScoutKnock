@@ -144,6 +144,13 @@ export const ptPT = {
     },
     faq: {
       title: "Perguntas frequentes",
+      // Só com o Brasil ligado em MARKETS_ENABLED, no lugar da pergunta "Funciona em que países?".
+      withBrazil: {
+        replaces: "Funciona em que países?",
+        question: "Funciona em Portugal e no Brasil?",
+        answer:
+          "Sim, é esse o objetivo. A busca vai funcionar por distrito e concelho em Portugal, e por cidade e bairro no Brasil.",
+      },
       items: [
         {
           question: "Quando abre?",
@@ -156,9 +163,8 @@ export const ptPT = {
             "Planeamos incluir um teste grátis de 7 dias. Os detalhes e os preços serão anunciados no lançamento.",
         },
         {
-          question: "Funciona em Portugal e no Brasil?",
-          answer:
-            "Sim, é esse o objetivo. A busca vai funcionar por distrito e concelho em Portugal, e por cidade e bairro no Brasil.",
+          question: "Funciona em que países?",
+          answer: "Para já, só em Portugal. A busca funciona por distrito e concelho.",
         },
         {
           question: "De onde vêm os dados das empresas?",
@@ -477,7 +483,10 @@ export const ptPT = {
       budget: "A busca está temporariamente indisponível. Tenta mais tarde.",
       offline: "Sem ligação à internet. Verifica a rede e tenta outra vez.",
       unavailable: "A busca ainda não está disponível.",
+      locality: "Escolhe um distrito ou um concelho da lista de sugestões. Esta busca não foi contada.",
     },
+    sampleOnlyIn:
+      "Em modo de exemplo, só há empresas no Porto, em Lisboa, em Braga e em Coimbra.",
     attribution: "Dados do Google Maps",
     sampleNotice:
       "Exemplo ilustrativo: as empresas abaixo são fictícias, porque a busca real ainda não está ligada.",

@@ -4,7 +4,8 @@ import { useEffect, useRef, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select } from "@/components/ui/field";
 import { ptPT } from "@/i18n/pt-PT";
-import { LOCALITIES } from "@/lib/radar/localities";
+import type { Market } from "@/lib/markets";
+import { localitiesFor } from "@/lib/radar/localities";
 import { MAX_FILTER_LENGTH } from "@/lib/radar/search-events";
 import { SERVICE_IDS, type SearchQuery, type ServiceId } from "@/lib/radar/types";
 
@@ -15,7 +16,9 @@ export function RadarForm({
   onChange,
   onSubmit,
   focusOnMount,
+  markets,
 }: {
+  markets: Market[];
   values: SearchQuery;
   onChange: (values: SearchQuery) => void;
   onSubmit: () => void;
@@ -83,8 +86,8 @@ export function RadarForm({
         ))}
       </datalist>
       <datalist id="radar-localities">
-        {LOCALITIES.map(({ name }) => (
-          <option key={name} value={name} />
+        {localitiesFor(markets).map(({ name, group }) => (
+          <option key={name} value={name} label={group === name ? undefined : group} />
         ))}
       </datalist>
       <Button type="submit" size="lg" className="w-full">

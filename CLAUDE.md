@@ -1,6 +1,6 @@
 # ScoutKnock
 
-Plataforma web para freelancers (PT e BR) encontrarem empresas locais que precisam do serviço deles. O freelancer escolhe serviço + nicho + localidade, vê empresas reais com uma nota de oportunidade, recebe uma mensagem de abordagem por IA e mostra um site demo feito para aquela empresa.
+Plataforma web para freelancers encontrarem empresas locais (lançamento só em Portugal; o Brasil fica desligado em `MARKETS_ENABLED`) que precisam do serviço deles. O freelancer escolhe serviço + nicho + localidade, vê empresas reais com uma nota de oportunidade, recebe uma mensagem de abordagem por IA e mostra um site demo feito para aquela empresa.
 
 Dono do projeto: Daniel (Portugal). Responde-lhe em português de Portugal. Plano completo em @docs/plano.md.
 
@@ -30,6 +30,7 @@ Preencher quando o projeto existir (instalar, dev, build, test, lint).
 
 ## Como trabalhar
 
+- Trabalhar pelo ficheiro `docs/tarefas.md`: lê-lo, seguir as regras lá escritas, fazer uma tarefa de cada vez por ordem e, no fim, atualizá-lo.
 - Uma tarefa de cada vez. Antes de escrever código, propor um plano curto e esperar aprovação.
 - Depois de cada passo que funcione: correr testes e lint, e sugerir um commit com mensagem clara.
 - Perguntas de negócio (preços, textos de marketing, decisões legais) não se decidem aqui: devolver ao Daniel.

@@ -14,6 +14,7 @@ import {
   parseBillingConfig,
 } from "@/lib/billing/rules";
 import { reportError } from "@/lib/events/log";
+import { enabledMarkets } from "@/lib/markets";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -65,7 +66,7 @@ async function Content({
   const usage = data as Usage | null;
   // Sem chaves de teste válidas, nada se vende: os preços continuam por anunciar.
   const billingOn = parseBillingConfig(process.env) !== null;
-  const currency = currencyForLocale(profile?.locale);
+  const currency = currencyForLocale(profile?.locale, enabledMarkets());
   const money = new Intl.NumberFormat("pt-PT", {
     style: "currency",
     currency: currency.toUpperCase(),

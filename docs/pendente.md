@@ -14,6 +14,19 @@ Sem cada um destes pontos, o site não pode abrir ao público:
 - **Identificação do responsável pelo tratamento:** nome, NIF, morada e contacto, por decidir e preencher na política de privacidade. Hoje a página só tem o nome e o email.
 - **Prazo de conservação dos eventos:** por decidir e publicar na política de privacidade. O rascunho sugere 12 meses, e 30 dias para os erros. Depois de decidido, é preciso apagar os eventos quando o prazo acabar, o que ainda não está construído.
 
+## Países
+
+**Estado:** lançamento só em Portugal, com `MARKETS_ENABLED=PT`. Vazio ou inválido fica igual.
+
+**Com o Brasil desligado:** Radar só com os 18 distritos, as 2 regiões e os 308 concelhos; preços e Checkout só em euros; a landing não fala do Brasil. O servidor recusa localidades fora da lista, sem gastar busca.
+
+**Para ligar o Brasil (Daniel decide quando):**
+
+1. Criar os preços em reais no Stripe e preencher os `STRIPE_PRICE_*_BRL`. Sem eles, com o Brasil ligado, os pagamentos ficam desligados.
+2. Colocar `MARKETS_ENABLED=PT,BR` e publicar de novo, porque a landing é gerada no build.
+
+**Ainda faltaria para o Brasil:** textos em pt-BR, que não existem, uma lista completa de cidades, porque hoje só há 4, e a revisão dos preços em reais.
+
 ## Limites dos packs
 
 **Estado:** provisórios. Rever depois de medir o custo real com a chave do Google e o uso dos primeiros clientes.
@@ -66,7 +79,7 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 
 **Estado:** pendente: precisa de chave e de validação por um jurista.
 
-**Funciona hoje:** o Radar com os dados de exemplo (`sample-companies`), só em desenvolvimento.
+**Funciona hoje:** o Radar com os dados de exemplo (`sample-companies`), só em desenvolvimento, com empresas fictícias no Porto, em Lisboa, em Braga e em Coimbra. Noutra localidade, o ecrã diz que não há exemplos aí.
 
 **Testado só com respostas simuladas do Google, nunca com a API a sério:** pedido, conversão dos resultados, erros, páginas, travão de custo e registo em `api_costs`.
 
@@ -95,7 +108,7 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 **Verificar na primeira utilização:**
 
 - [ ] Com um teto a `0`, a busca mostra "temporariamente indisponível" e o Google não recebe chamadas.
-- [ ] Os resultados são bons em 5 concelhos PT e 5 cidades BR. O texto pesquisado é "nicho em localidade", sem país definido, e isso pode precisar de ajuste.
+- [ ] Os resultados são bons em 5 concelhos. O pedido leva "nicho em localidade, Portugal" e `regionCode: "PT"`, testados só com respostas simuladas.
 - [ ] Depois de 10 buscas de teste, comparar o custo estimado com o gasto real no Cloud Console e corrigir os custos configurados:
   - Chamadas por busca: `select data->>'calls', data->>'count' from public.events where type = 'search' order by created_at desc;`
   - Custo por tipo: `select kind, count(*), sum(cost_eur) from public.api_costs where provider = 'google_places' group by kind;`
@@ -151,10 +164,10 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 **Para ligar o modo de teste (grátis):**
 
 1. Criar uma conta em dashboard.stripe.com e confirmar que está em modo de teste.
-2. Criar três produtos (Inicial, Pro e Agência), cada um com um preço mensal em EUR e outro em BRL, com os valores do `docs/plano.md`.
+2. Criar três produtos (Inicial, Pro e Agência), cada um com um preço mensal em EUR, com os valores do `docs/plano.md`.
 3. Em Definições de faturação, ativar o portal do cliente e permitir cancelar, mudar de pack e atualizar o pagamento.
 4. Instalar o Stripe CLI e correr `stripe login`. Depois, `stripe listen --forward-to localhost:3000/api/stripe/webhook --events customer.subscription.created,customer.subscription.updated,customer.subscription.deleted` mostra o `whsec_...`.
-5. Preencher no `.env.local` as variáveis `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, as seis `STRIPE_PRICE_*` e `SITE_URL`.
+5. Preencher no `.env.local` as variáveis `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, as três `STRIPE_PRICE_*_EUR` e `SITE_URL`.
 6. Reiniciar a aplicação.
 
 **Verificar com o modo de teste:**

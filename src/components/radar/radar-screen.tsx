@@ -5,7 +5,9 @@ import { useEffect, useReducer, useRef, useState, useSyncExternalStore } from "r
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ptPT } from "@/i18n/pt-PT";
+import type { Market } from "@/lib/markets";
 import { findLocation } from "@/lib/radar/localities";
+import { hasSampleCompanies } from "@/lib/radar/sample-companies";
 import { newSearchRequests, subscribeToNewSearch,
   takePendingSearch,
 } from "@/lib/radar/new-search";
@@ -117,17 +119,29 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function RadarScreen({ isSample }: { isSample: boolean }) {
+export function RadarScreen({
+  isSample,
+  markets,
+}: {
+  isSample: boolean;
+  markets: Market[];
+}) {
   const requests = useSyncExternalStore(
     subscribeToNewSearch,
     newSearchRequests,
     () => 0,
   );
 
-  return <RadarSearch key={requests} isSample={isSample} />;
+  return <RadarSearch key={requests} isSample={isSample} markets={markets} />;
 }
 
-function RadarSearch({ isSample }: { isSample: boolean }) {
+function RadarSearch({
+  isSample,
+  markets,
+}: {
+  isSample: boolean;
+  markets: Market[];
+}) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [values, setValues] = useState<SearchQuery>({
@@ -182,6 +196,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
       }
       if (response.status === 503) return fail("unavailable");
       if (response.status === 429) return fail("limit");
+      if (response.status === 422) return fail("locality");
       if (!response.ok || !response.body) return fail("provider");
 
       await readSearchEvents(response.body, (event) => {
@@ -237,6 +252,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
             onChange={setValues}
             onSubmit={() => search()}
             focusOnMount={state.returning}
+            markets={markets}
           />
         )}
         {searching && (
@@ -246,6 +262,16 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
             onCancel={() => controllerRef.current?.abort()}
           />
         )}
+        {state.phase === "results" &&
+          isSample &&
+          !hasSampleCompanies(values.locality) && (
+            <p
+              role="status"
+              className="rounded-md border border-amber px-4 py-3 text-14 text-amber"
+            >
+              {copy.sampleOnlyIn}
+            </p>
+          )}
         {state.phase === "results" && (
           <EmptyState
             title={copy.noResults}
@@ -264,7 +290,9 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
           >
             <p className="type-body">{copy.errors[state.error]}</p>
             <div className="flex flex-wrap gap-3">
-              {state.error !== "limit" && state.error !== "unavailable" && (
+              {state.error !== "limit" &&
+                state.error !== "unavailable" &&
+                state.error !== "locality" && (
                 <Button onClick={() => search()}>{copy.retry}</Button>
               )}
               <Button variant="secondary" onClick={reset}>
@@ -276,7 +304,7 @@ function RadarSearch({ isSample }: { isSample: boolean }) {
       </div>
       <RadarStage
         searching={searching}
-        target={findLocation(values.locality)}
+        target={findLocation(values.locality, markets)}
       />
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { reportError } from "@/lib/events/log";
+import { enabledMarkets } from "@/lib/markets";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -78,7 +79,7 @@ export async function startCheckout(planValue: unknown) {
         buildCheckoutParams({
           config,
           plan,
-          currency: currencyForLocale(profile?.locale),
+          currency: currencyForLocale(profile?.locale, enabledMarkets()),
           customerId,
           userId: user.id,
           trialUsed: row?.trial_used ?? false,

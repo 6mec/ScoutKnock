@@ -91,8 +91,8 @@ Estamos a construir o produto. Quem estiver na lista de espera é avisado primei
 **Vai ter teste grátis?**
 Planeamos incluir um teste grátis de 7 dias. Os detalhes e os preços serão anunciados no lançamento.
 
-**Funciona em Portugal e no Brasil?**
-Sim, é esse o objetivo. A busca vai funcionar por distrito e concelho em Portugal, e por cidade e bairro no Brasil.
+**Funciona em que países?**
+Para já, só em Portugal. A busca funciona por distrito e concelho.
 
 **De onde vêm os dados das empresas?**
 Da API oficial do Google. Guardamos apenas informação comercial pública das empresas.

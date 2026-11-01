@@ -6,10 +6,14 @@ import { ptPT } from "@/i18n/pt-PT";
 
 const { faq } = ptPT.landing;
 
-export function Faq() {
+export function Faq({ withBrazil }: { withBrazil: boolean }) {
+  const items = faq.items.map((item) =>
+    withBrazil && item.question === faq.withBrazil.replaces ? faq.withBrazil : item,
+  );
+
   return (
     <Accordion.Root type="multiple" className="border-t border-border">
-      {faq.items.map((item) => (
+      {items.map((item) => (
         <Accordion.Item
           key={item.question}
           value={item.question}

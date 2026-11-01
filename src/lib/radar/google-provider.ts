@@ -1,4 +1,5 @@
 import type { GoogleCallKind, GoogleConfig, SpendResult } from "./google-budget";
+import { marketOf } from "./localities";
 import type { CompanyProvider } from "./provider";
 import type { Company } from "./types";
 
@@ -110,6 +111,17 @@ export function createGoogleProvider({
     return response.json();
   }
 
+  function searchPlace(niche: string, locality: string) {
+    const market = marketOf(locality);
+    if (market === "PT") {
+      return { textQuery: `${niche} em ${locality}, Portugal`, regionCode: "PT" };
+    }
+    if (market === "BR") {
+      return { textQuery: `${niche} em ${locality}, Brasil`, regionCode: "BR" };
+    }
+    return { textQuery: `${niche} em ${locality}` };
+  }
+
   const provider: CompanyProvider = {
     usesSampleData: false,
     async *stream({ niche, locality }, signal) {
@@ -126,7 +138,7 @@ export function createGoogleProvider({
             {
               method: "POST",
               body: JSON.stringify({
-                textQuery: `${niche} em ${locality}`,
+                ...searchPlace(niche, locality),
                 pageSize: PAGE_RESULTS,
                 languageCode: "pt-PT",
                 ...(pageToken ? { pageToken } : {}),

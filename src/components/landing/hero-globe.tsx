@@ -11,27 +11,37 @@ const MAX_PIXEL_RATIO = 2;
 const LISBON: [number, number] = [38.72, -9.14];
 const SAO_PAULO: [number, number] = [-23.55, -46.63];
 
-const CITIES: { location: [number, number]; size: number }[] = [
+const PORTUGAL_CITIES: { location: [number, number]; size: number }[] = [
   { location: LISBON, size: 0.05 },
   { location: [41.15, -8.61], size: 0.04 },
+];
+const BRAZIL_CITIES: { location: [number, number]; size: number }[] = [
   { location: SAO_PAULO, size: 0.05 },
   { location: [-22.91, -43.17], size: 0.04 },
 ];
 
-function markersAt(pulse: number): Marker[] {
-  return CITIES.map((city) => ({
-    location: city.location,
-    size: city.size * (1 + 0.3 * Math.sin(pulse)),
-  }));
-}
-
 // Decorativo. Pausa fora do ecrã ou com o separador escondido, e fica parado com movimento reduzido.
-export default function HeroGlobe({ theme }: { theme: Theme }) {
+export default function HeroGlobe({
+  theme,
+  withBrazil,
+}: {
+  theme: Theme;
+  withBrazil: boolean;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    const cities = withBrazil
+      ? [...PORTUGAL_CITIES, ...BRAZIL_CITIES]
+      : PORTUGAL_CITIES;
+    const markersAt = (pulse: number): Marker[] =>
+      cities.map((city) => ({
+        location: city.location,
+        size: city.size * (1 + 0.3 * Math.sin(pulse)),
+      }));
 
     const reduced = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -51,7 +61,7 @@ export default function HeroGlobe({ theme }: { theme: Theme }) {
         diffuse: 1.2,
         mapSamples: 16000,
         markers: markersAt(0),
-        arcs: [{ from: LISBON, to: SAO_PAULO }],
+        arcs: withBrazil ? [{ from: LISBON, to: SAO_PAULO }] : [],
         arcWidth: 0.5,
         arcHeight: 0.3,
       });
@@ -96,7 +106,7 @@ export default function HeroGlobe({ theme }: { theme: Theme }) {
       document.removeEventListener("visibilitychange", syncVisibility);
       globe.destroy();
     };
-  }, [theme]);
+  }, [theme, withBrazil]);
 
   return (
     <canvas

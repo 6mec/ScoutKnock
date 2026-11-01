@@ -1,4 +1,6 @@
 import { logEvent, reportError } from "@/lib/events/log";
+import { enabledMarkets } from "@/lib/markets";
+import { resolveLocality } from "@/lib/radar/localities";
 import { getCompanyProvider } from "@/lib/radar/provider";
 import { runSearch } from "@/lib/radar/run-search";
 import { parseSearchQuery } from "@/lib/radar/search-events";
@@ -22,8 +24,13 @@ export async function POST(request: Request) {
   });
   if (!provider) return new Response(null, { status: 503 });
 
-  const query = parseSearchQuery(await request.json().catch(() => null));
-  if (!query) return new Response(null, { status: 400 });
+  const parsed = parseSearchQuery(await request.json().catch(() => null));
+  if (!parsed) return new Response(null, { status: 400 });
+
+  // Antes de contar: uma localidade fora da lista não gasta busca.
+  const locality = resolveLocality(parsed.locality, enabledMarkets());
+  if (!locality) return new Response(null, { status: 422 });
+  const query = { ...parsed, locality: locality.name };
 
   // Conta antes de procurar. Se não der para contar, não há busca.
   const { data: allowed, error: limitError } = await supabase.rpc("consume_search");

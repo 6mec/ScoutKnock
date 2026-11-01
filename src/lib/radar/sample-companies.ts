@@ -1,3 +1,4 @@
+import { normalizeText } from "./localities";
 import type { Company } from "./types";
 
 const unchecked = { isSlow: null, isMobileFriendly: null, isOutdated: null };
@@ -76,4 +77,58 @@ export const SAMPLE_COMPANIES: Company[] = [
     hasOpeningHours: false,
     site: unchecked,
   },
+  {
+    id: "sample-7",
+    name: "Barbearia Exemplo de Braga",
+    niche: "Barbearias",
+    locality: "Braga",
+    address: "Rua de Exemplo, 21, Braga",
+    phone: "+351 900 000 007",
+    website: null,
+    reviewCount: 9,
+    hasOpeningHours: false,
+    site: unchecked,
+  },
+  {
+    id: "sample-8",
+    name: "Restaurante Fictício do Minho",
+    niche: "Restaurantes",
+    locality: "Braga",
+    address: "Avenida de Exemplo, 15, Braga",
+    phone: "+351 900 000 008",
+    website: "https://restaurante-minho.example",
+    reviewCount: 95,
+    hasOpeningHours: true,
+    site: { isSlow: false, isMobileFriendly: false, isOutdated: true },
+  },
+  {
+    id: "sample-9",
+    name: "Barbearia Fictícia de Coimbra",
+    niche: "Barbearias",
+    locality: "Coimbra",
+    address: "Largo de Exemplo, 2, Coimbra",
+    phone: "+351 900 000 009",
+    website: "https://barbearia-coimbra.example",
+    reviewCount: 31,
+    hasOpeningHours: true,
+    site: { isSlow: true, isMobileFriendly: true, isOutdated: false },
+  },
+  {
+    id: "sample-10",
+    name: "Tasca Exemplo de Coimbra",
+    niche: "Restaurantes",
+    locality: "Coimbra",
+    address: "Travessa de Exemplo, 9, Coimbra",
+    phone: "+351 900 000 010",
+    website: null,
+    reviewCount: 58,
+    hasOpeningHours: true,
+    site: unchecked,
+  },
 ];
+
+export function hasSampleCompanies(locality: string) {
+  const wanted = normalizeText(locality);
+
+  return SAMPLE_COMPANIES.some((company) => normalizeText(company.locality) === wanted);
+}

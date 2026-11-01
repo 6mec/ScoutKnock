@@ -1,5 +1,6 @@
 import type Stripe from "stripe";
 import { PLANS } from "@/lib/account/rules";
+import { parseMarkets, type Market } from "@/lib/markets";
 
 export type PlanId = (typeof PLANS)[number]["id"];
 export type Currency = "eur" | "brl";
@@ -8,13 +9,11 @@ export const TRIAL_DAYS = 7;
 // O limite mais baixo do docs/plano.md. Tem de bater certo com a base de dados.
 export const LOWEST_LIMITS = { searches: 10, demos: 2, lookups: 3, monthlyLookups: 90 };
 
-const CURRENCIES: Currency[] = ["eur", "brl"];
-
 export type BillingConfig = {
   secretKey: string;
   webhookSecret: string;
   siteUrl: string;
-  prices: Record<PlanId, Record<Currency, string>>;
+  prices: Record<PlanId, { eur: string; brl?: string }>;
 };
 
 // Só uma subscrição paga em dia dá os limites do pack. Teste, pagamento falhado,
@@ -58,25 +57,26 @@ export function parseBillingConfig(
     return null;
   }
 
+  // Os preços em reais só são precisos com o Brasil ligado.
+  const withBrazil = parseMarkets(env.MARKETS_ENABLED).includes("BR");
   const prices = {} as BillingConfig["prices"];
   for (const { id } of PLANS) {
-    const byCurrency = {} as Record<Currency, string>;
-    for (const currency of CURRENCIES) {
-      const price = env[`STRIPE_PRICE_${id.toUpperCase()}_${currency.toUpperCase()}`];
-      if (!price?.startsWith("price_")) return null;
-      byCurrency[currency] = price;
-    }
-    prices[id] = byCurrency;
+    const eur = env[`STRIPE_PRICE_${id.toUpperCase()}_EUR`];
+    const brl = env[`STRIPE_PRICE_${id.toUpperCase()}_BRL`];
+    if (!eur?.startsWith("price_")) return null;
+    if (withBrazil && !brl?.startsWith("price_")) return null;
+    prices[id] = withBrazil ? { eur, brl } : { eur };
   }
 
   return { secretKey, webhookSecret, siteUrl, prices };
 }
 
 export function planForPrice(config: BillingConfig, priceId?: string) {
+  if (!priceId) return null;
+
   return (
-    PLANS.find(({ id }) =>
-      CURRENCIES.some((currency) => config.prices[id][currency] === priceId),
-    )?.id ?? null
+    PLANS.find(({ id }) => Object.values(config.prices[id]).includes(priceId))?.id ??
+    null
   );
 }
 
@@ -84,8 +84,11 @@ export function parsePlanId(value: unknown): PlanId | null {
   return PLANS.find(({ id }) => id === value)?.id ?? null;
 }
 
-export function currencyForLocale(locale?: string | null): Currency {
-  return locale === "pt-BR" ? "brl" : "eur";
+export function currencyForLocale(
+  locale: string | null | undefined,
+  markets: Market[],
+): Currency {
+  return locale === "pt-BR" && markets.includes("BR") ? "brl" : "eur";
 }
 
 // O teste não pede cartão e cancela sozinho se não for adicionado nenhum até ao
@@ -110,7 +113,9 @@ export function buildCheckoutParams({
   return {
     mode: "subscription",
     customer: customerId,
-    line_items: [{ price: config.prices[plan][currency], quantity: 1 }],
+    line_items: [
+      { price: config.prices[plan][currency] ?? config.prices[plan].eur, quantity: 1 },
+    ],
     success_url: `${returnUrl}?pagamento=sucesso`,
     cancel_url: returnUrl.toString(),
     subscription_data: {

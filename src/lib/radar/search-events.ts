@@ -17,7 +17,8 @@ export type SearchErrorCode =
   | "limit"
   | "budget"
   | "offline"
-  | "unavailable";
+  | "unavailable"
+  | "locality";
 
 export type SearchEvent =
   | { type: "step"; step: SearchStep; status: "active" | "done" }

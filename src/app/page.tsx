@@ -16,6 +16,7 @@ import { LiveDot } from "@/components/ui/live-dot";
 import { Reveal } from "@/components/ui/reveal";
 import { WaitlistForm } from "@/components/waitlist-form";
 import { ptPT } from "@/i18n/pt-PT";
+import { enabledMarkets } from "@/lib/markets";
 import { cn } from "@/lib/utils";
 
 const { landing: copy, waitlist } = ptPT;
@@ -27,6 +28,8 @@ export const metadata: Metadata = {
 
 const HONESTY_ICONS: LucideIcon[] = [ShieldCheck, Send, Ban];
 const WAITLIST_HREF = "#lista-de-espera";
+// A landing é gerada no build: mudar MARKETS_ENABLED obriga a publicar de novo.
+const WITH_BRAZIL = enabledMarkets().includes("BR");
 const NO_SCRIPT_STYLES = "[data-reveal]{opacity:1!important;transform:none!important;filter:none!important}";
 
 function Section({
@@ -129,7 +132,7 @@ export default function Home() {
             sweep
             className="-top-44 -right-56 size-225 opacity-55"
           />
-          <HeroGlobeLazy />
+          <HeroGlobeLazy withBrazil={WITH_BRAZIL} />
           <div className="relative mx-auto flex w-full max-w-300 flex-wrap items-center gap-14 px-4 pt-32 pb-14 lg:px-10 lg:pt-36 lg:pb-24">
             <div className="min-w-0 flex-[1_1_440px]">
               <Entrance index={0}>
@@ -322,7 +325,7 @@ export default function Home() {
             />
           </div>
           <div className="min-w-0 flex-[2_1_520px]">
-            <Faq />
+            <Faq withBrazil={WITH_BRAZIL} />
           </div>
         </Section>
 

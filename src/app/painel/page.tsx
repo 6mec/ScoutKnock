@@ -31,6 +31,7 @@ import {
   type DashboardData,
 } from "@/lib/dashboard/rules";
 import { reportError } from "@/lib/events/log";
+import { enabledMarkets } from "@/lib/markets";
 import { getCompanyProvider } from "@/lib/radar/provider";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
@@ -362,7 +363,7 @@ function SubscriptionBlock({
   const planName = PLANS.find(({ id }) => id === subscription.plan)
     ? ptPT.plans.names[subscription.plan as (typeof PLANS)[number]["id"]]
     : null;
-  const currency = currencyForLocale(locale);
+  const currency = currencyForLocale(locale, enabledMarkets());
   const money = new Intl.NumberFormat("pt-PT", {
     style: "currency",
     currency: currency.toUpperCase(),

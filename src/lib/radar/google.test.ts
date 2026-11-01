@@ -337,7 +337,8 @@ describe("fornecedor Google com respostas simuladas", () => {
     expect(headers["X-Goog-FieldMask"]).not.toContain("*");
     expect(headers["X-Goog-FieldMask"]).toContain("places.websiteUri");
     expect(JSON.parse(init.body as string)).toEqual({
-      textQuery: "Barbearias em Porto",
+      textQuery: "Barbearias em Porto, Portugal",
+      regionCode: "PT",
       pageSize: 20,
       languageCode: "pt-PT",
     });

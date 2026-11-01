@@ -4,6 +4,7 @@ import {
   type GoogleCallKind,
 } from "./google-budget";
 import { createGoogleProvider } from "./google-provider";
+import { normalizeText } from "./localities";
 import { SAMPLE_COMPANIES } from "./sample-companies";
 import type { Company, SearchQuery } from "./types";
 
@@ -16,14 +17,6 @@ export type CompanyProvider = {
 
 // Os dados de exemplo respondem logo; a espera deixa ver o estado "a procurar".
 const SAMPLE_DELAY_MS = 450;
-
-function normalize(text: string) {
-  return text
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .trim()
-    .toLowerCase();
-}
 
 function wait(ms: number, signal?: AbortSignal) {
   return new Promise<void>((resolve) => {
@@ -42,13 +35,13 @@ function wait(ms: number, signal?: AbortSignal) {
 export const sampleProvider: CompanyProvider = {
   usesSampleData: true,
   async search({ niche, locality }) {
-    const wantedNiche = normalize(niche);
-    const wantedLocality = normalize(locality);
+    const wantedNiche = normalizeText(niche);
+    const wantedLocality = normalizeText(locality);
 
     return SAMPLE_COMPANIES.filter(
       (company) =>
-        normalize(company.niche).includes(wantedNiche) &&
-        normalize(company.locality).includes(wantedLocality),
+        normalizeText(company.niche).includes(wantedNiche) &&
+        normalizeText(company.locality).includes(wantedLocality),
     );
   },
   async findById(id) {

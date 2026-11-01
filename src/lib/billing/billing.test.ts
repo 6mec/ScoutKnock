@@ -18,6 +18,7 @@ const env = {
   STRIPE_SECRET_KEY: "sk_test_abc",
   STRIPE_WEBHOOK_SECRET: "whsec_abc",
   SITE_URL: "https://exemplo.test",
+  MARKETS_ENABLED: "PT,BR",
   STRIPE_PRICE_STARTER_EUR: "price_se",
   STRIPE_PRICE_STARTER_BRL: "price_sb",
   STRIPE_PRICE_PRO_EUR: "price_pe",
@@ -165,8 +166,28 @@ describe("configuração do Stripe", () => {
     ).toBeNull();
   });
 
-  it.each(Object.keys(env))("sem %s, os pagamentos ficam desligados", (name) => {
-    expect(parseBillingConfig({ ...env, [name]: "" })).toBeNull();
+  it.each(Object.keys(env).filter((name) => name !== "MARKETS_ENABLED"))(
+    "sem %s, os pagamentos ficam desligados",
+    (name) => {
+      expect(parseBillingConfig({ ...env, [name]: "" })).toBeNull();
+    },
+  );
+
+  it("só em Portugal, bastam e valem só os preços em euros", () => {
+    const onlyEur = {
+      STRIPE_SECRET_KEY: env.STRIPE_SECRET_KEY,
+      STRIPE_WEBHOOK_SECRET: env.STRIPE_WEBHOOK_SECRET,
+      SITE_URL: env.SITE_URL,
+      STRIPE_PRICE_STARTER_EUR: env.STRIPE_PRICE_STARTER_EUR,
+      STRIPE_PRICE_PRO_EUR: env.STRIPE_PRICE_PRO_EUR,
+      STRIPE_PRICE_AGENCY_EUR: env.STRIPE_PRICE_AGENCY_EUR,
+    };
+    expect(parseBillingConfig(onlyEur)?.prices.pro).toEqual({ eur: "price_pe" });
+
+    const ptConfig = parseBillingConfig({ ...env, MARKETS_ENABLED: "PT" }) as BillingConfig;
+    expect(ptConfig.prices.pro.brl).toBeUndefined();
+    expect(planForPrice(ptConfig, "price_pb")).toBeNull();
+    expect(planForPrice(ptConfig, undefined)).toBeNull();
   });
 
   it("reconhece o pack pelo preço, em qualquer moeda", () => {
@@ -176,9 +197,10 @@ describe("configuração do Stripe", () => {
   });
 
   it("escolhe a moeda pela língua da conta", () => {
-    expect(currencyForLocale("pt-BR")).toBe("brl");
-    expect(currencyForLocale("pt-PT")).toBe("eur");
-    expect(currencyForLocale(null)).toBe("eur");
+    expect(currencyForLocale("pt-BR", ["PT", "BR"])).toBe("brl");
+    expect(currencyForLocale("pt-BR", ["PT"])).toBe("eur");
+    expect(currencyForLocale("pt-PT", ["PT", "BR"])).toBe("eur");
+    expect(currencyForLocale(null, ["PT", "BR"])).toBe("eur");
   });
 
   it("só aceita packs que existem", () => {
