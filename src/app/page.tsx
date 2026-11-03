@@ -10,7 +10,7 @@ import { HowItWorks } from "@/components/landing/how-it-works";
 import { LandingHeader } from "@/components/landing/landing-header";
 import { LandingSessionActions } from "@/components/landing/landing-session-actions";
 import { RadarRings } from "@/components/landing/radar-rings";
-import { ScoreDemo } from "@/components/landing/score-demo";
+import { RadarSimulation } from "@/components/landing/radar-simulation";
 import { Button } from "@/components/ui/button";
 import { LiveDot } from "@/components/ui/live-dot";
 import { Reveal } from "@/components/ui/reveal";
@@ -226,24 +226,20 @@ export default function Home() {
           <HowItWorks />
         </Section>
 
-        <Section containerClassName="flex flex-wrap items-center gap-x-18 gap-y-12">
-          <div className="min-w-0 flex-[1_1_380px]">
-            <Reveal onScroll>
-              <SectionHeading
-                label={copy.sectionLabels.score}
-                title={copy.example.title}
-              />
-              <p className="type-body mt-5 text-18 text-muted">
-                {copy.example.intro}
-              </p>
-              <p className="mt-4 text-muted">{copy.example.tryIt}</p>
-            </Reveal>
-          </div>
-          <div className="min-w-0 max-w-140 flex-[1_1_440px]">
-            <Reveal onScroll index={1}>
-              <ScoreDemo />
-            </Reveal>
-          </div>
+        <Section containerClassName="flex flex-col gap-10">
+          <Reveal onScroll>
+            <SectionHeading
+              label={copy.sectionLabels.score}
+              title={copy.example.title}
+            />
+            <p className="mt-3 text-muted">{copy.futureNote}</p>
+            <p className="type-body mt-5 max-w-200 text-18 text-muted">
+              {copy.example.intro} {copy.example.tryIt}
+            </p>
+          </Reveal>
+          <Reveal onScroll index={1}>
+            <RadarSimulation />
+          </Reveal>
         </Section>
 
         <Section containerClassName="flex flex-wrap-reverse items-center gap-x-18 gap-y-12">

@@ -97,20 +97,21 @@ export const ptPT = {
       title: "Vês os motivos, não só o número",
       intro:
         "70 a 100 é Forte, 40 a 69 é Média, abaixo disso é Fraca. Cada nota diz-te o que foi encontrado, para decidires tu.",
-      tryIt: "Liga e desliga os motivos para veres a nota mudar.",
+      tryIt: "Escolhe um nicho e vê o radar a procurar. Depois abre cada empresa para veres de onde vem a nota.",
       badge: "Exemplo ilustrativo",
       company: "Barbearia Horizonte",
       scoreLabel: "Nota",
       scoreSuffix: "/100",
-      localPresence: { label: "Presença local", value: "identificada no Google" },
-      toggles: {
-        site: { label: "Tem site?", on: "encontrado", off: "não encontrado" },
-        reviews: { label: "20 ou mais avaliações?", on: "20 ou mais", off: "poucas" },
-        hours: { label: "Horário no Google?", on: "publicado", off: "não publicado" },
+      nicheLabel: "Escolher um nicho",
+      niches: {
+        pastelarias: "Pastelarias",
+        barbearias: "Barbearias",
+        oficinas: "Oficinas",
       },
-      suggestionLabel: "Sugestão",
-      suggestion: "uma página com marcação de horário pode ser o próximo passo.",
-      note: "Exemplo para ilustrar o resultado. A empresa e os valores são fictícios.",
+      searching: (niche: string) => `A procurar ${niche.toLowerCase()}…`,
+      found: (count: number, locality: string) =>
+        `${count} empresas de exemplo · ${locality}`,
+      note: "Simulação com empresas e valores fictícios, sem nenhuma busca real. A nota é calculada pela mesma função do Radar.",
     },
     show: {
       window: {

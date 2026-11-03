@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { ptPT } from "@/i18n/pt-PT";
 import { getCompanyProvider, sampleProvider } from "./provider";
-import { HERO_COMPANIES, LANDING_EXAMPLE } from "./landing-examples";
+import {
+  HERO_COMPANIES,
+  LANDING_EXAMPLE,
+  SIMULATION_NICHES,
+} from "./landing-examples";
 import { SAMPLE_COMPANIES } from "./sample-companies";
 import { scoreCompany, scoreLevel } from "./score";
 import type { Company } from "./types";
@@ -121,6 +125,37 @@ describe("exemplo da landing", () => {
       "medium",
       "weak",
     ]);
+  });
+
+  it("a simulação usa a função real da nota e tem um nível de cada", () => {
+    const scores = Object.fromEntries(
+      SIMULATION_NICHES.map(({ id, companies }) => [
+        id,
+        companies.map((company) => scoreCompany(company, service).score),
+      ]),
+    );
+
+    expect(scores).toEqual({
+      pastelarias: [90, 50, 10],
+      barbearias: [100, 45, 0],
+      oficinas: [70, 65, 25],
+    });
+    for (const { companies } of SIMULATION_NICHES) {
+      expect(
+        companies.map((company) => scoreCompany(company, service).level),
+      ).toEqual(["strong", "medium", "weak"]);
+    }
+  });
+
+  it("as empresas da simulação são fictícias e sem contactos", () => {
+    for (const { id, companies } of SIMULATION_NICHES) {
+      expect(ptPT.landing.example.niches[id]).toBeTruthy();
+      for (const company of companies) {
+        expect(company.name).toMatch(/Fictícia|Exemplo/);
+        expect(company.phone).toBeUndefined();
+        if (company.website) expect(company.website).toMatch(/\.example$/);
+      }
+    }
   });
 });
 

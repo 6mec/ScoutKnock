@@ -130,6 +130,7 @@
   --animate-radar-sweep: spinner 4s linear infinite;
   --animate-radar-sweep-slow: spinner 14s linear infinite;
   --animate-blip: blip 4s linear infinite;
+  --animate-sim-blip: sim-blip 200ms linear both;
   --animate-ping: ping-ring 4s var(--ease-out) infinite;
   --animate-breathe: breathe 4s var(--ease-in-out) infinite;
   --animate-marquee: marquee 40s linear infinite;
@@ -150,6 +151,15 @@
     opacity: 1;
     transform: none;
     filter: none;
+  }
+}
+
+@keyframes sim-blip {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -340,6 +350,7 @@
     --animate-radar-sweep: none;
     --animate-radar-sweep-slow: none;
     --animate-blip: none;
+    --animate-sim-blip: none;
     --animate-ping: none;
     --animate-breathe: none;
     --animate-marquee: none;
