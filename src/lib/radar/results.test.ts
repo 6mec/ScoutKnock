@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
+  activeFilterCount,
   addRecentSearch,
   applyResultFilters,
   DEFAULT_RESULT_FILTERS,
+  filtersFromPre,
   isLikelyLandline,
   MAX_RECENT_SEARCHES,
   parseRecentSearches,
-  toggleFilter,
+  phoneKind,
+  resultStats,
 } from "./results";
 import type { ScoredCompany } from "./search-events";
 import type { ScoreLevel } from "./types";
@@ -61,24 +64,50 @@ describe("filtros dos resultados", () => {
     expect(applyResultFilters(results, DEFAULT_RESULT_FILTERS, none).map((r) => r.company.id)).toEqual(["a", "b", "c"]);
   });
 
-  it("sem site próprio inclui as redes sociais", () => {
-    const filters = { ...DEFAULT_RESULT_FILTERS, toggles: ["noOwnSite" as const] };
-    expect(applyResultFilters(results, filters, none).map((r) => r.company.id)).toEqual(["a", "c"]);
+  const ids = (filters: Partial<typeof DEFAULT_RESULT_FILTERS>, saved = none) =>
+    applyResultFilters(results, { ...DEFAULT_RESULT_FILTERS, ...filters }, saved).map((r) => r.company.id);
+
+  it("site: sem site próprio inclui as redes sociais; com site, o contrário", () => {
+    expect(ids({ site: "none" })).toEqual(["a", "c"]);
+    expect(ids({ site: "has" })).toEqual(["b"]);
   });
 
-  it("com telemóvel deixa de fora os fixos e quem não tem telefone", () => {
-    const filters = { ...DEFAULT_RESULT_FILTERS, toggles: ["mobile" as const] };
-    expect(applyResultFilters(results, filters, none).map((r) => r.company.id)).toEqual(["a"]);
+  it("contacto: telemóvel deixa de fora os fixos; com telefone aceita os dois", () => {
+    expect(ids({ contact: "mobile" })).toEqual(["a"]);
+    expect(ids({ contact: "phone" })).toEqual(["a", "b"]);
+  });
+
+  it("avaliações: menos de 20 ou 20 e mais", () => {
+    const list = [item("p", { reviewCount: 19 }), item("q", { reviewCount: 20 })];
+    const run = (reviews: "few" | "many") =>
+      applyResultFilters(list, { ...DEFAULT_RESULT_FILTERS, reviews }, none).map((r) => r.company.id);
+    expect(run("few")).toEqual(["p"]);
+    expect(run("many")).toEqual(["q"]);
   });
 
   it("por guardar esconde o que já está nos contactos", () => {
-    const filters = { ...DEFAULT_RESULT_FILTERS, toggles: ["notSaved" as const] };
-    expect(applyResultFilters(results, filters, new Set(["a"])).map((r) => r.company.id)).toEqual(["b", "c"]);
+    expect(ids({ saved: "notSaved" }, new Set(["a"]))).toEqual(["b", "c"]);
   });
 
-  it("os filtros juntam-se ao nível", () => {
-    const filters = { level: "strong" as const, toggles: ["noOwnSite" as const], sort: "score" as const };
-    expect(applyResultFilters(results, filters, none).map((r) => r.company.id)).toEqual(["a"]);
+  it("os filtros juntam-se", () => {
+    expect(ids({ level: "strong", site: "none" })).toEqual(["a"]);
+  });
+
+  it("os filtros do formulário passam para os resultados e contam-se", () => {
+    const filters = filtersFromPre(["noOwnSite", "mobile"]);
+    expect(filters).toMatchObject({ site: "none", contact: "mobile", saved: "all" });
+    expect(activeFilterCount(filters)).toBe(2);
+    expect(activeFilterCount({ ...DEFAULT_RESULT_FILTERS, sort: "name" })).toBe(0);
+  });
+
+  it("conta o que chegou para a faixa de cima", () => {
+    expect(resultStats(results, new Set(["b"]))).toEqual({
+      total: 3,
+      strong: 1,
+      noOwnSite: 2,
+      mobile: 1,
+      saved: 1,
+    });
   });
 
   it("ordena por menos avaliações e por nome, sem mexer na lista original", () => {
@@ -96,10 +125,6 @@ describe("filtros dos resultados", () => {
     expect(list.map((r) => r.company.id)).toEqual(["x", "y", "z"]);
   });
 
-  it("liga e desliga um filtro", () => {
-    expect(toggleFilter([], "mobile")).toEqual(["mobile"]);
-    expect(toggleFilter(["mobile", "noOwnSite"], "mobile")).toEqual(["noOwnSite"]);
-  });
 });
 
 describe("telefone fixo", () => {
@@ -111,6 +136,12 @@ describe("telefone fixo", () => {
     [null, false],
   ])("%s → %s", (phone, expected) => {
     expect(isLikelyLandline(phone)).toBe(expected);
+  });
+
+  it("classifica o tipo de telefone", () => {
+    expect(phoneKind("912 345 678")).toBe("mobile");
+    expect(phoneKind("222 000 000")).toBe("landline");
+    expect(phoneKind(" ")).toBe("none");
   });
 });
 

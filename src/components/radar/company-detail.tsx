@@ -2,12 +2,15 @@ import { Phone } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SaveContactButton } from "@/components/contacts/save-contact-button";
+import { CallScriptButton } from "@/components/outreach/call-script-button";
+import { DiagnosisButton } from "@/components/outreach/diagnosis-button";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
 import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScoreBreakdown } from "@/components/ui/score-breakdown";
 import { ptPT } from "@/i18n/pt-PT";
+import { siteGrade, siteGradeLabel } from "@/lib/outreach/rules";
 import { isLikelyLandline } from "@/lib/radar/results";
 import type { ScoredCompany } from "@/lib/radar/search-events";
 import type { ServiceId } from "@/lib/radar/types";
@@ -16,12 +19,13 @@ import { SiteCheckNote } from "./site-check-note";
 const { radar: copy } = ptPT;
 
 export function CompanyDetail({
-  scored: { company, opportunity, siteCheck },
+  scored,
   isSample,
   service,
   title,
   saved = false,
   onSaved,
+  senderName = null,
 }: {
   scored: ScoredCompany;
   isSample: boolean;
@@ -29,8 +33,11 @@ export function CompanyDetail({
   title: ReactNode;
   saved?: boolean;
   onSaved?: (companyId: string) => void;
+  senderName?: string | null;
 }) {
+  const { company, opportunity, siteCheck } = scored;
   const landline = isLikelyLandline(company.phone);
+  const grade = siteGrade(company);
   const rows: [string, ReactNode][] = [
     [copy.details.address, company.address],
     [
@@ -47,6 +54,17 @@ export function CompanyDetail({
       ) : (
         copy.details.noWebsite
       ),
+    ],
+    [
+      ptPT.outreach.siteGrade.label,
+      <span key="grade" data-testid="site-grade" className="flex flex-col items-start">
+        <span className="type-mono font-semibold">{siteGradeLabel(grade)}</span>
+        {grade.kind === "graded" && (
+          <span className="text-13 text-muted">
+            {ptPT.outreach.siteGrade.checks(grade.bad, grade.total)}
+          </span>
+        )}
+      </span>,
     ],
     ...(company.phone
       ? ([
@@ -101,6 +119,18 @@ export function CompanyDetail({
         ) : (
           <SaveContactButton companyId={company.id} onSaved={onSaved} />
         )}
+      </div>
+      <div className="flex flex-wrap gap-3">
+        {company.phone?.trim() && (
+          <CallScriptButton
+            companyName={company.name}
+            niche={company.niche}
+            reasons={opportunity.reasons.map(({ code }) => code)}
+            senderName={senderName}
+            phone={company.phone}
+          />
+        )}
+        <DiagnosisButton scored={scored} senderName={senderName} />
       </div>
       <div className="panel p-5">
         <ScoreBreakdown opportunity={opportunity} />

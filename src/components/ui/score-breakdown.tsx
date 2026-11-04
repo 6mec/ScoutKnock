@@ -13,7 +13,7 @@ const secondsFormat = new Intl.NumberFormat("pt-PT", {
   maximumFractionDigits: 1,
 });
 
-function observationText(observed: SiteObservation) {
+export function observationText(observed: SiteObservation) {
   const { observations } = copy;
   switch (observed.kind) {
     case "responseTime":

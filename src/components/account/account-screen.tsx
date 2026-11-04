@@ -21,6 +21,7 @@ import {
 } from "@/lib/account/actions";
 import { DELETE_CONFIRMATION, isDeleteConfirmed } from "@/lib/account/rules";
 import { setTheme, useTheme, type Theme } from "@/lib/theme";
+import { InstallApp } from "./install-app";
 import { MAX_AUTHOR_NAME, parseAuthorName } from "@/lib/demos/rules";
 
 const { account: copy } = ptPT;
@@ -108,6 +109,7 @@ export function AccountScreen({
         </div>
       </section>
 
+      <InstallApp className={cardClasses} />
       <section aria-labelledby="account-password" className={cardClasses}>
         <PanelHeader id="account-password" icon={KeyRound} title={ptPT.auth.fields.password} />
         <Button

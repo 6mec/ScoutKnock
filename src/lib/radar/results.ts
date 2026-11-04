@@ -3,24 +3,59 @@ import type { ScoredCompany } from "./search-events";
 import type { ScoreLevel } from "./types";
 
 // Filtros e ordenação dos resultados, só no ecrã: nada disto chama o Google outra vez
-// nem guarda os dados da busca.
+// nem guarda os dados da busca. Por isso não gastam busca.
 export const RESULT_SORTS = ["score", "fewReviews", "name"] as const;
 export type ResultSort = (typeof RESULT_SORTS)[number];
 
-export const RESULT_TOGGLES = ["noOwnSite", "mobile", "notSaved"] as const;
-export type ResultToggle = (typeof RESULT_TOGGLES)[number];
+// O limiar das avaliações é o mesmo da nota ("Poucas avaliações, menos de 20").
+export const FEW_REVIEWS = 20;
+
+export const RESULT_FACETS = {
+  level: ["all", "strong", "medium", "weak"],
+  site: ["all", "none", "has"],
+  contact: ["all", "mobile", "phone"],
+  reviews: ["any", "few", "many"],
+  saved: ["all", "notSaved"],
+} as const;
+
+export type ResultFacet = keyof typeof RESULT_FACETS;
 
 export type ResultFilters = {
   level: "all" | ScoreLevel;
-  toggles: ResultToggle[];
+  site: (typeof RESULT_FACETS.site)[number];
+  contact: (typeof RESULT_FACETS.contact)[number];
+  reviews: (typeof RESULT_FACETS.reviews)[number];
+  saved: (typeof RESULT_FACETS.saved)[number];
   sort: ResultSort;
 };
 
 export const DEFAULT_RESULT_FILTERS: ResultFilters = {
   level: "all",
-  toggles: [],
+  site: "all",
+  contact: "all",
+  reviews: "any",
+  saved: "all",
   sort: "score",
 };
+
+// Os filtros escolhidos antes da busca, no formulário. Aplicam-se ao que chega.
+export const PRE_FILTERS = ["noOwnSite", "mobile", "notSaved"] as const;
+export type PreFilter = (typeof PRE_FILTERS)[number];
+
+export function filtersFromPre(pre: readonly PreFilter[]): ResultFilters {
+  return {
+    ...DEFAULT_RESULT_FILTERS,
+    site: pre.includes("noOwnSite") ? "none" : "all",
+    contact: pre.includes("mobile") ? "mobile" : "all",
+    saved: pre.includes("notSaved") ? "notSaved" : "all",
+  };
+}
+
+export function activeFilterCount(filters: ResultFilters) {
+  return (Object.keys(RESULT_FACETS) as ResultFacet[]).filter(
+    (facet) => filters[facet] !== DEFAULT_RESULT_FILTERS[facet],
+  ).length;
+}
 
 // Sem site, ou com um "site" que é uma rede social, uma página de ligações, de reservas
 // ou um domínio estacionado.
@@ -38,20 +73,34 @@ export function isLikelyLandline(phone?: string | null) {
   return Boolean(phone?.trim()) && whatsappNumber(phone) === null;
 }
 
+export type PhoneKind = "mobile" | "landline" | "none";
+
+export function phoneKind(phone?: string | null): PhoneKind {
+  if (!phone?.trim()) return "none";
+  return whatsappNumber(phone) === null ? "landline" : "mobile";
+}
+
 const collator = new Intl.Collator("pt-PT", { sensitivity: "base" });
+
+function matches(item: ScoredCompany, filters: ResultFilters, savedIds: ReadonlySet<string>) {
+  const { company, opportunity } = item;
+  if (filters.level !== "all" && opportunity.level !== filters.level) return false;
+  if (filters.site === "none" && !hasNoOwnSite(item)) return false;
+  if (filters.site === "has" && hasNoOwnSite(item)) return false;
+  if (filters.contact === "mobile" && !hasMobilePhone(item)) return false;
+  if (filters.contact === "phone" && !company.phone?.trim()) return false;
+  if (filters.reviews === "few" && company.reviewCount >= FEW_REVIEWS) return false;
+  if (filters.reviews === "many" && company.reviewCount < FEW_REVIEWS) return false;
+  if (filters.saved === "notSaved" && savedIds.has(company.id)) return false;
+  return true;
+}
 
 export function applyResultFilters(
   results: ScoredCompany[],
   filters: ResultFilters,
   savedIds: ReadonlySet<string>,
 ) {
-  const visible = results.filter((item) => {
-    if (filters.level !== "all" && item.opportunity.level !== filters.level) return false;
-    if (filters.toggles.includes("noOwnSite") && !hasNoOwnSite(item)) return false;
-    if (filters.toggles.includes("mobile") && !hasMobilePhone(item)) return false;
-    if (filters.toggles.includes("notSaved") && savedIds.has(item.company.id)) return false;
-    return true;
-  });
+  const visible = results.filter((item) => matches(item, filters, savedIds));
 
   // A nota é a ordem que chega do servidor: as outras desempatam pela nota.
   if (filters.sort === "fewReviews") {
@@ -67,10 +116,15 @@ export function applyResultFilters(
   return visible;
 }
 
-export function toggleFilter(toggles: ResultToggle[], toggle: ResultToggle) {
-  return toggles.includes(toggle)
-    ? toggles.filter((item) => item !== toggle)
-    : [...toggles, toggle];
+// Contagens para a faixa de cima dos resultados, sobre tudo o que chegou.
+export function resultStats(results: ScoredCompany[], savedIds: ReadonlySet<string>) {
+  return {
+    total: results.length,
+    strong: results.filter(({ opportunity }) => opportunity.level === "strong").length,
+    noOwnSite: results.filter(hasNoOwnSite).length,
+    mobile: results.filter(hasMobilePhone).length,
+    saved: results.filter(({ company }) => savedIds.has(company.id)).length,
+  };
 }
 
 // Buscas recentes: só o que a pessoa escreveu (nicho e localidade), no próprio browser.

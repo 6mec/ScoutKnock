@@ -26,18 +26,26 @@ export function SearchProgress({
   const active = STEPS.filter((step) => steps[step] === "active").at(-1);
 
   return (
-    <div className="flex flex-col gap-4 panel p-6">
+    <div className="relative flex flex-col gap-4 overflow-hidden panel panel-glow p-6">
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-accent/60 to-transparent"
+      />
+      <p className="type-mono text-12 tracking-wide text-muted uppercase">{copy.progressLog}</p>
       <p aria-live="polite" className="sr-only">
         {active ? copy.steps[active] : ""}
         {companies.length > 0 && `. ${countLabel(companies.length)}`}
       </p>
       <ol className="flex flex-col gap-3">
-        {STEPS.map((step) => (
+        {STEPS.map((step, index) => (
           <li
             key={step}
             data-status={steps[step]}
             className="flex min-h-6 items-center gap-3 data-[status=waiting]:text-muted"
           >
+            <span aria-hidden="true" className="type-mono text-12 text-muted">
+              [{String(index + 1).padStart(2, "0")}]
+            </span>
             <span className="inline-flex size-5 items-center justify-center">
               {steps[step] === "active" && <Spinner className="text-accent" />}
               {steps[step] === "done" && <DrawnCheck />}

@@ -7,6 +7,8 @@ import type { ScoredCompany } from "@/lib/radar/search-events";
 import { useTheme } from "@/lib/theme";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
+import type { ConsolePhase } from "./radar-console";
+import { RadarHud } from "./radar-hud";
 
 const RadarGlobe = dynamic(() => import("./radar-globe"), { ssr: false });
 const SearchRegionMap = dynamic(() => import("./search-region-map"), { ssr: false });
@@ -24,7 +26,9 @@ export function RadarStage({
   onMapComplete,
   isSample = false,
   className,
+  hud,
 }: {
+  hud?: { phase: ConsolePhase; locality: string | null; niche: string };
   isSample?: boolean;
   className?: string;
   target: [number, number] | null;
@@ -47,8 +51,13 @@ export function RadarStage({
           showMap && "max-w-90",
         )}
       >
-        <RadarRings sweep={searching} className="inset-0 size-full opacity-55" />
-        {isWide && <RadarGlobe key={theme} theme={theme} target={searching ? target : null} />}
+        <RadarRings sweep fast={searching} className="inset-0 size-full opacity-55" />
+        {/* Numa div própria: ao passar de computador para telemóvel, o React remove a div e não o canvas. */}
+        {isWide && (
+          <div className="absolute inset-0">
+            <RadarGlobe key={theme} theme={theme} target={searching ? target : null} />
+          </div>
+        )}
         {showMap && target && onMapComplete && (
           <SearchRegionMap
             target={target}
@@ -57,6 +66,14 @@ export function RadarStage({
             done={done}
             theme={theme}
             onComplete={onMapComplete}
+          />
+        )}
+        {isWide && hud && !showMap && (
+          <RadarHud
+            phase={hud.phase}
+            locality={hud.locality}
+            niche={hud.niche}
+            target={target}
           />
         )}
         {searching && target && (

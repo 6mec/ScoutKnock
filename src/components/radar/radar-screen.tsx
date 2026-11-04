@@ -15,7 +15,8 @@ import { Callout } from "@/components/ui/callout";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ptPT } from "@/i18n/pt-PT";
 import type { Market } from "@/lib/markets";
-import { findLocation } from "@/lib/radar/localities";
+import { findLocation, resolveLocality } from "@/lib/radar/localities";
+import { filtersFromPre, type PreFilter } from "@/lib/radar/results";
 import { hasSampleCompanies } from "@/lib/radar/sample-companies";
 import { newSearchRequests, subscribeToNewSearch,
   takePendingSearch,
@@ -28,6 +29,7 @@ import {
   type SearchStep,
 } from "@/lib/radar/search-events";
 import { SERVICE_IDS, type SearchQuery } from "@/lib/radar/types";
+import { RadarConsole } from "./radar-console";
 import { RadarForm } from "./radar-form";
 import { ManualSearchActions } from "./manual-search";
 import { RadarResults } from "./radar-results";
@@ -137,12 +139,14 @@ export function RadarScreen({
   usage: initialUsage,
   isAdmin,
   savedIds: initialSavedIds,
+  senderName = null,
 }: {
   isSample: boolean;
   markets: Market[];
   usage: SearchUsage | null;
   isAdmin: boolean;
   savedIds: string[];
+  senderName?: string | null;
 }) {
   const requests = useSyncExternalStore(
     subscribeToNewSearch,
@@ -171,6 +175,7 @@ export function RadarScreen({
       savedIds={savedIds}
       onSearchCounted={onSearchCounted}
       onSaved={onSaved}
+      senderName={senderName}
     />
   );
 }
@@ -183,6 +188,7 @@ function RadarSearch({
   savedIds,
   onSearchCounted,
   onSaved,
+  senderName,
 }: {
   isSample: boolean;
   markets: Market[];
@@ -191,6 +197,7 @@ function RadarSearch({
   savedIds: ReadonlySet<string>;
   onSearchCounted: () => void;
   onSaved: (id: string) => void;
+  senderName: string | null;
 }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -201,6 +208,8 @@ function RadarSearch({
     niche: "",
     locality: "",
   });
+  // Ficam de uma busca para a outra, como o formulário.
+  const [preFilters, setPreFilters] = useState<PreFilter[]>([]);
   const controllerRef = useRef<AbortController | null>(null);
 
   // Ao sair do ecrã a meio, o pedido para e o formulário volta.
@@ -285,23 +294,39 @@ function RadarSearch({
   const target = findLocation(values.locality, markets);
 
   // Sem coordenadas da localidade não há mapa, e os resultados aparecem logo.
+  const searching = state.phase === "searching" || found;
+  const phase = searching ? "searching" : state.phase === "results" ? "done" : "idle";
+  const consoleBar = (
+    <RadarConsole
+      phase={found && (mapDone || !target) ? "done" : phase}
+      isSample={isSample}
+      usage={usage}
+      isAdmin={isAdmin}
+    />
+  );
+
   if (found && (mapDone || !target)) {
     return (
-      <RadarResults
-        results={state.companies}
-        isSample={isSample}
-        service={values.service}
-        onNewSearch={reset}
-        savedIds={savedIds}
-        onSaved={onSaved}
-      />
+      <div className="flex flex-1 flex-col">
+        <div className="border-b border-border px-4 py-3 lg:px-8">{consoleBar}</div>
+        <RadarResults
+          results={state.companies}
+          isSample={isSample}
+          service={values.service}
+          onNewSearch={reset}
+          savedIds={savedIds}
+          onSaved={onSaved}
+          initialFilters={filtersFromPre(preFilters)}
+          senderName={senderName}
+        />
+      </div>
     );
   }
 
-  const searching = state.phase === "searching" || found;
-
   return (
-    <div className="mx-auto grid w-full max-w-300 flex-1 grid-cols-[minmax(0,1fr)] items-center gap-8 px-4 py-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:px-8">
+    <div className="mx-auto flex w-full max-w-300 flex-1 flex-col gap-6 px-4 py-6 lg:px-8 lg:py-8">
+      {consoleBar}
+    <div className="grid flex-1 grid-cols-[minmax(0,1fr)] items-start gap-8 lg:grid-cols-[minmax(0,500px)_minmax(0,1fr)]">
       <div key={state.phase} className="flex animate-fade-in flex-col gap-4">
         {isSample && (
           <Callout tone="amber">{copy.sampleNotice}</Callout>
@@ -315,6 +340,8 @@ function RadarSearch({
             markets={markets}
             usage={usage}
             isAdmin={isAdmin}
+            preFilters={preFilters}
+            onPreFiltersChange={setPreFilters}
           />
         )}
         {state.phase === "idle" && (
@@ -373,14 +400,20 @@ function RadarSearch({
       </div>
       <RadarStage
         // No telemóvel, o mapa da busca fica por cima da lista para se ver.
-        className={searching ? "order-first lg:order-none" : undefined}
+        className={searching ? "order-first lg:order-none lg:sticky lg:top-24" : "lg:sticky lg:top-24"}
         searching={searching}
         target={target}
         isSample={isSample}
         companies={state.companies}
         done={state.phase !== "searching"}
         onMapComplete={() => setMapDone(true)}
+        hud={{
+          phase,
+          locality: resolveLocality(values.locality, markets)?.name ?? null,
+          niche: values.niche,
+        }}
       />
+    </div>
     </div>
   );
 }

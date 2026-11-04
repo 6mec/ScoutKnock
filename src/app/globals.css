@@ -420,6 +420,32 @@
   }
 }
 
+@media print {
+  /* Relatório num diálogo (diagnóstico): só ele sai na folha. */
+  body:has([data-print-report]) > :not(:has([data-print-report])) {
+    display: none !important;
+  }
+
+  [data-print-dialog] {
+    position: static !important;
+    inset: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    animation: none !important;
+    background: #fff !important;
+  }
+
+  [data-print-dialog] > :not([data-print-report]) {
+    display: none !important;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;

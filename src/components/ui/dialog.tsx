@@ -17,7 +17,7 @@ export function DialogContent({
 }: ComponentProps<typeof DialogPrimitive.Content>) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-canvas/70 backdrop-blur-sm data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-canvas/70 backdrop-blur-sm data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in print:hidden" />
       <DialogPrimitive.Content
         className={cn(
           // shrink-0: com conteúdo alto, o diálogo faz scroll em vez de esmagar os botões.

@@ -3,9 +3,12 @@ import { cn } from "@/lib/utils";
 // Anéis decorativos atrás do herói e do formulário final.
 export function RadarRings({
   sweep = false,
+  fast = false,
   className,
 }: {
   sweep?: boolean;
+  // Mais rápido durante uma busca. Com movimento reduzido, não roda.
+  fast?: boolean;
   className?: string;
 }) {
   return (
@@ -27,7 +30,7 @@ export function RadarRings({
           d="M450 450L450 20"
           stroke="var(--accent)"
           strokeOpacity=".3"
-          className="animate-radar-sweep-slow"
+          className={fast ? "animate-radar-sweep" : "animate-radar-sweep-slow"}
           style={{ transformOrigin: "450px 450px" }}
         />
       )}

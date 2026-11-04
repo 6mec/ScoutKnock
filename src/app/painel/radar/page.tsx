@@ -38,10 +38,11 @@ async function Content() {
   const user = await requireUser();
   const supabase = await createClient();
   // Só o consumo e os place_id já guardados: nada do Google sai da base de dados.
-  const [usage, saved, isAdmin] = await Promise.all([
+  const [usage, saved, isAdmin, profile] = await Promise.all([
     supabase.rpc("my_plan_usage").maybeSingle(),
     supabase.from("contacts").select("company_id"),
     isCurrentUserAdmin(supabase),
+    supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
   ]);
   if (usage.error) await reportError("radar uso", usage.error.code, user.id);
 
@@ -54,6 +55,7 @@ async function Content() {
       usage={row ? { used: row.searches_used, limit: row.searches_limit } : null}
       isAdmin={isAdmin}
       savedIds={(saved.data ?? []).map(({ company_id }) => company_id as string)}
+      senderName={(profile.data?.display_name as string | null | undefined) ?? null}
     />
   );
 }

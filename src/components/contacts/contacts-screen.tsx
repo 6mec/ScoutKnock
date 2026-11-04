@@ -29,6 +29,7 @@ import { ContactDialog } from "./contact-dialog";
 import { ContactsBoard } from "./contacts-board";
 import { ContactsTable } from "./contacts-table";
 import { CrmToday } from "./crm-today";
+import { PlannerPanel } from "./planner-panel";
 import { ExportCsvButton } from "./export-csv-button";
 import { WhatsappTemplateButton } from "./whatsapp-template-button";
 import { ImportListButton } from "./import-list-button";
@@ -185,6 +186,7 @@ export function ContactsScreen({
         onOpen={setOpenId}
         onStatusChange={changeStatus}
       />
+      <PlannerPanel contacts={contacts} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Field label={copy.table.search} className="w-full max-w-md">
           <Input
