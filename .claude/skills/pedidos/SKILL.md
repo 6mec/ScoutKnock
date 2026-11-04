@@ -28,7 +28,7 @@ Tudo passa por `node scripts/pedidos.mjs` (chave de serviço do `.env.local`; o 
    - **`app`**: é um projeto à parte, fora deste repositório, em `../ScoutKnock-clientes/<nome-da-empresa-em-minúsculas-com-hífens>/`.
      - Antes de escrever código, propõe ao Daniel um plano curto (o que a app faz, ecrãs, tecnologia, o que custa alojar) e espera pela aprovação. Não decidas preços.
      - Depois de aprovado, cria o projeto, corre-o e mostra-o. Marca `done` com a nota e o caminho da pasta.
-4. No fim, um resumo: o que ficou feito, o que ficou à espera e porquê.
+4. No fim, um resumo: o que ficou feito, o que ficou à espera e porquê. Lembra o Daniel de que, em "Pedidos", "Passar a projeto" regista o trabalho no ecrã de Projetos (valores e datas escreve-os ele).
 
 ## Regras
 

@@ -15,7 +15,7 @@ Uma app/site **só do Daniel** (freelancer, Portugal) para encontrar empresas lo
 - **Acaba o construtor de demos como caminho principal.** Trabalho para clientes é definitivo, em projeto próprio. As demos antigas ficam como estão, sem novas funcionalidades.
 - **Cada cliente com projeto separado**, copiado de um site-base reutilizável (por fazer). Domínio e alojamento ficam em nome do cliente.
 - **Portfólio** passa a ser o principal argumento de venda: só trabalhos reais.
-- **Ecrã de projetos por cliente** (a desenhar): estado (pedido, em curso, entregue, em manutenção), valor de criação, custos do cliente e manutenção mensal opcional, com datas.
+- **Ecrã de projetos por cliente** (feito, `/painel/projetos`): estado (pedido, em curso, entregue, em manutenção, terminado), valor de criação, custos de terceiros e manutenção mensal opcional, com datas, notas e histórico. Um pedido passa a projeto com "Passar a projeto".
 
 ## Modelo de cobrança (decisão do Daniel)
 Três valores separados: criação (uma vez), custos de terceiros (pagos pelo cliente diretamente) e manutenção mensal (opcional). A app regista valores que o Daniel escreve; **não cobra, não emite faturas, não calcula impostos**.
@@ -39,6 +39,6 @@ Três valores separados: criação (uma vez), custos de terceiros (pagos pelo cl
 Um barbeiro pediu uma app. Antes de planear: o Daniel recolhe as respostas do cliente (marcações online? lembretes? pagamento? vários barbeiros? domínio e identidade visual) e decidimos entre web app instalável (PWA, recomendada para começar) e app nativa.
 
 ## Por decidir
-- O formato do site-base e do ecrã de projetos.
+- O formato do site-base (T11).
 - Preços e conteúdo da manutenção mensal.
 - Línguas: a interface está em português; mensagens e sites noutras línguas ficam para quando o Daniel decidir.

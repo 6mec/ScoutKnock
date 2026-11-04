@@ -288,3 +288,12 @@ Registo, confirmação de conta e recuperação de palavra-passe saem pelo Supab
 - [ ] As imagens vêm de `tile.openstreetmap.org`, que só aceita uso leve e com a atribuição visível. Com muitos utilizadores, trocar por um fornecedor próprio para isso. É também um pedido a terceiros que a T7 tem de listar.
 - [ ] Empresas do Google não têm pinos: os termos do Google não deixam mostrar dados do Google Places num mapa que não seja do Google, e a busca não pede coordenadas. Para pinos reais seria preciso o mapa do Google (Maps JavaScript API, com chave).
 - [ ] Empresas adicionadas à mão também não têm pinos, porque não têm coordenadas.
+
+## Projetos por cliente (04/11/2026)
+
+**Funciona hoje:** o ecrã `/painel/projetos` guarda o que o Daniel escreve (estado, criação, custos de terceiros, manutenção mensal, datas, ligação e notas) e o histórico de estados. Precisa da migração `20261122000000_client_projects.sql`. Não cobra, não emite faturas e não calcula impostos: as somas do topo são só dos valores escritos.
+
+**Antes do primeiro cliente pago** (fora da app, decisão do Daniel):
+- [ ] Recibo verde e acordo escrito simples com o cliente (ver `docs/como-trabalhamos.md`).
+- [ ] Preços e o que inclui a manutenção mensal.
+- [ ] Os acessos do cliente (alojamento, domínio, painéis) ficam com o cliente ou num gestor de palavras-passe, nunca nas notas: a app recusa os casos óbvios, mas não apanha tudo.

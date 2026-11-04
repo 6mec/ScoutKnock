@@ -37,7 +37,7 @@ async function Content({
   searchParams,
 }: Pick<PageProps<"/painel/contactos">, "searchParams">) {
   const user = await requireUser();
-  const { estado } = await searchParams;
+  const { estado, contacto } = await searchParams;
   const supabase = await createClient();
   // Um dia a mais, para o primeiro dia do ritmo ficar completo em Lisboa.
   const since = new Date(new Date().getTime() - (PACE_DAYS + 1) * DAY_MS).toISOString();
@@ -78,6 +78,7 @@ async function Content({
         published ? portfolioUrl(published, process.env.SITE_URL ?? "http://localhost:3000") : null
       }
       statusFilter={parseStatusFilter(estado)}
+      openContactId={typeof contacto === "string" && /^[0-9a-f-]{36}$/i.test(contacto) ? contacto : null}
     />
   );
 }

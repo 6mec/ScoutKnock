@@ -27,12 +27,14 @@ export function RequestWorkButton({
   demoId = null,
   defaultKind = "site",
   variant = "secondary",
+  size = "md",
 }: {
   companyName: string;
   contactId?: string | null;
   demoId?: string | null;
   defaultKind?: RequestKind;
   variant?: "primary" | "secondary";
+  size?: "sm" | "md";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -60,7 +62,7 @@ export function RequestWorkButton({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} data-testid="request-work-open">
+        <Button variant={variant} size={size} data-testid="request-work-open">
           <ClipboardList aria-hidden="true" size={16} />
           {copy.open}
         </Button>

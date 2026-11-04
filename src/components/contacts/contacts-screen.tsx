@@ -44,6 +44,7 @@ export function ContactsScreen({
   whatsappTemplate: initialTemplate,
   portfolioUrl = null,
   statusFilter,
+  openContactId = null,
 }: {
   portfolioUrl?: string | null;
   initial: Contact[];
@@ -51,12 +52,14 @@ export function ContactsScreen({
   dailyGoal: number;
   whatsappTemplate: string | null;
   statusFilter: ContactStatus | null;
+  // Vindo de outro ecrã (por exemplo, um projeto): abre logo esta ficha.
+  openContactId?: string | null;
 }) {
   const [contacts, setContacts] = useState(initial);
   const [events, setEvents] = useState(initialEvents);
   const [dailyGoal, setDailyGoal] = useState(initialGoal);
   const [lastInitial, setLastInitial] = useState(initial);
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(openContactId);
   const [search, setSearch] = useState("");
   const [quickFilter, setQuickFilter] = useState<ContactFilter>("all");
   const [template, setTemplate] = useState(initialTemplate);
@@ -68,6 +71,7 @@ export function ContactsScreen({
     setContacts(initial);
     setEvents(initialEvents);
     setDailyGoal(initialGoal);
+    if (openContactId) setOpenId(openContactId);
   }
 
   const open = contacts.find(({ id }) => id === openId);

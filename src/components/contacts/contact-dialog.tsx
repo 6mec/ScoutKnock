@@ -1,9 +1,10 @@
 "use client";
 
-import { FileText } from "lucide-react";
+import { FileText, FolderKanban } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
+import { ProjectDialog } from "@/components/projects/project-dialog";
 import { RequestWorkButton } from "@/components/requests/request-work-button";
 import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { Badge } from "@/components/ui/badge";
@@ -460,6 +461,15 @@ export function ContactDialog({
             </Link>
           </Button>
           <RequestWorkButton companyName={contact.label} contactId={contact.id} />
+          <ProjectDialog
+            draft={{ companyName: contact.label, contactId: contact.id }}
+            trigger={
+              <Button variant="secondary" data-testid="project-create-contact">
+                <FolderKanban aria-hidden="true" size={16} strokeWidth={1.75} />
+                {ptPT.projects.create}
+              </Button>
+            }
+          />
         </div>
         {/* No computador: a empresa à esquerda, o acompanhamento à direita. */}
         <div className="grid gap-5 lg:grid-cols-2 lg:items-start">

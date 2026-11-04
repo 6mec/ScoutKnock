@@ -14,6 +14,7 @@ const PAGE_TITLES: Record<string, string> = {
   contactos: ptPT.app.nav.contacts,
   portfolio: ptPT.portfolio.title,
   pedidos: ptPT.app.nav.requests,
+  projetos: ptPT.app.nav.projects,
   planos: ptPT.plans.title,
   conta: ptPT.app.account.label,
   ui: ptPT.uiPreview.title,

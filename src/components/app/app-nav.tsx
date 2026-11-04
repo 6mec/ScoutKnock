@@ -3,6 +3,8 @@
 import {
   BriefcaseBusiness,
   ClipboardList,
+  Ellipsis,
+  FolderKanban,
   Globe,
   House,
   PanelLeftClose,
@@ -13,6 +15,12 @@ import {
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { Suspense, useSyncExternalStore, type ReactNode } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { ptPT } from "@/i18n/pt-PT";
@@ -23,11 +31,18 @@ const COLLAPSED_KEY = "scoutknock-nav-collapsed";
 const NAV_ITEMS = [
   { href: "/painel", segment: null, label: copy.nav.home, icon: House },
   { href: "/painel/radar", segment: "radar", label: copy.nav.radar, icon: Radar },
-  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe },
+  { href: "/painel/projetos", segment: "projetos", label: copy.nav.projects, icon: FolderKanban },
   { href: "/painel/contactos", segment: "contactos", label: copy.nav.contacts, icon: Users },
-  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness },
-  // Só no computador, onde está o Claude Code: no telemóvel, a barra não tem espaço.
+  // No telemóvel, a barra não tem espaço: o portfólio e os pedidos passam para "Mais".
+  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness, desktopOnly: true },
   { href: "/painel/pedidos", segment: "pedidos", label: copy.nav.requests, icon: ClipboardList, desktopOnly: true },
+] as const;
+
+// "Mais": as demos (já não são o caminho principal) e, no telemóvel, o que não cabe na barra.
+const MORE_ITEMS = [
+  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness, mobileOnly: true },
+  { href: "/painel/pedidos", segment: "pedidos", label: copy.nav.requests, icon: ClipboardList, mobileOnly: true },
+  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe, mobileOnly: false },
 ] as const;
 
 const listeners = new Set<() => void>();
@@ -95,7 +110,47 @@ function NavLinks({
           </li>
         );
       })}
+      <li className="flex flex-1 md:flex-none">
+        <MoreMenu collapsed={collapsed} current={current} />
+      </li>
     </ul>
+  );
+}
+
+function MoreMenu({ collapsed, current }: { collapsed: boolean; current?: string | null }) {
+  const onDesktop = MORE_ITEMS.some((item) => !item.mobileOnly && item.segment === current);
+  const onMobile = MORE_ITEMS.some((item) => item.segment === current);
+  const trigger = (
+    <DropdownMenuTrigger
+      aria-label={copy.nav.moreLabel}
+      data-testid="nav-more"
+      className={cn(
+        "focus-ring flex min-h-11 w-full flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-12 whitespace-nowrap text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
+        "md:flex-row md:justify-start md:gap-3 md:px-3 md:text-14",
+        collapsed && "md:justify-center md:px-0",
+        onMobile && "max-md:bg-accent-soft max-md:text-accent",
+        onDesktop && "md:bg-accent-soft md:text-accent",
+      )}
+    >
+      <Ellipsis aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />
+      <span className={cn(collapsed && "md:sr-only")}>{copy.nav.more}</span>
+    </DropdownMenuTrigger>
+  );
+
+  return (
+    <DropdownMenu>
+      {collapsed ? <Tooltip content={copy.nav.more}>{trigger}</Tooltip> : trigger}
+      <DropdownMenuContent side="top" align="end" className="max-w-[calc(100vw-16px)]">
+        {MORE_ITEMS.map(({ href, segment, label, icon: Icon, mobileOnly }) => (
+          <DropdownMenuItem key={href} asChild className={cn(mobileOnly && "md:hidden")}>
+            <Link href={href} aria-current={current === segment ? "page" : undefined}>
+              <Icon aria-hidden="true" size={16} strokeWidth={1.75} />
+              {label}
+            </Link>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

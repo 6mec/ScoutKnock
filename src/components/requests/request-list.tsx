@@ -1,15 +1,17 @@
 "use client";
 
-import { AppWindow, CalendarClock, ExternalLink, Globe, Terminal, type LucideIcon } from "lucide-react";
+import { AppWindow, CalendarClock, ExternalLink, FolderKanban, Globe, Terminal, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
+import { ProjectDialog } from "@/components/projects/project-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { EmptyState } from "@/components/ui/empty-state";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
+import { kindFromRequest } from "@/lib/projects/rules";
 import { cancelWorkRequest, deleteWorkRequest } from "@/lib/requests/actions";
 import { safeResultUrl, type RequestKind, type RequestStatus, type WorkRequest } from "@/lib/requests/rules";
 
@@ -61,7 +63,7 @@ function RequestItem({ request }: { request: WorkRequest }) {
   }
 
   return (
-    <li data-testid="request-item" className="panel flex flex-col gap-3 p-5">
+    <li id={`pedido-${request.id}`} data-testid="request-item" className="panel flex scroll-mt-20 flex-col gap-3 p-5 target:border-accent/60">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <span aria-hidden="true" className="grid size-9 shrink-0 place-items-center rounded-md border border-accent/25 bg-accent-soft text-accent">
@@ -99,6 +101,24 @@ function RequestItem({ request }: { request: WorkRequest }) {
           <Button asChild size="sm" variant="secondary">
             <Link href={`/painel/demos/${request.demo_id}`}>{copy.openDemo}</Link>
           </Button>
+        )}
+        {request.status !== "cancelled" && (
+          <ProjectDialog
+            draft={{
+              companyName: request.company_name,
+              contactId: request.contact_id,
+              workRequestId: request.id,
+              name: copy.kinds[request.kind],
+              kind: kindFromRequest(request.kind),
+              notes: request.brief.slice(0, 4000),
+            }}
+            trigger={
+              <Button size="sm" variant="secondary" data-testid="request-to-project">
+                <FolderKanban aria-hidden="true" size={14} />
+                {copy.toProject}
+              </Button>
+            }
+          />
         )}
         {request.status === "pending" && (
           <Button size="sm" variant="ghost" loading={pending} onClick={() => run(() => cancelWorkRequest(request.id), copy.cancelled)}>
