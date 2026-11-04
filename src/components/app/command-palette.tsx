@@ -2,6 +2,7 @@
 
 import { Command } from "cmdk";
 import {
+  BriefcaseBusiness,
   CreditCard,
   Globe,
   House,
@@ -31,6 +32,7 @@ const COMMANDS: {
   { label: copy.goRadar, href: "/painel/radar", icon: Radar },
   { label: copy.goDemos, href: "/painel/demos", icon: Globe },
   { label: copy.goContacts, href: "/painel/contactos", icon: Users },
+  { label: copy.goPortfolio, href: "/painel/portfolio", icon: BriefcaseBusiness },
   { label: copy.goPlans, href: "/painel/planos", icon: CreditCard },
   { label: copy.goAccount, href: "/painel/conta", icon: UserRound },
   { label: copy.toggleTheme, icon: SunMoon, onSelect: toggleTheme },

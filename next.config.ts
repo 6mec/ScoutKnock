@@ -37,6 +37,11 @@ const nextConfig: NextConfig = {
         ],
       },
       { source: "/s/:path*", headers: PUBLIC_SITE_HEADERS },
+      // Portfólios: partilhados por link, fora dos motores de busca até o Daniel decidir.
+      {
+        source: "/p/:path*",
+        headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }, ...PUBLIC_SITE_HEADERS],
+      },
     ];
   },
   /* config options here */

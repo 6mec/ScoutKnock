@@ -131,8 +131,14 @@ export function parseWhatsappTemplate(value: unknown) {
   return text || null;
 }
 
-export function fillTemplate(template: string, name: string) {
-  return template.replace(/\{nome\}/gi, name).trim();
+// {portfolio} passa a ser o link do portfólio publicado; sem ele, sai do texto.
+export function fillTemplate(template: string, name: string, portfolio?: string | null) {
+  return template
+    .replace(/\{nome\}/gi, name)
+    .replace(/\{portfolio\}/gi, portfolio ?? "")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+([.,!?;:])/g, "$1")
+    .trim();
 }
 
 // Filtros rápidos dos contactos.

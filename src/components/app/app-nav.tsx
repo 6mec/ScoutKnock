@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BriefcaseBusiness,
   Globe,
   House,
   PanelLeftClose,
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/painel/radar", segment: "radar", label: copy.nav.radar, icon: Radar },
   { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe },
   { href: "/painel/contactos", segment: "contactos", label: copy.nav.contacts, icon: Users },
+  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness },
 ] as const;
 
 const listeners = new Set<() => void>();

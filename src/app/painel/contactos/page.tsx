@@ -7,6 +7,7 @@ import { requireUser } from "@/lib/auth/current-user";
 import { DEFAULT_DAILY_GOAL, PACE_DAYS, type ContactEvent } from "@/lib/contacts/crm";
 import type { Contact } from "@/lib/contacts/rules";
 import { parseStatusFilter } from "@/lib/dashboard/rules";
+import { portfolioUrl } from "@/lib/portfolio/rules";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 
@@ -36,7 +37,7 @@ async function Content({
   const supabase = await createClient();
   // Um dia a mais, para o primeiro dia do ritmo ficar completo em Lisboa.
   const since = new Date(new Date().getTime() - (PACE_DAYS + 1) * DAY_MS).toISOString();
-  const [contacts, events, profile, template] = await Promise.all([
+  const [contacts, events, profile, template, portfolio] = await Promise.all([
     supabase.from("contacts").select("*").order("created_at", { ascending: false }),
     supabase
       .from("contact_events")
@@ -47,7 +48,10 @@ async function Content({
     supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
     // À parte: se esta coluna faltar, a meta continua a ler-se.
     supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
+    supabase.from("portfolios").select("slug, published").eq("user_id", user.id).maybeSingle(),
   ]);
+  // O {portfolio} da mensagem só tem link com o portfólio publicado.
+  const published = portfolio.data?.published ? (portfolio.data.slug as string) : null;
 
   if (contacts.error) {
     await reportError("contactos lista", contacts.error.code, user.id);
@@ -66,6 +70,9 @@ async function Content({
       events={(events.data ?? []) as ContactEvent[]}
       dailyGoal={(profile.data?.daily_goal as number | undefined) ?? DEFAULT_DAILY_GOAL}
       whatsappTemplate={(template.data?.whatsapp_template as string | null | undefined) ?? null}
+      portfolioUrl={
+        published ? portfolioUrl(published, process.env.SITE_URL ?? "http://localhost:3000") : null
+      }
       statusFilter={parseStatusFilter(estado)}
     />
   );

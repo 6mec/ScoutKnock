@@ -44,6 +44,14 @@ describe("modelo do WhatsApp", () => {
     );
   });
 
+  it("põe o link do portfólio em {portfolio} e tira-o quando não há", () => {
+    const template = "Olá {nome}! Vê o meu trabalho em {portfolio} .";
+    expect(fillTemplate(template, "Café", "https://x.pt/p/daniel")).toBe(
+      "Olá Café! Vê o meu trabalho em https://x.pt/p/daniel.",
+    );
+    expect(fillTemplate("Olá {nome}! {portfolio}", "Café", null)).toBe("Olá Café!");
+  });
+
   it("vazio é null; demasiado longo ou não texto é recusado", () => {
     expect(parseWhatsappTemplate("   ")).toBeNull();
     expect(parseWhatsappTemplate(" Olá ")).toBe("Olá");

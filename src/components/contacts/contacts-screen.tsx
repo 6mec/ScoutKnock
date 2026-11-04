@@ -32,6 +32,7 @@ import { CrmToday } from "./crm-today";
 import { ExportCsvButton } from "./export-csv-button";
 import { WhatsappTemplateButton } from "./whatsapp-template-button";
 import { ImportListButton } from "./import-list-button";
+import { PortfolioLinkContext } from "./whatsapp-call-button";
 
 const { contacts: copy } = ptPT;
 
@@ -40,8 +41,10 @@ export function ContactsScreen({
   events: initialEvents,
   dailyGoal: initialGoal,
   whatsappTemplate: initialTemplate,
+  portfolioUrl = null,
   statusFilter,
 }: {
+  portfolioUrl?: string | null;
   initial: Contact[];
   events: ContactEvent[];
   dailyGoal: number;
@@ -169,6 +172,7 @@ export function ContactsScreen({
   }
 
   return (
+    <PortfolioLinkContext value={portfolioUrl}>
     <div className="flex w-full min-w-0 flex-col gap-4 px-4 py-6 lg:px-8">
       <CrmToday
         contacts={contacts}
@@ -268,5 +272,6 @@ export function ContactsScreen({
         />
       )}
     </div>
+    </PortfolioLinkContext>
   );
 }
