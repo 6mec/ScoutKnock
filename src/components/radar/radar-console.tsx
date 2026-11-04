@@ -14,7 +14,9 @@ export function RadarConsole({
   isSample,
   usage,
   isAdmin,
+  source = "google",
 }: {
+  source?: "google" | "osm" | "sample";
   phase: ConsolePhase;
   isSample: boolean;
   usage: SearchUsage | null;
@@ -60,7 +62,11 @@ export function RadarConsole({
       </p>
       <dl className="flex flex-wrap items-center gap-x-6 gap-y-2">
         <Reading label={copy.console.source}>
-          {isSample ? copy.console.sourceSample : copy.console.sourceGoogle}
+          {isSample
+            ? copy.console.sourceSample
+            : source === "osm"
+              ? copy.console.sourceOsm
+              : copy.console.sourceGoogle}
         </Reading>
         <Reading label={copy.console.coverage}>
           {copy.console.coverageValue(PORTUGAL_AREAS.length, COUNCILS)}

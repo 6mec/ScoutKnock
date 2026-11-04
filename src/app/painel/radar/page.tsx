@@ -56,6 +56,7 @@ async function Content() {
       isAdmin={isAdmin}
       savedIds={(saved.data ?? []).map(({ company_id }) => company_id as string)}
       senderName={(profile.data?.display_name as string | null | undefined) ?? null}
+      source={provider.source}
     />
   );
 }

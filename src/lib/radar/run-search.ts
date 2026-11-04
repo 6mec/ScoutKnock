@@ -1,4 +1,5 @@
 import { GoogleBudgetError } from "./google-provider";
+import { OsmApiError } from "./osm-provider";
 import type { CompanyProvider } from "./provider";
 import { scoreCompany } from "./score";
 import type { SearchEvent } from "./search-events";
@@ -126,7 +127,12 @@ export async function* runSearch(
     console.error(`radar: ${error instanceof Error ? error.message || error.name : "erro"}`);
     yield {
       type: "error",
-      code: error instanceof GoogleBudgetError ? "budget" : "provider",
+      code:
+        error instanceof GoogleBudgetError
+          ? "budget"
+          : error instanceof OsmApiError || (error instanceof Error && error.name === "TimeoutError")
+            ? "busy"
+            : "provider",
     };
     return;
   }

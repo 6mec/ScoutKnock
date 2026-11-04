@@ -28,10 +28,8 @@ Radar e planos (estudados com o REA no `EncontrarClientes`, `Assinar`, `Creditos
 Radar refeito como consola (segunda passagem pelo `EncontrarClientes` do crieai.app): barra de estado com fonte, cobertura e buscas; formulário em 4 passos numerados (serviço, nicho por 7 categorias com ícone e "Qual tipo?", localidade validada antes de gastar a busca com atalhos, filtros opcionais que passam para os resultados) e a consulta resumida; mira com leituras sobre o globo; resultados com faixa de resumo, painel "Filtrar resultados" por facetas (nível, site, contacto, avaliações, guardadas, ordenar) e marcas em cada empresa (site, telemóvel ou fixo, avaliações). Corrigido um erro antigo: passar a janela pelos 1024 px fazia o Radar cair no ecrã de erro (o canvas do globo passou para dentro de uma div própria).
 Ferramentas de abordagem (estudadas com o REA nos sites públicos do Webleadr, CazaLead, BirdSift e NoSiteSearch; as aplicações deles estão atrás do login; ficaram de fora os testemunhos e números de vendas, as "ofertas mistério" com contagem decrescente, os prémios por publicações, a procura de emails e as buscas que correm sozinhas e gastam): no detalhe da empresa, "Guião de chamada" (abertura, porque ligas só com os motivos observados, perguntas, respostas a objeções, próximo passo e voicemail, sem preços nem promessas) e "Diagnóstico para a empresa" (página para imprimir ou guardar em PDF, com a nota do site, as observações, o que significam e o que se pode fazer, assinada com o nome da Conta; nada é gravado); "Nota do site" de A a D, só com as verificações feitas; nos Contactos, "Planeador do mês" (objetivo, preço médio das propostas ganhas e taxa de fecho dos próprios contactos, a partir de 5 fechados; guardado só no browser); instalar como app (manifesto, ícones e "Instalar a app" na Conta, que só aparece quando o browser o permite). Corrigido: ao imprimir, a largura do papel mudava o ecrã por baixo (o diagnóstico desaparecia da folha).
 Modo pessoal (decisão do Daniel, 04/11/2026: a app fica só para ele, sem vender a outros por agora): sem `SIGNUPS_ENABLED=true`, ninguém cria conta, a raiz leva à entrada e a página de venda fica no código para mais tarde; no Supabase, desligar também "Allow new users to sign up". O admin publica os sites dos clientes sem o Stripe ("Publicação direta", e "Tirar do ar") e cobra por fora. Novo serviço "Marcações online" no Radar (motivo próprio para quem marca numa plataforma de outra empresa; mensagens e guião falam de marcações) e secção "Marcar horário" nos sites: no oficial abre o WhatsApp da empresa com o pedido escrito, na demo só mostra como chegaria; sem agenda, lembretes nem dados guardados. Ligada por omissão nos nichos onde se marca hora. Depende da migração `20261120000000_personal_mode.sql`.
-
-### T8. Landing com personalidade e correções pequenas
-Por esta ordem, parando no fim de cada bloco com capturas antes/depois: (1) simulação interativa, que substitui a secção dos interruptores e mantém os pontos de cada motivo; (2) cartões flutuantes fixos no herói, só no computador e sem temporizador nem animação de entrada/saída, e "Como funciona" com ecrã maior e menos scroll; (3) planos na app e na landing, com limites, "Preço em breve", "abertura de contacto" explicada e só os 5 €/mês do site oficial; (4) propostas 1 a 5 da T5.
-Lighthouse mínimo de 95 nos ecrãs alterados (landing, entrada, painel, Contactos e outros mexidos); Demos e Conta reportam-se à parte. Só dados de exemplo; não numerar secções além de "Como funciona"; sem números inventados, urgência nem falsas notificações.
+OpenStreetMap como fonte de empresas (decisão do Daniel, 04/11/2026, ao lado do Google Places; ler o Google Maps continua fora): `COMPANY_SOURCE=osm` usa a API pública Overpass, grátis, com atribuição e licença ODbL; o nicho passa a etiquetas do OSM (ou pelo nome), o concelho procura-se dentro do distrito certo; sem avaliações (`reviewCount` a null, a nota não usa esse motivo e o ecrã diz "Sem dados"); "Sem site" no OSM avisa que é preciso confirmar no Google Maps, com uma ligação para lá. Os servidores públicos estão muitas vezes cheios: até 90 s, tenta outro e, se nenhum responder, diz para tentar daqui a um minuto.
+Pedidos de trabalho: "Pedir trabalho" na ficha do contacto e no editor do site demo (site, site com marcações ou app à medida), página "Pedidos" no menu (só no computador) e o comando `/pedidos` do Claude Code (`.claude/skills/pedidos`, com `scripts/pedidos.mjs`): lê os pedidos, escreve os textos da demo e marca como feito, com nota e ligação; uma app à medida é um projeto à parte, com plano aprovado antes. Depende da migração `20261121000000_work_requests.sql`.
 
 ## Próximas (por ordem)
 
@@ -41,14 +39,19 @@ Como utilizador novo: entrar, primeira busca, abrir empresa, gerar mensagem, cri
 ### T7. Verificações técnicas de conformidade (sem jurídico)
 Lista de licenças das dependências e fontes em `docs/licencas.md`; confirmar que o site de produção não carrega scripts ou fontes de terceiros; listar cookies e armazenamento local com a finalidade; textos alternativos, rótulos, ordem de foco e títulos.
 
-## Em pausa (envolvem decisões legais, fiscais ou dinheiro)
+## Em pausa (envolvem decisões legais, fiscais ou dinheiro, ou só servem para vender a outros)
+
+- T8. Landing com personalidade e correções pequenas
+  Por esta ordem, parando no fim de cada bloco com capturas antes/depois: (1) simulação interativa, que substitui a secção dos interruptores e mantém os pontos de cada motivo; (2) cartões flutuantes fixos no herói, só no computador e sem temporizador nem animação de entrada/saída, e "Como funciona" com ecrã maior e menos scroll; (3) planos na app e na landing, com limites, "Preço em breve", "abertura de contacto" explicada e só os 5 €/mês do site oficial; (4) propostas 1 a 5 da T5.
+  Lighthouse mínimo de 95 nos ecrãs alterados (landing, entrada, painel, Contactos e outros mexidos); Demos e Conta reportam-se à parte. Só dados de exemplo; não numerar secções além de "Como funciona"; sem números inventados, urgência nem falsas notificações.
+  
 
 - Apagamento automático de eventos e alerta aos 80% do teto de custo (depende do prazo de conservação e do jurista).
 - Política de reembolso no ecrã de Planos (depende da decisão do Daniel e do jurista).
 - Registo da data e versão dos termos aceites (depende dos textos finais).
 - Ligar chaves reais (Google, Anthropic, Stripe), domínio e SMTP.
 - Verificação dos sites ligada em produção.
-- Brasil e inglês.
+- Brasil e inglês (só quando o Daniel decidir; o uso é pessoal e mundial, mas a interface fica em português por agora).
 
 ## Feitas
 
@@ -75,4 +78,5 @@ Lista de licenças das dependências e fontes em `docs/licencas.md`; confirmar q
 - Limites dos packs provisórios, para cumprir 30% do preço no pior caso. Rever com custos reais.
 - O consumo renova no período da subscrição do Stripe, não a 1 de cada mês.
 - Depois do teste, o limite desce ao mais baixo. Teste de 7 dias sem cartão.
+- A app é só do Daniel (04/11/2026): serve para vender sites e apps a empresas de qualquer país. Landing de venda, planos e Stripe ficam adormecidos. A cobrança aos clientes é por fora da app.
 - Sem pagar serviços nem tratar do jurídico/fiscal até o Daniel dizer que o site lhe agrada a 100%.

@@ -2,6 +2,7 @@
 
 import {
   BriefcaseBusiness,
+  ClipboardList,
   Globe,
   House,
   PanelLeftClose,
@@ -25,6 +26,8 @@ const NAV_ITEMS = [
   { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe },
   { href: "/painel/contactos", segment: "contactos", label: copy.nav.contacts, icon: Users },
   { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness },
+  // Só no computador, onde está o Claude Code: no telemóvel, a barra não tem espaço.
+  { href: "/painel/pedidos", segment: "pedidos", label: copy.nav.requests, icon: ClipboardList, desktopOnly: true },
 ] as const;
 
 const listeners = new Set<() => void>();
@@ -66,7 +69,9 @@ function NavLinks({
 }) {
   return (
     <ul className="flex flex-4 items-center gap-1 md:flex-1 md:flex-col md:items-stretch">
-      {NAV_ITEMS.map(({ href, segment, label, icon: Icon }) => {
+      {NAV_ITEMS.map((item) => {
+        const { href, segment, label, icon: Icon } = item;
+        const desktopOnly = "desktopOnly" in item && item.desktopOnly;
         const active = current === segment;
         const link = (
           <Link
@@ -85,7 +90,7 @@ function NavLinks({
         );
 
         return (
-          <li key={href} className="flex flex-1 md:flex-none">
+          <li key={href} className={cn("flex flex-1 md:flex-none", desktopOnly && "hidden md:flex")}>
             {collapsed ? <Tooltip content={label}>{link}</Tooltip> : link}
           </li>
         );

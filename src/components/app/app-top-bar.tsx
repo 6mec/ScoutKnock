@@ -13,6 +13,7 @@ const PAGE_TITLES: Record<string, string> = {
   demos: ptPT.app.nav.demos,
   contactos: ptPT.app.nav.contacts,
   portfolio: ptPT.portfolio.title,
+  pedidos: ptPT.app.nav.requests,
   planos: ptPT.plans.title,
   conta: ptPT.app.account.label,
   ui: ptPT.uiPreview.title,

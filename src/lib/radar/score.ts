@@ -56,7 +56,7 @@ function websiteCreationReasons(company: Company): ReasonCode[] {
     if (company.site.isOutdated === true) reasons.push("outdatedSite");
   }
 
-  if (company.reviewCount < FEW_REVIEWS_LIMIT) reasons.push("fewReviews");
+  if (company.reviewCount !== null && company.reviewCount < FEW_REVIEWS_LIMIT) reasons.push("fewReviews");
   if (!company.hasOpeningHours) reasons.push("noOpeningHours");
 
   return reasons;
@@ -79,7 +79,7 @@ function onlineBookingReasons(company: Company): ReasonCode[] {
   }
 
   if (!company.hasOpeningHours) reasons.push("noOpeningHours");
-  if (company.reviewCount < FEW_REVIEWS_LIMIT) reasons.push("fewReviews");
+  if (company.reviewCount !== null && company.reviewCount < FEW_REVIEWS_LIMIT) reasons.push("fewReviews");
 
   return reasons;
 }

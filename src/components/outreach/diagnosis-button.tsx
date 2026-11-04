@@ -85,7 +85,7 @@ export function DiagnosisButton({
             </div>
             <div className="rounded-md border border-[#e3e8ee] p-3">
               <dt className="text-12 text-[#566273]">{radarCopy.details.reviews}</dt>
-              <dd className="text-20 font-bold">{company.reviewCount}</dd>
+              <dd className="text-20 font-bold">{company.reviewCount ?? radarCopy.details.reviewsUnknown}</dd>
             </div>
             <div className="rounded-md border border-[#e3e8ee] p-3">
               <dt className="text-12 text-[#566273]">{radarCopy.details.hours}</dt>

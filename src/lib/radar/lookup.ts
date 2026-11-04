@@ -21,7 +21,8 @@ export async function lookupCompany(
     if (!allowed) return { status: "limit" };
   }
 
-  const company = await provider.findById(id);
+  // A fonte pode estar em baixo (o Overpass está muitas vezes cheio): nunca rebenta.
+  const company = await provider.findById(id).catch(() => null);
 
   return company
     ? { status: "ok", company, isSample: provider.usesSampleData }

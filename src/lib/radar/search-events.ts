@@ -18,7 +18,9 @@ export type SearchErrorCode =
   | "budget"
   | "offline"
   | "unavailable"
-  | "locality";
+  | "locality"
+  // O servidor público do OpenStreetMap estava cheio.
+  | "busy";
 
 export type SearchEvent =
   | { type: "step"; step: SearchStep; status: "active" | "done" }

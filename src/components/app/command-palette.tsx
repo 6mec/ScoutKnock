@@ -3,6 +3,7 @@
 import { Command } from "cmdk";
 import {
   BriefcaseBusiness,
+  ClipboardList,
   CreditCard,
   Globe,
   House,
@@ -33,6 +34,7 @@ const COMMANDS: {
   { label: copy.goDemos, href: "/painel/demos", icon: Globe },
   { label: copy.goContacts, href: "/painel/contactos", icon: Users },
   { label: copy.goPortfolio, href: "/painel/portfolio", icon: BriefcaseBusiness },
+  { label: copy.goRequests, href: "/painel/pedidos", icon: ClipboardList },
   { label: copy.goPlans, href: "/painel/planos", icon: CreditCard },
   { label: copy.goAccount, href: "/painel/conta", icon: UserRound },
   { label: copy.toggleTheme, icon: SunMoon, onSelect: toggleTheme },

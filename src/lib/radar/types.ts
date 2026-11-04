@@ -32,7 +32,8 @@ export type Company = {
   address: string;
   phone?: string | null;
   website: string | null;
-  reviewCount: number;
+  // null quando a fonte não tem avaliações (OpenStreetMap, empresas manuais sem o dado).
+  reviewCount: number | null;
   hasOpeningHours: boolean;
   site: SiteSignals;
   // Só nas empresas de exemplo. As do Google não trazem coordenadas: os termos do

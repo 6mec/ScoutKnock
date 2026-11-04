@@ -45,7 +45,9 @@ export function RadarResults({
   onSaved,
   initialFilters = DEFAULT_RESULT_FILTERS,
   senderName = null,
+  source = "google",
 }: {
+  source?: "google" | "osm" | "sample";
   results: ScoredCompany[];
   isSample: boolean;
   service: ServiceId;
@@ -219,6 +221,11 @@ export function RadarResults({
               {copy.sampleNotice}
             </p>
           )}
+          {source === "osm" && (
+            <p data-testid="osm-list-note" className="border-b border-border px-4 py-3 text-14 text-amber lg:px-8">
+              {copy.osmListNote}
+            </p>
+          )}
           {visible.length === 0 ? (
             <div className="flex flex-col items-start gap-3 px-4 py-8 lg:px-8">
               <p className="text-muted">{copy.filterEmpty}</p>
@@ -319,6 +326,7 @@ export function RadarResults({
                     saved={savedIds.has(selected.company.id)}
                     onSaved={onSaved}
                     senderName={senderName}
+                    source={source}
                     title={<h2 className="type-heading text-32">{selected.company.name}</h2>}
                   />
                 </div>
@@ -337,6 +345,7 @@ export function RadarResults({
                     saved={savedIds.has(selected.company.id)}
                     onSaved={onSaved}
                     senderName={senderName}
+                    source={source}
                     title={<DialogTitle className="text-24">{selected.company.name}</DialogTitle>}
                   />
                 </DialogContent>

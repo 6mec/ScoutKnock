@@ -4,12 +4,17 @@ import {
   type GoogleCallKind,
 } from "./google-budget";
 import { createGoogleProvider } from "./google-provider";
+import { createOsmProvider } from "./osm-provider";
 import { normalizeText } from "./localities";
 import { SAMPLE_COMPANIES } from "./sample-companies";
 import type { Company, SearchQuery } from "./types";
 
+export type CompanySource = "google" | "osm" | "sample";
+
 export type CompanyProvider = {
   usesSampleData: boolean;
+  // De onde vêm as empresas, para a atribuição e a faixa de estado.
+  source?: CompanySource;
   search: (query: SearchQuery) => Promise<Company[]>;
   stream: (query: SearchQuery, signal?: AbortSignal) => AsyncIterable<Company>;
   findById: (id: string) => Promise<Company | null>;
@@ -34,6 +39,7 @@ function wait(ms: number, signal?: AbortSignal) {
 
 export const sampleProvider: CompanyProvider = {
   usesSampleData: true,
+  source: "sample",
   async search({ niche, locality }) {
     const wantedNiche = normalizeText(niche);
     const wantedLocality = normalizeText(locality);
@@ -83,6 +89,9 @@ export function getCompanyProvider({
       },
     });
   }
+
+  // OpenStreetMap: grátis e sem chave. Liga-se com COMPANY_SOURCE=osm.
+  if (env.COMPANY_SOURCE === "osm") return createOsmProvider();
 
   return env.NODE_ENV === "production" ? null : sampleProvider;
 }

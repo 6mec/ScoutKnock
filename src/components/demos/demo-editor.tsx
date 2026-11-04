@@ -41,6 +41,7 @@ import {
 } from "@/lib/demos/rules";
 import { cn } from "@/lib/utils";
 import { DemoView } from "./demo-view";
+import { RequestWorkButton } from "@/components/requests/request-work-button";
 import { OfficialSiteSection, type Publishing } from "./official-site-section";
 
 const { demos: copy } = ptPT;
@@ -549,6 +550,14 @@ export function DemoEditor({
           </div>
           <p className="text-13 text-muted">{editor.linkHint}</p>
         </form>
+        {/* Fora do formulário: o envio do pedido não pode guardar a demo. */}
+        <div className="flex flex-col gap-2 border-t border-border p-4 lg:px-8">
+          <RequestWorkButton
+            companyName={content.companyName}
+            demoId={demo.id}
+            defaultKind={content.bookingEnabled ? "site_booking" : "site"}
+          />
+        </div>
         <OfficialSiteSection
           demoId={demo.id}
           companyName={demo.company_name}

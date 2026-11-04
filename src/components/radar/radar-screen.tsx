@@ -140,7 +140,9 @@ export function RadarScreen({
   isAdmin,
   savedIds: initialSavedIds,
   senderName = null,
+  source = "google",
 }: {
+  source?: "google" | "osm" | "sample";
   isSample: boolean;
   markets: Market[];
   usage: SearchUsage | null;
@@ -176,6 +178,7 @@ export function RadarScreen({
       onSearchCounted={onSearchCounted}
       onSaved={onSaved}
       senderName={senderName}
+      source={source}
     />
   );
 }
@@ -189,7 +192,9 @@ function RadarSearch({
   onSearchCounted,
   onSaved,
   senderName,
+  source,
 }: {
+  source: "google" | "osm" | "sample";
   isSample: boolean;
   markets: Market[];
   usage: SearchUsage | null;
@@ -302,6 +307,7 @@ function RadarSearch({
       isSample={isSample}
       usage={usage}
       isAdmin={isAdmin}
+      source={source}
     />
   );
 
@@ -318,6 +324,7 @@ function RadarSearch({
           onSaved={onSaved}
           initialFilters={filtersFromPre(preFilters)}
           senderName={senderName}
+          source={source}
         />
       </div>
     );

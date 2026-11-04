@@ -26,7 +26,9 @@ export function CompanyDetail({
   saved = false,
   onSaved,
   senderName = null,
+  source = "google",
 }: {
+  source?: "google" | "osm" | "sample";
   scored: ScoredCompany;
   isSample: boolean;
   service: ServiceId;
@@ -88,7 +90,7 @@ export function CompanyDetail({
           ],
         ] as [string, ReactNode][])
       : []),
-    [copy.details.reviews, company.reviewCount],
+    [copy.details.reviews, company.reviewCount ?? copy.details.reviewsUnknown],
     [
       copy.details.hours,
       company.hasOpeningHours ? copy.details.hoursYes : copy.details.hoursNo,
@@ -153,7 +155,33 @@ export function CompanyDetail({
             </div>
           ))}
         </dl>
-        {!isSample && (
+        {source === "osm" && (
+          <div className="mt-3 flex flex-col items-start gap-2">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${company.name}, ${company.locality}`)}`}
+              target="_blank"
+              rel="noreferrer noopener"
+              data-testid="open-in-maps"
+              className="focus-ring inline-flex min-h-11 items-center rounded-sm text-14 text-accent underline"
+            >
+              {copy.openInMaps}
+              <span className="sr-only"> {ptPT.demos.view.newTab}</span>
+            </a>
+            <p className="text-13 text-muted">{copy.osmNote}</p>
+            <p className="text-13 text-muted">
+              {copy.attributionOsm} ·{" "}
+              <a
+                href="https://www.openstreetmap.org/copyright"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="focus-ring rounded-sm underline"
+              >
+                {copy.attributionOsmLink}
+              </a>
+            </p>
+          </div>
+        )}
+        {!isSample && source !== "osm" && (
           <p className="mt-3 text-13 text-muted">{copy.attribution}</p>
         )}
       </div>

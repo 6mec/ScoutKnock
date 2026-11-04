@@ -10,7 +10,7 @@ export type ContactCompany =
       address: string;
       phone: string | null;
       website: string | null;
-      reviewCount: number;
+      reviewCount: number | null;
       hasOpeningHours: boolean;
       opportunity: Opportunity;
     }

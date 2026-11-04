@@ -11,8 +11,6 @@ export const MAX_MANUAL_PHONE = 40;
 export const MAX_MANUAL_WEBSITE = 300;
 export const MAX_MANUAL_REVIEWS = 1_000_000;
 export const MAX_IMPORT_ROWS = 200;
-// Sem o número de avaliações, a nota não pode dizer que são poucas.
-const UNKNOWN_REVIEWS = 20;
 
 export type ManualCompany = {
   name: string;
@@ -154,7 +152,7 @@ export function companyFromManual(id: string, company: ManualCompany): Company {
     address: company.address ?? "",
     phone: company.phone,
     website: company.website,
-    reviewCount: company.reviews ?? UNKNOWN_REVIEWS,
+    reviewCount: company.reviews ?? null,
     hasOpeningHours: company.hours ?? true,
     site: { isSlow: null, isMobileFriendly: null, isOutdated: null },
   };

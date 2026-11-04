@@ -89,8 +89,8 @@ function matches(item: ScoredCompany, filters: ResultFilters, savedIds: Readonly
   if (filters.site === "has" && hasNoOwnSite(item)) return false;
   if (filters.contact === "mobile" && !hasMobilePhone(item)) return false;
   if (filters.contact === "phone" && !company.phone?.trim()) return false;
-  if (filters.reviews === "few" && company.reviewCount >= FEW_REVIEWS) return false;
-  if (filters.reviews === "many" && company.reviewCount < FEW_REVIEWS) return false;
+  if (filters.reviews === "few" && (company.reviewCount === null || company.reviewCount >= FEW_REVIEWS)) return false;
+  if (filters.reviews === "many" && (company.reviewCount === null || company.reviewCount < FEW_REVIEWS)) return false;
   if (filters.saved === "notSaved" && savedIds.has(company.id)) return false;
   return true;
 }
@@ -106,7 +106,8 @@ export function applyResultFilters(
   if (filters.sort === "fewReviews") {
     return [...visible].sort(
       (a, b) =>
-        a.company.reviewCount - b.company.reviewCount ||
+        // Sem dados de avaliações, vai para o fim.
+        (a.company.reviewCount ?? Infinity) - (b.company.reviewCount ?? Infinity) ||
         b.opportunity.score - a.opportunity.score,
     );
   }

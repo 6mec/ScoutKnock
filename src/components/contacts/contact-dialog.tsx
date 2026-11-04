@@ -4,6 +4,7 @@ import { FileText } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
+import { RequestWorkButton } from "@/components/requests/request-work-button";
 import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -175,7 +176,7 @@ function CompanySection({
         copy.company.noWebsite
       ),
     ],
-    [copy.company.reviews, company.reviewCount],
+    [copy.company.reviews, company.reviewCount ?? ptPT.radar.details.reviewsUnknown],
     [
       copy.company.hours,
       company.hasOpeningHours ? copy.company.hoursYes : copy.company.hoursNo,
@@ -458,6 +459,7 @@ export function ContactDialog({
               {copy.crm.proposal}
             </Link>
           </Button>
+          <RequestWorkButton companyName={contact.label} contactId={contact.id} />
         </div>
         {/* No computador: a empresa à esquerda, o acompanhamento à direita. */}
         <div className="grid gap-5 lg:grid-cols-2 lg:items-start">

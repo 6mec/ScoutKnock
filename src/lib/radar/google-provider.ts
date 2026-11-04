@@ -124,6 +124,7 @@ export function createGoogleProvider({
 
   const provider: CompanyProvider = {
     usesSampleData: false,
+    source: "google",
     async *stream({ niche, locality }, signal) {
       let pageToken: string | undefined;
 
