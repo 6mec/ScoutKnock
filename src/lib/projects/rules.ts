@@ -319,3 +319,30 @@ export function valueForInput(value: number | string | null) {
   const number = amount(value);
   return number === null ? "" : String(number).replace(".", ",");
 }
+
+// Resumo para o Início: o que está por entregar, o que está atrasado, as próximas três
+// entregas e a manutenção mensal em curso (só valores escritos).
+export type ProjectSummaryRow = Pick<
+  ClientProject,
+  "id" | "company_name" | "name" | "status" | "due_date" | "delivered_on" | "maintenance_monthly" | "build_value" | "created_at"
+>;
+
+export function projectsSummary(projects: ProjectSummaryRow[], today: string) {
+  const open = projects.filter((project) => project.status === "requested" || project.status === "in_progress");
+  const late = open
+    .filter((project) => isLate(project, today))
+    .sort((a, b) => (a.due_date as string).localeCompare(b.due_date as string));
+  const upcoming = open
+    .filter((project) => project.due_date && !project.delivered_on && !isLate(project, today))
+    .sort((a, b) => (a.due_date as string).localeCompare(b.due_date as string))
+    .slice(0, 3);
+  const totals = projectTotals(projects as ClientProject[]);
+  return {
+    total: projects.length,
+    open: open.length,
+    late,
+    upcoming,
+    maintenance: totals.maintenance,
+    maintenanceCount: totals.maintenanceCount,
+  };
+}

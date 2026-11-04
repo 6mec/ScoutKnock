@@ -104,15 +104,17 @@ export function ProjectDialog({
   events = [],
   contacts,
   trigger,
+  defaultOpen = false,
 }: {
   project?: ClientProject | null;
   draft?: ProjectDraft;
   events?: ProjectEvent[];
   contacts?: { id: string; label: string }[];
   trigger: ReactNode;
+  defaultOpen?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [form, setForm] = useState<Form>(() => formFrom(project, draft));
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);

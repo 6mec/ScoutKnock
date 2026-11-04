@@ -20,19 +20,20 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function ProjectsPage() {
+export default function ProjectsPage({ searchParams }: PageProps<"/painel/projetos">) {
   return (
     <>
       <PageIntro title={ptPT.pages.projects.title} description={ptPT.pages.projects.description} />
       <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
-        <Content />
+        <Content searchParams={searchParams} />
       </Suspense>
     </>
   );
 }
 
-async function Content() {
+async function Content({ searchParams }: Pick<PageProps<"/painel/projetos">, "searchParams">) {
   const user = await requireUser();
+  const { novo } = await searchParams;
   const supabase = await createClient();
   const [projects, events, contacts] = await Promise.all([
     supabase.from("client_projects").select(PROJECT_COLUMNS).order("created_at", { ascending: false }).limit(500),
@@ -62,6 +63,7 @@ async function Content() {
       events={(events.data ?? []) as ProjectEvent[]}
       contacts={(contacts.data ?? []) as { id: string; label: string }[]}
       today={today}
+      openNew={novo === "1"}
     />
   );
 }

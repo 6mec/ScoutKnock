@@ -22,7 +22,10 @@ import {
   removeContact,
   saveContactDetails,
   saveManualCompany,
+  saveOsmDetails,
 } from "@/lib/contacts/actions";
+import { isOsmCompanyId, parseOsmDetails } from "@/lib/contacts/osm-data";
+import { OsmAttribution } from "@/components/radar/osm-attribution";
 import type { ContactEvent } from "@/lib/contacts/crm";
 import type {
   ContactCompany,
@@ -34,6 +37,8 @@ import {
   isManualCompanyId,
   manualCompanyOf,
   type ManualCompany,
+  MAX_MANUAL_ADDRESS,
+  MAX_MANUAL_PHONE,
 } from "@/lib/contacts/manual";
 import { scoreCompany } from "@/lib/radar/score";
 import { SERVICE_IDS } from "@/lib/radar/types";
@@ -60,6 +65,7 @@ import { StatusMenu } from "./status-menu";
 import { WhatsappCallButton } from "./whatsapp-call-button";
 
 const { contacts: copy } = ptPT;
+const osmDayFormat = new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeZone: "UTC" });
 const dateTimeFormat = new Intl.DateTimeFormat("pt-PT", {
   dateStyle: "medium",
   timeZone: "Europe/Lisbon",
@@ -135,9 +141,11 @@ function HistorySection({ contactId, status }: { contactId: string; status: Cont
 function CompanySection({
   company,
   siteCheck,
+  osm = false,
 }: {
   company: ContactCompany | null;
   siteCheck?: SiteCheckStatus;
+  osm?: boolean;
 }) {
   if (!company) {
     return (
@@ -207,9 +215,99 @@ function CompanySection({
           </div>
         ))}
       </dl>
-      {!company.isSample && (
-        <p className="text-13 text-muted">{ptPT.radar.attribution}</p>
-      )}
+      {!company.isSample &&
+        (osm ? <OsmAttribution /> : <p className="text-13 text-muted">{ptPT.radar.attribution}</p>)}
+    </section>
+  );
+}
+
+// Empresa do OpenStreetMap: a morada e o telefone guardados ao guardar a empresa,
+// editáveis e com a data e a atribuição. Aparecem mesmo sem resposta do Overpass.
+function OsmSavedSection({
+  contactId,
+  dataOn,
+  address,
+  phone,
+  onSaved,
+}: {
+  contactId: string;
+  dataOn: string | null;
+  address: string | null;
+  phone: string | null;
+  onSaved: (details: { address: string | null; phone: string | null }) => void;
+}) {
+  const osm = copy.osm;
+  const [form, setForm] = useState({ address: address ?? "", phone: phone ?? "" });
+  const [invalid, setInvalid] = useState(false);
+  const [saving, startSaving] = useTransition();
+  const date = dataOn ? osmDayFormat.format(new Date(`${dataOn}T00:00:00Z`)) : null;
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    const details = parseOsmDetails(form);
+    if (!details) {
+      setInvalid(true);
+      return;
+    }
+    startSaving(async () => {
+      const { ok } = await saveOsmDetails(contactId, details);
+      if (ok) {
+        onSaved(details);
+        toast.success(osm.saved);
+      } else {
+        toast.error(copy.errors.generic);
+      }
+    });
+  }
+
+  return (
+    <section
+      data-testid="contact-osm"
+      aria-labelledby="contact-osm-title"
+      className="flex flex-col gap-3 rounded-lg border border-border p-4"
+    >
+      <div className="flex flex-col gap-1">
+        <h3 id="contact-osm-title" className="font-semibold">
+          {osm.title}
+        </h3>
+        <OsmAttribution prefix={date ? osm.from(date) : osm.fromUnknown} />
+      </div>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
+        <Field label={osm.address}>
+          <Input
+            name="osmAddress"
+            value={form.address}
+            maxLength={MAX_MANUAL_ADDRESS}
+            onChange={(event) => {
+              setForm({ ...form, address: event.target.value });
+              setInvalid(false);
+            }}
+          />
+        </Field>
+        <Field label={osm.phone}>
+          <Input
+            name="osmPhone"
+            type="tel"
+            value={form.phone}
+            maxLength={MAX_MANUAL_PHONE}
+            onChange={(event) => {
+              setForm({ ...form, phone: event.target.value });
+              setInvalid(false);
+            }}
+          />
+        </Field>
+        <div aria-live="polite">
+          {invalid && (
+            <p role="alert" className="text-14 text-danger">
+              {osm.invalid}
+            </p>
+          )}
+        </div>
+        <Button type="submit" variant="secondary" loading={saving} loadingText={copy.saving} className="self-start">
+          {osm.save}
+        </Button>
+      </form>
+      <p className="text-13 text-muted">{osm.note}</p>
     </section>
   );
 }
@@ -296,6 +394,7 @@ export function ContactDialog({
   onStatusChange,
   onSaved,
   onManualSaved,
+  onOsmSaved,
   onRemoved,
 }: {
   contact: Contact;
@@ -304,9 +403,13 @@ export function ContactDialog({
   onStatusChange: (id: string, status: ContactStatus) => void;
   onSaved: (id: string, details: ContactDetails) => void;
   onManualSaved: (id: string, company: ManualCompany) => void;
+  onOsmSaved?: (id: string, details: { address: string | null; phone: string | null }) => void;
   onRemoved: (id: string) => void;
 }) {
   const isManual = isManualCompanyId(contact.company_id);
+  const isOsm = isOsmCompanyId(contact.company_id);
+  // O telefone guardado na ficha manda sobre o que vem agora do OpenStreetMap.
+  const [osmPhone, setOsmPhone] = useState(contact.manual_phone);
   const [manualForm, setManualForm] = useState(() =>
     manualFormOf(manualCompanyOf(contact)),
   );
@@ -423,6 +526,7 @@ export function ContactDialog({
   }
 
   const found = company?.status === "ok" ? company : null;
+  const livePhone = isOsm ? (osmPhone ?? found?.phone ?? null) : (found?.phone ?? null);
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -435,10 +539,10 @@ export function ContactDialog({
         {/* Ações rápidas do CRM: chamar, registar a resposta e preparar a proposta. */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Nas do Google, espera pelos dados para não mostrar "sem telefone" antes do tempo. */}
-          {(isManual || company !== null) && (
+          {(isManual || company !== null || (isOsm && osmPhone)) && (
             <WhatsappCallButton
               contact={contact}
-              phone={(isManual ? savedManual.phone : found?.phone) ?? contact.confirmed_contact}
+              phone={(isManual ? savedManual.phone : livePhone) ?? contact.confirmed_contact}
               template={whatsappTemplate}
               onStatusChange={onStatusChange}
             />
@@ -501,12 +605,24 @@ export function ContactDialog({
           </>
         ) : (
           <>
-            <CompanySection company={company} siteCheck={siteCheck} />
+            <CompanySection company={company} siteCheck={siteCheck} osm={isOsm} />
+            {isOsm && (
+              <OsmSavedSection
+                contactId={contact.id}
+                dataOn={contact.osm_data_on ?? null}
+                address={contact.manual_address}
+                phone={contact.manual_phone}
+                onSaved={(details) => {
+                  setOsmPhone(details.phone);
+                  onOsmSaved?.(contact.id, details);
+                }}
+              />
+            )}
             {found && !blocked && (
               <GenerateMessageButton
                 source={{ kind: "contact", id: contact.id }}
                 companyName={found.name}
-                phone={found.phone}
+                phone={livePhone}
                 variant="secondary"
               />
             )}
@@ -519,7 +635,7 @@ export function ContactDialog({
         ) : (
           <FollowUpButton
             contact={contact}
-            phone={isManual ? savedManual.phone : found?.phone}
+            phone={isManual ? savedManual.phone : livePhone}
           />
         )}
         </div>

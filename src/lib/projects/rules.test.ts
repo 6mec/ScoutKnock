@@ -7,6 +7,7 @@ import {
   nextDate,
   parseProjectFields,
   parseProjectInput,
+  projectsSummary,
   projectTotals,
   safeProjectUrl,
   sortProjects,
@@ -215,5 +216,28 @@ describe("ajudas", () => {
     expect(valueForInput(null)).toBe("");
     expect(kindFromRequest("app")).toBe("app");
     expect(kindFromRequest("loja")).toBe("other");
+  });
+});
+
+describe("projectsSummary", () => {
+  const today = "2026-11-04";
+  it("separa atrasados, próximas entregas e manutenção", () => {
+    const summary = projectsSummary(
+      [
+        project({ company_name: "Atrasado B", status: "in_progress", due_date: "2026-11-03" }),
+        project({ company_name: "Atrasado A", status: "requested", due_date: "2026-10-01" }),
+        project({ company_name: "Cedo", status: "in_progress", due_date: "2026-11-10" }),
+        project({ company_name: "Hoje", status: "in_progress", due_date: "2026-11-04" }),
+        project({ company_name: "Mais tarde", status: "requested", due_date: "2026-12-01" }),
+        project({ company_name: "Ainda mais", status: "requested", due_date: "2027-01-01" }),
+        project({ company_name: "Sem data", status: "requested" }),
+        project({ company_name: "Manut", status: "maintenance", maintenance_monthly: "30", delivered_on: "2026-10-01" }),
+      ],
+      today,
+    );
+    expect(summary.open).toBe(7);
+    expect(summary.late.map(({ company_name }) => company_name)).toEqual(["Atrasado A", "Atrasado B"]);
+    expect(summary.upcoming.map(({ company_name }) => company_name)).toEqual(["Hoje", "Cedo", "Mais tarde"]);
+    expect(summary).toMatchObject({ total: 8, maintenance: 30, maintenanceCount: 1 });
   });
 });

@@ -58,6 +58,30 @@ const active = (plan: string) => ({
   has_customer: true,
 });
 
+describe("próximo passo no modo pessoal", () => {
+  const demoSoon = { active: 1, items: [{ id: "d1", company_name: "Café", expires_at: inDays(1) }] };
+
+  it("um projeto atrasado passa à frente de tudo", () => {
+    const step = nextStep(data({ usage: full, leads: { to_contact: 2 } }), NOW, {
+      selling: false,
+      lateProjects: [{ company_name: "Barbearia do Zé" }, { company_name: "Café" }],
+    });
+    expect(step).toEqual({ kind: "lateProject", name: "Barbearia do Zé", count: 2 });
+  });
+
+  it("sem packs nem demos a avisar", () => {
+    const personal = { selling: false };
+    expect(nextStep(data({ usage: full, searches: [search] }), NOW, personal).kind).toBe("saveCompany");
+    expect(
+      nextStep(data({ searches: [search], demos: demoSoon as DashboardData["demos"], leads: { won: 1 } }), NOW, personal).kind,
+    ).toBe("newSearch");
+    expect(nextStep(data({ searches: [search], leads: { to_contact: 3 } }), NOW, personal)).toEqual({
+      kind: "toContact",
+      count: 3,
+    });
+  });
+});
+
 describe("próximo passo", () => {
   it("conta nova: primeira busca", () => {
     expect(nextStep(data(), NOW).kind).toBe("firstSearch");

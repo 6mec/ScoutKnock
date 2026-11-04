@@ -743,7 +743,7 @@ export const ptPT = {
   },
   dashboard: {
     title: "Como está o teu mês",
-    subtitle: "O que já usaste, quem falta contactar e quanto está em negociação.",
+    subtitle: "Os projetos por entregar, quem falta contactar e quanto está em negociação.",
     loading: "A carregar o painel",
     newSearch: "Nova busca",
     usage: {
@@ -790,6 +790,11 @@ export const ptPT = {
         count === 1
           ? "Tens 1 contacto por contactar."
           : `Tens ${count} contactos por contactar.`,
+      lateProject: (name: string, count: number) =>
+        count === 1
+          ? `Entrega atrasada: ${name}.`
+          : `Entrega atrasada: ${name} e mais ${count - 1}.`,
+      openProjects: "Abrir os projetos",
       firstSearch: "Faz a tua primeira busca.",
       saveCompany: "Abre uma empresa no Radar e guarda-a nos contactos.",
       newSearch: "Os teus contactos estão em dia. Procura mais empresas.",
@@ -807,10 +812,25 @@ export const ptPT = {
         addCompany: "Guarda a primeira empresa, no Radar ou à mão",
         contactCompany: "Contacta uma empresa, por exemplo com \"Chamar no WhatsApp\"",
         message: "Escreve a tua mensagem do WhatsApp",
-        demo: "Cria um site demo para uma empresa",
-        proposal: "Escreve o valor de uma proposta na ficha",
+        request: "Pede um trabalho na ficha de uma empresa",
+        project: "Cria o primeiro projeto",
         portfolio: "Publica o teu portfólio",
       },
+    },
+    projects: {
+      title: "Projetos",
+      open: "Por entregar",
+      late: "Atrasados",
+      maintenance: "Manutenção mensal",
+      maintenanceNote: "Valores que escreveste nos projetos. Não são faturação nem rendimento.",
+      perMonth: "por mês",
+      lateList: "Entregas atrasadas",
+      upcoming: "Próximas entregas",
+      due: (date: string) => `Entrega prevista: ${date}`,
+      noUpcoming: "Sem entregas com data marcada.",
+      empty: "Ainda não há projetos. Quando uma empresa aceitar, cria o projeto na ficha dela ou a partir do pedido de trabalho.",
+      openAll: "Abrir os projetos",
+      create: "Novo projeto",
     },
     deals: {
       title: "Negócios",
@@ -1084,6 +1104,7 @@ Fico a aguardar a confirmação. Obrigado!`,
     saveDialog: {
       title: "Guardar nos contactos",
       body: "Guardamos só o nome que escreveres aqui e as tuas notas. Os dados da empresa são pedidos de novo sempre que abrires o contacto.",
+      bodyOsm: "Dados abertos do OpenStreetMap: guardamos o nome, a morada e o telefone na ficha, e podes alterá-los. Confirma-os antes de abordar.",
       label: "Nome para este contacto",
       submit: "Guardar",
       cancel: "Cancelar",
@@ -1236,6 +1257,17 @@ Fico a aguardar a confirmação. Obrigado!`,
       nextAction: "Próxima ação",
       date: "Data",
       notes: "Notas",
+    },
+    osm: {
+      title: "Dados guardados",
+      from: (date: string) => `Dados do OpenStreetMap de ${date}`,
+      fromUnknown: "Dados do OpenStreetMap",
+      note: "Podes corrigi-los. Ficam na ficha mesmo quando o servidor do OpenStreetMap está cheio.",
+      address: "Morada",
+      phone: "Telefone",
+      save: "Guardar dados",
+      saved: "Dados guardados.",
+      invalid: "A morada vai até 200 caracteres e o telefone até 40.",
     },
     manual: {
       add: "Adicionar empresa",

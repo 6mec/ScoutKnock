@@ -2,6 +2,7 @@ import { Phone } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { SaveContactButton } from "@/components/contacts/save-contact-button";
+import { OsmAttribution } from "@/components/radar/osm-attribution";
 import { CallScriptButton } from "@/components/outreach/call-script-button";
 import { DiagnosisButton } from "@/components/outreach/diagnosis-button";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
@@ -123,7 +124,11 @@ export function CompanyDetail({
             <Link href="/painel/contactos">{copy.openContacts}</Link>
           </Button>
         ) : (
-          <SaveContactButton companyId={company.id} onSaved={onSaved} />
+          <SaveContactButton
+            companyId={company.id}
+            onSaved={onSaved}
+            defaultLabel={source === "osm" ? company.name : undefined}
+          />
         )}
       </div>
       <div className="flex flex-wrap gap-3">
@@ -168,17 +173,7 @@ export function CompanyDetail({
               <span className="sr-only"> {ptPT.demos.view.newTab}</span>
             </a>
             <p className="text-13 text-muted">{copy.osmNote}</p>
-            <p className="text-13 text-muted">
-              {copy.attributionOsm} ·{" "}
-              <a
-                href="https://www.openstreetmap.org/copyright"
-                target="_blank"
-                rel="noreferrer noopener"
-                className="focus-ring rounded-sm underline"
-              >
-                {copy.attributionOsmLink}
-              </a>
-            </p>
+            <OsmAttribution />
           </div>
         )}
         {!isSample && source !== "osm" && (

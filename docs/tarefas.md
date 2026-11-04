@@ -13,7 +13,7 @@ Fonte de verdade da fila de trabalho. Quem escreve as tarefas: o Daniel e o assi
 
 ## Em curso
 
-Nenhuma. A próxima é a T11.
+Nenhuma. A próxima é a T11 (depende das respostas do barbeiro).
 
 ## Próximas (por ordem)
 
@@ -22,9 +22,6 @@ Um projeto-modelo fora deste repositório (por exemplo `../ScoutKnock-clientes/_
 
 ### T12. Portfólio só com trabalhos reais
 O portfólio público mostra só projetos entregues ou em manutenção, escolhidos pelo Daniel no ecrã de Projetos (ligação e descrição curta escritas por ele, sem valores). As demos deixam de entrar.
-
-### T13. Painel e Radar ao novo rumo (o que a T6 encontrou)
-Pequenas correções, com plano aprovado antes: no Início, um bloco "Projetos" (em curso, atrasados, entregas próximas) no lugar de "Sites demo" e "Subscrição"; "Primeiros passos" sem o site demo e com "Cria o primeiro projeto"; o consumo de packs só para quem não é admin; ao guardar uma empresa do OpenStreetMap, o nome vem preenchido (dados abertos; no Google continua vazio).
 
 ### T7. Verificações técnicas de conformidade (sem jurídico, versão curta)
 Lista de licenças das dependências e fontes em `docs/licencas.md` (com o OpenStreetMap/ODbL); confirmar que as páginas públicas não carregam scripts ou fontes de terceiros; listar cookies e armazenamento local com a finalidade.
@@ -45,6 +42,7 @@ Lista de licenças das dependências e fontes em `docs/licencas.md` (com o OpenS
 
 ## Feitas
 
+- T13. Início e Radar ao novo rumo (04/11/2026). No Início saem Consumo, Sites demo e Subscrição (voltam só com `SIGNUPS_ENABLED=true`) e entra o bloco Projetos (por entregar, atrasados, próximas entregas, manutenção mensal como "valores que escreveste"); um projeto atrasado passa a ser o próximo passo; os primeiros passos trocam o site demo e o valor da proposta por "Pede um trabalho" e "Cria o primeiro projeto". Empresas do OpenStreetMap guardam-se com o nome preenchido e, na ficha, a morada e o telefone editáveis, com "Dados do OpenStreetMap de [data]" e a atribuição; a ficha deixou de dizer "Dados do Google Maps" nelas. Do Google continua só o place_id e o que o Daniel escreve. Depende da migração `20261123000000_osm_contact_data.sql`.
 - T10. Projetos por cliente (04/11/2026). Ecrã `/painel/projetos` com estado (pedido, em curso, entregue, em manutenção, terminado), os três valores em euros escritos pelo Daniel (criação, custos de terceiros com nota, manutenção mensal), quatro datas, ligação, notas e histórico de estados; somas "Valores que escreveste" (não são faturação nem rendimento); aviso de entrega atrasada; recusa palavras-passe e chaves nas notas e na ligação. "Criar projeto" na ficha, "Passar a projeto" nos pedidos; "Projetos" no menu no lugar de "Sites demo", que passa para "Mais". Depende da migração `20261122000000_client_projects.sql`.
 - T6. Passagem curta pelo fluxo real (04/11/2026), no lugar do "utilizador novo": buscar (30 barbearias reais no Porto pelo OpenStreetMap, 46 a 78 s; numa passagem o servidor estava cheio e a app avisou bem), gerar mensagem, guardar nos contactos, pedir trabalho, passar a projeto. Tudo funcionou e sem erros na consola; o que confunde ficou na T13.
 - T9. Modo manual, sem custos (04/11/2026). Inclui tudo o que foi feito nesse dia:

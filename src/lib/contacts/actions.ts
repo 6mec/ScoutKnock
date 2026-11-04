@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
+import { todayIn } from "@/lib/demos/booking";
+import { cachedOsmCompany } from "@/lib/radar/osm-provider";
 import { createClient } from "@/lib/supabase/server";
 import { parseDailyGoal, parseWhatsappTemplate, type ContactEvent } from "./crm";
 import {
@@ -12,6 +14,7 @@ import {
   parseCompanyList,
   parseManualCompany,
 } from "./manual";
+import { OSM_PREFIX, isOsmCompanyId, osmColumns, parseOsmDetails } from "./osm-data";
 import {
   followUpState,
   isContactStatus,
@@ -49,10 +52,14 @@ export async function saveContact(
   if (!companyId || !label) return { ok: false };
 
   const { supabase, user } = await currentUser();
+  // OpenStreetMap: a morada e o telefone vêm da busca feita no servidor (dados abertos),
+  // nunca do browser. Fora da cache (1 h), guarda-se só o nome.
+  const osm = isOsmCompanyId(companyId) ? cachedOsmCompany(companyId) : null;
   const { error } = await supabase.from("contacts").insert({
     user_id: user.id,
     company_id: companyId,
     label,
+    ...(osm ? osmColumns(osm, todayIn()) : {}),
   });
 
   // Já guardada antes: para quem usa, o resultado é o mesmo.
@@ -356,6 +363,28 @@ export async function saveManualCompany(
 
   if (error || !data?.length) {
     await reportError("contactos manual guardar", error?.code ?? "sem linha", user.id);
+    return { ok: false };
+  }
+
+  revalidatePath(CONTACTS_PATH);
+  return { ok: true };
+}
+
+// Só em empresas do OpenStreetMap: a morada e o telefone guardados, editáveis.
+export async function saveOsmDetails(id: string, value: unknown): Promise<Result> {
+  const details = parseOsmDetails(value);
+  if (!details) return { ok: false };
+
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase
+    .from("contacts")
+    .update({ manual_address: details.address, manual_phone: details.phone })
+    .eq("id", id)
+    .like("company_id", `${OSM_PREFIX}%`)
+    .select("id");
+
+  if (error || !data?.length) {
+    await reportError("contactos osm guardar", error?.code ?? "sem linha", user.id);
     return { ok: false };
   }
 

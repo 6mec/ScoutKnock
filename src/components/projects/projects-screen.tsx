@@ -62,11 +62,14 @@ export function ProjectsScreen({
   events,
   contacts,
   today,
+  openNew = false,
 }: {
   projects: ClientProject[];
   events: ProjectEvent[];
   contacts: { id: string; label: string }[];
   today: string;
+  // Vindo do Início ("Novo projeto"): abre logo o diálogo.
+  openNew?: boolean;
 }) {
   const [status, setStatus] = useState<ProjectStatus | "all">("all");
   const [search, setSearch] = useState("");
@@ -115,6 +118,7 @@ export function ProjectsScreen({
         </div>
         <ProjectDialog
           contacts={contacts}
+          defaultOpen={openNew}
           trigger={
             <Button data-testid="project-create">
               <Plus aria-hidden="true" size={16} />

@@ -36,6 +36,8 @@ export type Contact = {
   manual_website: string | null;
   manual_reviews: number | null;
   manual_hours: boolean | null;
+  // Só em empresas do OpenStreetMap: dia em que a morada e o telefone vieram de lá.
+  osm_data_on?: string | null;
   deal_value: number | null;
   do_not_contact: boolean;
 };

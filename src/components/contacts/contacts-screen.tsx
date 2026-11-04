@@ -140,6 +140,16 @@ export function ContactsScreen({
     );
   }
 
+  function handleOsmSaved(id: string, details: { address: string | null; phone: string | null }) {
+    setContacts((current) =>
+      current.map((contact) =>
+        contact.id === id
+          ? { ...contact, manual_address: details.address, manual_phone: details.phone }
+          : contact,
+      ),
+    );
+  }
+
   function handleAdded(contact: Contact) {
     setContacts((current) => [contact, ...current]);
     setOpenId(contact.id);
@@ -274,6 +284,7 @@ export function ContactsScreen({
           onStatusChange={changeStatus}
           onSaved={handleSaved}
           onManualSaved={handleManualSaved}
+          onOsmSaved={handleOsmSaved}
           onRemoved={handleRemoved}
         />
       )}

@@ -297,3 +297,11 @@ Registo, confirmação de conta e recuperação de palavra-passe saem pelo Supab
 - [ ] Recibo verde e acordo escrito simples com o cliente (ver `docs/como-trabalhamos.md`).
 - [ ] Preços e o que inclui a manutenção mensal.
 - [ ] Os acessos do cliente (alojamento, domínio, painéis) ficam com o cliente ou num gestor de palavras-passe, nunca nas notas: a app recusa os casos óbvios, mas não apanha tudo.
+
+## Dados do OpenStreetMap na ficha (04/11/2026)
+
+**Funciona hoje:** ao guardar uma empresa do OpenStreetMap, ficam na ficha o nome, a morada e o telefone (dados abertos, licença ODbL), editáveis, com a data e a atribuição. A base de dados não deixa guardar esses campos em empresas do Google. Precisa da migração `20261123000000_osm_contact_data.sql`.
+
+**Limites:**
+- [ ] A morada e o telefone vêm da memória da busca (1 hora). Uma empresa guardada mais tarde fica só com o nome; escreve-os na ficha.
+- [ ] Os dados guardados não se atualizam sozinhos: se a empresa mudar de telefone no OpenStreetMap, a ficha fica com o antigo até o corrigires.

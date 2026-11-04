@@ -5,8 +5,8 @@ export const ONBOARDING_STEPS = [
   "addCompany",
   "contactCompany",
   "message",
-  "demo",
-  "proposal",
+  "request",
+  "project",
   "portfolio",
 ] as const;
 export type OnboardingStep = (typeof ONBOARDING_STEPS)[number];
@@ -15,20 +15,22 @@ export const ONBOARDING_LINKS: Record<OnboardingStep, string> = {
   addCompany: "/painel/radar",
   contactCompany: "/painel/contactos",
   message: "/painel/contactos",
-  demo: "/painel/radar",
-  proposal: "/painel/contactos",
+  request: "/painel/contactos",
+  project: "/painel/projetos",
   portfolio: "/painel/portfolio",
 };
 
 export function onboardingProgress({
   contacts,
   hasTemplate,
-  demosMade,
+  requestsMade,
+  projectsMade,
   portfolioPublished,
 }: {
-  contacts: Pick<Contact, "status" | "deal_value" | "last_contacted_at">[];
+  contacts: Pick<Contact, "status" | "last_contacted_at">[];
   hasTemplate: boolean;
-  demosMade: number;
+  requestsMade: number;
+  projectsMade: number;
   portfolioPublished: boolean;
 }) {
   const done: Record<OnboardingStep, boolean> = {
@@ -37,8 +39,8 @@ export function onboardingProgress({
       (contact) => contact.status !== "to_contact" || contact.last_contacted_at !== null,
     ),
     message: hasTemplate,
-    demo: demosMade > 0,
-    proposal: contacts.some((contact) => contact.deal_value !== null),
+    request: requestsMade > 0,
+    project: projectsMade > 0,
     portfolio: portfolioPublished,
   };
   const count = ONBOARDING_STEPS.filter((step) => done[step]).length;

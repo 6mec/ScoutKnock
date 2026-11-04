@@ -76,13 +76,34 @@ export type NextStep =
   | { kind: "limitWait" }
   | { kind: "expiringDemo"; id: string; name: string | null; days: number }
   | { kind: "toContact"; count: number }
+  | { kind: "lateProject"; name: string; count: number }
   | { kind: "firstSearch" }
   | { kind: "saveCompany" }
   | { kind: "newSearch" };
 
 // Uma só sugestão: a primeira regra que se aplica, da mais urgente para a menos.
-export function nextStep(data: DashboardData, now: number): NextStep {
+// No modo pessoal (`selling` a false) não há packs nem demos a avisar: um projeto
+// atrasado passa à frente de tudo.
+export function nextStep(
+  data: DashboardData,
+  now: number,
+  {
+    selling = true,
+    lateProjects = [],
+  }: { selling?: boolean; lateProjects?: { company_name: string }[] } = {},
+): NextStep {
   const { subscription, usage, demos, leads, searches } = data;
+
+  if (lateProjects.length > 0) {
+    return { kind: "lateProject", name: lateProjects[0].company_name, count: lateProjects.length };
+  }
+
+  if (!selling) {
+    if (leads.to_contact) return { kind: "toContact", count: leads.to_contact };
+    if (searches.length === 0) return { kind: "firstSearch" };
+    if (totalLeads(leads) === 0) return { kind: "saveCompany" };
+    return { kind: "newSearch" };
+  }
 
   if (isPaymentProblem(subscription.status)) return { kind: "paymentProblem" };
 

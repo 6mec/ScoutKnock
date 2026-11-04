@@ -6,6 +6,8 @@ import {
   ListChecks,
   CreditCard,
   Euro,
+  FolderKanban,
+  AlertTriangle,
   Gauge,
   Globe,
   Search,
@@ -58,6 +60,9 @@ import {
   type DashboardData,
 } from "@/lib/dashboard/rules";
 import { reportError } from "@/lib/events/log";
+import { signupsOpen } from "@/lib/personal-mode";
+import { todayIn } from "@/lib/demos/booking";
+import { projectsSummary, type ProjectSummaryRow } from "@/lib/projects/rules";
 import { enabledMarkets } from "@/lib/markets";
 import { getCompanyProvider } from "@/lib/radar/provider";
 import { createClient } from "@/lib/supabase/server";
@@ -172,12 +177,16 @@ function NextStepBlock({
   data,
   now,
   billingOn,
+  selling,
+  lateProjects,
 }: {
   data: DashboardData;
   now: number;
   billingOn: boolean;
+  selling: boolean;
+  lateProjects: { company_name: string }[];
 }) {
-  const step = nextStep(data, now);
+  const step = nextStep(data, now, { selling, lateProjects });
   const renews = formatDate(data.usage.period_end);
   const action = (href: string, label: string) => (
     <Button asChild size="lg">
@@ -209,6 +218,10 @@ function NextStepBlock({
         copy.next.expiringDemo(step.name ?? copy.demos.noName, step.days),
         action(`/painel/demos/${step.id}`, copy.demos.open),
       ];
+    },
+    lateProject: () => {
+      if (step.kind !== "lateProject") return ["", null];
+      return [copy.next.lateProject(step.name, step.count), action("/painel/projetos", copy.next.openProjects)];
     },
     toContact: () => {
       if (step.kind !== "toContact") return ["", null];
@@ -321,6 +334,79 @@ function DealsBlock({ deals, now }: { deals: Deals; now: number }) {
   );
 }
 
+const dayFormat = new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeZone: "UTC" });
+const day = (date: string) => dayFormat.format(new Date(`${date}T00:00:00Z`));
+
+// O trabalho combinado com as empresas: só o que o Daniel escreveu nos projetos.
+function ProjectsBlock({ summary }: { summary: ReturnType<typeof projectsSummary> }) {
+  const p = copy.projects;
+  const stat = (id: string, label: string, value: string, tone?: "danger") => (
+    <div key={id} data-testid={`projects-${id}`} className="panel-row flex flex-col gap-1 p-3">
+      <span className="text-13 text-muted">{label}</span>
+      <span className={cn("type-number text-24 font-semibold", tone === "danger" && "text-danger")}>{value}</span>
+    </div>
+  );
+
+  return (
+    <Block id="projetos" title={p.title} icon={FolderKanban}>
+      {summary.total === 0 ? (
+        <EmptyLine text={p.empty} />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-2">
+            {stat("abertos", p.open, String(summary.open))}
+            {stat("atrasados", p.late, String(summary.late.length), summary.late.length > 0 ? "danger" : undefined)}
+          </div>
+          {summary.late.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h4 className="text-14 font-semibold">{p.lateList}</h4>
+              <ul className="flex flex-col gap-1.5" data-testid="projects-late-list">
+                {summary.late.slice(0, 3).map((project) => (
+                  <li key={project.id} className="flex flex-wrap items-center gap-x-2 text-14">
+                    <AlertTriangle aria-hidden="true" size={15} className="shrink-0 text-danger" />
+                    <span className="font-medium">{project.company_name}</span>
+                    <span className="text-muted">· {p.due(day(project.due_date as string))}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div className="flex flex-col gap-2">
+            <h4 className="text-14 font-semibold">{p.upcoming}</h4>
+            {summary.upcoming.length === 0 ? (
+              <p className="text-14 text-muted">{p.noUpcoming}</p>
+            ) : (
+              <ul className="flex flex-col gap-1.5" data-testid="projects-upcoming">
+                {summary.upcoming.map((project) => (
+                  <li key={project.id} className="flex flex-wrap gap-x-2 text-14">
+                    <span className="font-medium">{project.company_name}</span>
+                    <span className="text-muted">· {p.due(day(project.due_date as string))}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          <div className="panel-row flex flex-col gap-1 p-3" data-testid="projects-maintenance">
+            <span className="text-13 text-muted">{p.maintenance}</span>
+            <span className="type-number text-20 font-semibold">
+              {money.format(summary.maintenance)} <span className="text-14 font-normal text-muted">{p.perMonth}</span>
+            </span>
+            <span className="text-13 text-muted">{p.maintenanceNote}</span>
+          </div>
+        </>
+      )}
+      <div className="mt-auto flex flex-wrap gap-2">
+        <Button asChild variant="secondary">
+          <Link href="/painel/projetos">{p.openAll}</Link>
+        </Button>
+        <Button asChild variant="ghost">
+          <Link href="/painel/projetos?novo=1">{p.create}</Link>
+        </Button>
+      </div>
+    </Block>
+  );
+}
+
 // Desaparece quando está tudo feito; cada passo leva ao sítio onde se faz.
 function OnboardingBlock({ progress }: { progress: ReturnType<typeof onboardingProgress> }) {
   if (progress.complete) return null;
@@ -380,14 +466,16 @@ function EmptyLine({ text, action }: { text: string; action?: ReactNode }) {
 function SearchesBlock({
   data,
   isSample,
+  className,
 }: {
   data: DashboardData;
   isSample: boolean;
+  className?: string;
 }) {
   const { searches_used: used, searches_limit: limit } = data.usage;
 
   return (
-    <Block id="buscas" title={copy.searches.title} icon={Search}>
+    <Block id="buscas" title={copy.searches.title} icon={Search} className={className}>
       {data.searches.length === 0 ? (
         <EmptyLine text={copy.searches.empty} />
       ) : (
@@ -626,6 +714,15 @@ async function Content() {
       supabase.from("portfolios").select("published").eq("user_id", user.id).maybeSingle(),
       isCurrentUserAdmin(supabase),
     ]);
+  // Lidos à parte: sem estas tabelas, o painel continua (o bloco fica vazio).
+  const [projectRows, requestRows] = await Promise.all([
+    supabase
+      .from("client_projects")
+      .select("id, company_name, name, status, due_date, delivered_on, maintenance_monthly, build_value, created_at")
+      .limit(500),
+    supabase.from("work_requests").select("id", { count: "exact", head: true }),
+  ]);
+  if (projectRows.error) await reportError("painel projetos", projectRows.error.code, user.id);
 
   // Vai para o ecrã de erro do painel, com "Tentar outra vez".
   if (error || !data) {
@@ -637,6 +734,11 @@ async function Content() {
   const now = new Date().getTime();
   const billingOn = parseBillingConfig(process.env) !== null;
   const isSample = getCompanyProvider({ userId: user.id })?.usesSampleData ?? false;
+  // Modo pessoal: sem packs, subscrição nem demos no Início. Esses blocos voltam
+  // quando os registos abrirem (SIGNUPS_ENABLED=true).
+  const selling = signupsOpen();
+  const projects = (projectRows.data ?? []) as ProjectSummaryRow[];
+  const summary = projectsSummary(projects, todayIn());
   // Se estas leituras falharem, o bloco mostra zeros em vez de partir o painel.
   const deals: Deals = {
     contacts: (dealRows.data ?? []) as Deals["contacts"],
@@ -649,24 +751,34 @@ async function Content() {
       <RefreshOnShow />
       <OnboardingBlock
         progress={onboardingProgress({
-          contacts: (dealRows.data ?? []) as Pick<Contact, "status" | "deal_value" | "last_contacted_at">[],
+          contacts: (dealRows.data ?? []) as Pick<Contact, "status" | "last_contacted_at">[],
           hasTemplate: Boolean(templateRow.data?.whatsapp_template),
-          demosMade: Math.max(dashboard.demos.active, dashboard.usage.demos_used),
+          requestsMade: requestRows.count ?? 0,
+          projectsMade: projects.length,
           portfolioPublished: Boolean(portfolioRow.data?.published),
         })}
       />
-      <UsageBlock data={dashboard} isAdmin={isAdmin} />
-      <NextStepBlock data={dashboard} now={now} billingOn={billingOn} />
+      {selling && <UsageBlock data={dashboard} isAdmin={isAdmin} />}
+      <NextStepBlock
+        data={dashboard}
+        now={now}
+        billingOn={billingOn}
+        selling={selling}
+        lateProjects={summary.late}
+      />
+      {!selling && <ProjectsBlock summary={summary} />}
       <LeadsBlock data={dashboard} />
       <DealsBlock deals={deals} now={now} />
-      <SearchesBlock data={dashboard} isSample={isSample} />
-      <DemosBlock data={dashboard} now={now} />
-      <SubscriptionBlock
-        data={dashboard}
-        billingOn={billingOn}
-        locale={profile?.locale}
-        isAdmin={isAdmin}
-      />
+      <SearchesBlock data={dashboard} isSample={isSample} className={selling ? undefined : "lg:col-span-2"} />
+      {selling && <DemosBlock data={dashboard} now={now} />}
+      {selling && (
+        <SubscriptionBlock
+          data={dashboard}
+          billingOn={billingOn}
+          locale={profile?.locale}
+          isAdmin={isAdmin}
+        />
+      )}
     </div>
   );
 }
