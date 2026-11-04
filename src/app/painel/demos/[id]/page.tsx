@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { DemoEditor } from "@/components/demos/demo-editor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
+import { isCurrentUserAdmin } from "@/lib/account/admin";
 import { requireUser } from "@/lib/auth/current-user";
 import { parseBillingConfig } from "@/lib/billing/rules";
 import { officialSiteUrl } from "@/lib/demos/official-rules";
@@ -49,6 +50,8 @@ async function Content({
   if (!data) notFound();
 
   const demo = data as unknown as OwnDemo;
+  // O admin publica sem o Stripe; com os pagamentos ligados, os outros pagam.
+  const isAdmin = await isCurrentUserAdmin(supabase);
   const billing = parseBillingConfig(process.env);
   const site = demo.official_sites;
   const siteUrl = process.env.SITE_URL;
@@ -65,6 +68,7 @@ async function Content({
       }
       publishing={{
         available: Boolean(billing?.officialSite),
+        direct: isAdmin,
         returned: publicacao === "sucesso",
         url:
           site && siteUrl

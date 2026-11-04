@@ -30,7 +30,7 @@ export function buildSampleMessage({
   return sample.templates[tone](
     companyName,
     reason,
-    ptPT.radar.services[service].toLowerCase(),
+    ptPT.radar.servicePitch[service],
     senderName,
   );
 }

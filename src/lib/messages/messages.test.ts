@@ -134,14 +134,20 @@ describe("fornecedor simulado", () => {
       expect(words(text)).toBeLessThanOrEqual(limit);
       expect(text.match(/\?/g)).toHaveLength(1);
       expect(text).toMatch(/não volt/);
-      expect(text).toContain("criação de sites");
+      expect(text).toMatch(/faço sites/i);
       expect(text).not.toMatch(FORBIDDEN);
     }
   });
 
   it("o tom formal liga a observação à frase", () => {
     const text = buildSampleMessage({ ...input, tone: "formal", reasons: ["outdatedSite"] });
-    expect(text).toContain("Escrevo-vos porque o site de Barbearia Exemplo parece ter já alguns anos. Trabalho");
+    expect(text).toContain("Escrevo-vos porque o site de Barbearia Exemplo parece ter já alguns anos. Eu faço sites");
+  });
+
+  it("nas marcações, fala de marcações", () => {
+    const text = buildSampleMessage({ ...input, service: "online_booking", reasons: ["bookingPlatform"] });
+    expect(text).toContain("plataforma de outra empresa");
+    expect(text).toMatch(/Monto marcações online/);
   });
 
   it("a assinatura entra em todos os tons", () => {

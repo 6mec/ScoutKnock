@@ -3,6 +3,7 @@ import { AuthCard, AuthLink } from "@/components/auth-card";
 import { AuthForm } from "@/components/auth-form";
 import { ptPT } from "@/i18n/pt-PT";
 import { signIn } from "@/lib/auth/actions";
+import { signupsOpen } from "@/lib/personal-mode";
 
 const { fields, signIn: copy } = ptPT.auth;
 
@@ -33,9 +34,11 @@ export default function SignInPage() {
         <AuthLink href="/recuperar" className="self-start">
           {copy.forgot}
         </AuthLink>
-        <p>
-          {copy.noAccount} <AuthLink href="/registar">{copy.signUpLink}</AuthLink>
-        </p>
+        {signupsOpen() && (
+          <p>
+            {copy.noAccount} <AuthLink href="/registar">{copy.signUpLink}</AuthLink>
+          </p>
+        )}
       </div>
     </AuthCard>
   );

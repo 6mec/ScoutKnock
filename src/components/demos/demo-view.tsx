@@ -6,6 +6,7 @@ import { heroButton, identityOf, textOn } from "@/lib/demos/identities";
 import type { PublicDemo } from "@/lib/demos/rules";
 import { whatsappNumber, whatsappUrl } from "@/lib/messages/rules";
 import { cn } from "@/lib/utils";
+import { BookingSection } from "./booking-section";
 
 const { demos: copy } = ptPT;
 
@@ -116,6 +117,11 @@ export function DemoView({
             <Link href={preview ? undefined : "#servicos"} style={{ color: p.heroMuted }}>
               {copy.view.services}
             </Link>
+            {demo.booking_enabled && (
+              <Link href={preview ? undefined : "#marcar"} style={{ color: p.heroMuted }}>
+                {copy.booking.nav}
+              </Link>
+            )}
             <Link href={preview ? undefined : "#sobre"} style={{ color: p.heroMuted }}>
               {copy.view.aboutNav}
             </Link>
@@ -238,6 +244,28 @@ export function DemoView({
           ))}
         </ul>
       </section>
+
+      {demo.booking_enabled && (
+        <BookingSection
+          companyName={demo.company_name}
+          phone={demo.phone}
+          services={services.map((service) => service.title)}
+          hours={demo.booking_hours || null}
+          official={official}
+          preview={preview}
+          theme={{
+            background: p.background,
+            surface: p.surface,
+            text: p.text,
+            muted: p.muted,
+            border: p.border,
+            accent,
+            radius,
+            card,
+            display,
+          }}
+        />
+      )}
 
       {/* Destaques */}
       <section

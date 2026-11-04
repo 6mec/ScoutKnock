@@ -1,4 +1,5 @@
 import { IDENTITY_ACCENTS, isIdentityKey, matchIdentity, type IdentityKey } from "./identities";
+import { MAX_BOOKING_HOURS } from "./booking";
 import type { OfficialSite } from "./official-rules";
 
 export const DEMO_TEMPLATES = ["classic", "bold", "soft"] as const;
@@ -62,6 +63,8 @@ export type DemoContent = DemoDraft & {
   about: string;
   services: DemoItem[];
   highlights: DemoItem[];
+  bookingEnabled: boolean;
+  bookingHours: string;
 };
 
 export type PublicDemo = {
@@ -82,6 +85,9 @@ export type PublicDemo = {
   about?: string | null;
   services?: DemoItem[] | null;
   highlights?: DemoItem[] | null;
+  // Pedidos de marcação por WhatsApp, com o horário escrito pelo freelancer.
+  booking_enabled?: boolean | null;
+  booking_hours?: string | null;
 };
 
 export type OwnDemo = PublicDemo & {
@@ -102,7 +108,7 @@ export function activeDemoFilter(now = new Date()) {
 }
 
 export const OWN_DEMO_COLUMNS =
-  "*, official_sites(name, status, cancel_at_period_end, period_end, name_reserved_until)";
+  "*, official_sites(name, status, cancel_at_period_end, period_end, name_reserved_until, published_directly)";
 
 // Cerca de 62 bits aleatórios: o endereço não se adivinha e a demo não se lista.
 // Rejeita os bytes acima do último múltiplo, para nenhuma letra sair mais vezes.
@@ -202,19 +208,22 @@ export function parseDemoContent(value: unknown): DemoContent | null {
   const draft = parseDemoDraft(value);
   if (!draft) return null;
 
-  const { template, accentColor, headline, intro, nicheStyle, subheadline, ctaLabel, about, services, highlights } =
+  const { template, accentColor, headline, intro, nicheStyle, subheadline, ctaLabel, about, services, highlights, bookingEnabled, bookingHours } =
     value as Record<string, unknown>;
   const extras = {
     subheadline: shortText(subheadline, MAX_SUBHEADLINE),
     ctaLabel: shortText(ctaLabel, MAX_CTA),
     about: shortText(about, MAX_ABOUT),
+    bookingHours: shortText(bookingHours, MAX_BOOKING_HOURS),
   };
+  if (bookingEnabled !== undefined && typeof bookingEnabled !== "boolean") return null;
   const serviceItems = parseDemoItems(services, MAX_SERVICES);
   const highlightItems = parseDemoItems(highlights, MAX_HIGHLIGHTS);
   if (
     extras.subheadline === undefined ||
     extras.ctaLabel === undefined ||
     extras.about === undefined ||
+    extras.bookingHours === undefined ||
     !serviceItems ||
     !highlightItems
   ) {
@@ -257,5 +266,7 @@ export function parseDemoContent(value: unknown): DemoContent | null {
     about: extras.about,
     services: serviceItems,
     highlights: highlightItems,
+    bookingEnabled: bookingEnabled === true,
+    bookingHours: extras.bookingHours,
   };
 }

@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { Field, Input, Textarea } from "@/components/ui/field";
+import { Switch } from "@/components/ui/switch";
 import { PanelHeader } from "@/components/ui/panel-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { generateDemoCopy, saveDemo, setDemoSent } from "@/lib/demos/actions";
+import { MAX_BOOKING_HOURS } from "@/lib/demos/booking";
 import { FONT_FAMILIES, FONT_LABELS } from "@/lib/demos/fonts";
 import { IDENTITIES, IDENTITY_KEYS, identityOf, type IdentityKey } from "@/lib/demos/identities";
 import { isLive } from "@/lib/demos/official-rules";
@@ -159,6 +161,8 @@ export function DemoEditor({
     about: demo.about ?? startIdentity.copy.about,
     services: demo.services?.length ? demo.services : startIdentity.copy.services,
     highlights: demo.highlights?.length ? demo.highlights : startIdentity.copy.highlights,
+    bookingEnabled: demo.booking_enabled ?? false,
+    bookingHours: demo.booking_hours ?? "",
   });
 
   const valid = parseDemoContent(content) !== null;
@@ -447,6 +451,31 @@ export function DemoEditor({
                 addLabel={editor.addHighlight}
                 onChange={(highlights) => update({ highlights })}
               />
+              <div className="flex flex-col gap-3 rounded-md border border-border p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <label htmlFor="demo-booking" className="flex flex-col gap-1">
+                    <span className="text-14 font-semibold">{copy.booking.editor.enabled}</span>
+                    <span className="text-13 text-muted">{copy.booking.editor.enabledHelp}</span>
+                  </label>
+                  <Switch
+                    id="demo-booking"
+                    data-testid="booking-toggle"
+                    checked={content.bookingEnabled}
+                    onCheckedChange={(bookingEnabled) => update({ bookingEnabled })}
+                  />
+                </div>
+                {content.bookingEnabled && (
+                  <Field label={copy.booking.editor.hours} help={copy.booking.editor.hoursHelp}>
+                    <Input
+                      data-testid="booking-hours"
+                      value={content.bookingHours}
+                      maxLength={MAX_BOOKING_HOURS}
+                      placeholder={copy.booking.editor.hoursPlaceholder}
+                      onChange={(event) => update({ bookingHours: event.target.value })}
+                    />
+                  </Field>
+                )}
+              </div>
             </TabsContent>
 
             <TabsContent value="company" className="flex flex-col gap-4 pt-5">
@@ -574,6 +603,8 @@ export function DemoEditor({
               about: content.about,
               services: content.services.filter((item) => item.title.trim()),
               highlights: content.highlights.filter((item) => item.title.trim()),
+              booking_enabled: content.bookingEnabled,
+              booking_hours: content.bookingHours.trim() || null,
             }}
           />
         </div>

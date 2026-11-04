@@ -124,3 +124,43 @@ export async function setOfficialSiteCancel(
   revalidatePath(`/painel/demos/${demoId}`);
   return { ok: true };
 }
+
+// Modo pessoal: o admin publica o site do cliente sem o Stripe e cobra por fora.
+// A base de dados confirma que é admin, que a demo é dele e que o nome está livre.
+export async function publishOfficialSiteDirectly(
+  demoId: string,
+  nameValue: unknown,
+  confirmed: unknown,
+): Promise<{ status: "published" | "taken" | "invalid" | "forbidden" | "error" }> {
+  const name = parseSiteName(nameValue);
+  if (!name || confirmed !== true) return { status: "invalid" };
+
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase.rpc("publish_official_site_directly", {
+    target_demo: demoId,
+    wanted_name: name,
+    confirmed: true,
+  });
+
+  if (error) {
+    await reportError("site oficial publicar direto", error.code, user.id);
+    return { status: "error" };
+  }
+  if (data === "taken") return { status: "taken" };
+  if (data === "forbidden") return { status: "forbidden" };
+  if (data !== "ok") return { status: "invalid" };
+
+  revalidatePath(`/painel/demos/${demoId}`);
+  return { status: "published" };
+}
+
+export async function unpublishOfficialSiteDirectly(demoId: string): Promise<{ ok: boolean }> {
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase.rpc("unpublish_official_site_directly", {
+    target_demo: demoId,
+  });
+
+  if (error) await reportError("site oficial tirar do ar", error.code, user.id);
+  revalidatePath(`/painel/demos/${demoId}`);
+  return { ok: !error && data === true };
+}

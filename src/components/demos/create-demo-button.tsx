@@ -41,10 +41,12 @@ export function CreateDemoButton({
   company,
   isSample,
   prefill = false,
+  withBooking = false,
 }: {
   company: Company;
   isSample: boolean;
   prefill?: boolean;
+  withBooking?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -81,7 +83,7 @@ export function CreateDemoButton({
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     startTransition(async () => {
-      const result = await createDemo(company.id, draft, askName ? name : undefined);
+      const result = await createDemo(company.id, draft, askName ? name : undefined, withBooking);
 
       if (result.status === "needsName") {
         setAskName(true);

@@ -19,6 +19,21 @@ const WEBSITE_CREATION_POINTS: Record<ReasonCode, number> = {
   outdatedSite: 20,
   fewReviews: 20,
   noOpeningHours: 10,
+  // Nos sites conta como "sem site próprio": este motivo não aparece.
+  bookingPlatform: 70,
+};
+
+// Marcações: pesa quem só marca por telefone ou depende de outra plataforma. Sem site
+// não há onde marcar; num site próprio, conta sobretudo a versão para telemóvel.
+const ONLINE_BOOKING_POINTS: Record<ReasonCode, number> = {
+  noWebsite: 50,
+  bookingPlatform: 50,
+  noOwnWebsite: 40,
+  notMobileFriendly: 20,
+  slowSite: 10,
+  outdatedSite: 10,
+  noOpeningHours: 20,
+  fewReviews: 10,
 };
 
 function notOwnKind(company: Company): ThirdPartyKind | null {
@@ -47,6 +62,28 @@ function websiteCreationReasons(company: Company): ReasonCode[] {
   return reasons;
 }
 
+function onlineBookingReasons(company: Company): ReasonCode[] {
+  const reasons: ReasonCode[] = [];
+  const kind = notOwnKind(company);
+
+  if (company.website === null) {
+    reasons.push("noWebsite");
+  } else if (kind === "booking") {
+    reasons.push("bookingPlatform");
+  } else if (kind) {
+    reasons.push("noOwnWebsite");
+  } else {
+    if (company.site.isMobileFriendly === false) reasons.push("notMobileFriendly");
+    if (company.site.isSlow === true) reasons.push("slowSite");
+    if (company.site.isOutdated === true) reasons.push("outdatedSite");
+  }
+
+  if (!company.hasOpeningHours) reasons.push("noOpeningHours");
+  if (company.reviewCount < FEW_REVIEWS_LIMIT) reasons.push("fewReviews");
+
+  return reasons;
+}
+
 // Cada serviço tem os seus motivos e pontos. Um serviço novo acrescenta-se aqui.
 const SCORING: Record<
   ServiceId,
@@ -58,6 +95,10 @@ const SCORING: Record<
   website_creation: {
     points: WEBSITE_CREATION_POINTS,
     reasons: websiteCreationReasons,
+  },
+  online_booking: {
+    points: ONLINE_BOOKING_POINTS,
+    reasons: onlineBookingReasons,
   },
 };
 
@@ -75,7 +116,7 @@ export function scoreCompany(
   const kind = notOwnKind(company);
   const reasons = findReasons(company).map((code) => {
     const observed: SiteObservation | undefined =
-      code === "noOwnWebsite" && kind
+      (code === "noOwnWebsite" || code === "bookingPlatform") && kind
         ? { kind: "thirdParty", thirdParty: kind }
         : company.site.observed?.[code];
 

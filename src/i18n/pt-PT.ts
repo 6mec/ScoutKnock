@@ -351,6 +351,7 @@ export const ptPT = {
       samePassword: "Escolhe uma palavra-passe diferente da atual.",
       rateLimited: "Fizeste demasiados pedidos seguidos. Espera um pouco e tenta outra vez.",
       generic: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
+      signupsClosed: "Os registos estão fechados.",
     },
   },
   ui: {
@@ -496,7 +497,9 @@ export const ptPT = {
     sampleBadge: "Exemplo ilustrativo",
     unavailable: "A busca ainda não está disponível.",
     serviceLabel: "Serviço",
-    services: { website_creation: "Criação de sites" },
+    services: { website_creation: "Criação de sites", online_booking: "Marcações online" },
+    // Como o freelancer diz o que faz: "Faço sites…", "Monto marcações online…".
+    servicePitch: { website_creation: "faço sites", online_booking: "monto marcações online" },
     nicheLabel: "Nicho",
     nichePlaceholder: "Por exemplo, barbearias",
     localityLabel: "Localidade",
@@ -620,6 +623,7 @@ export const ptPT = {
       outdatedSite: "Site antigo",
       fewReviews: "Poucas avaliações (menos de 20)",
       noOpeningHours: "Sem horário publicado",
+      bookingPlatform: "Marcações numa plataforma de terceiros",
     },
     observations: {
       responseTime: (seconds: string) =>
@@ -713,16 +717,18 @@ export const ptPT = {
           `Vi que ${company} tem ainda poucas avaliações online.`,
         noOpeningHours: (company: string) =>
           `Não encontrei o horário de ${company} publicado online.`,
+        bookingPlatform: (company: string) =>
+          `Vi que as marcações de ${company} passam por uma plataforma de outra empresa.`,
       },
       followUp: (company: string, sender: string | null) =>
         `Olá de novo! Só para confirmar se receberam a minha mensagem sobre ${company}. Se não for o momento, sem problema: não volto a insistir.${sender ? `\n\n${sender}` : ""}`,
       templates: {
         normal: (_company: string, reason: string, service: string, sender: string | null) =>
-          `Olá! ${reason} Faço ${service} para negócios locais e tenho uma ideia simples que talvez vos interesse. Posso enviá-la? Se preferirem não receber mensagens minhas, digam e não volto a escrever.${sender ? `\n\n${sender}` : ""}`,
+          `Olá! ${reason} ${service.charAt(0).toUpperCase()}${service.slice(1)} para negócios locais e tenho uma ideia simples que talvez vos interesse. Posso enviá-la? Se preferirem não receber mensagens minhas, digam e não volto a escrever.${sender ? `\n\n${sender}` : ""}`,
         shorter: (_company: string, reason: string, service: string, sender: string | null) =>
-          `Olá! ${reason} Faço ${service} para negócios locais. Posso mostrar-vos uma ideia rápida? Se não fizer sentido, digam e não volto a escrever.${sender ? `\n\n${sender}` : ""}`,
+          `Olá! ${reason} ${service.charAt(0).toUpperCase()}${service.slice(1)} para negócios locais. Posso mostrar-vos uma ideia rápida? Se não fizer sentido, digam e não volto a escrever.${sender ? `\n\n${sender}` : ""}`,
         formal: (_company: string, reason: string, service: string, sender: string | null) =>
-          `Bom dia,\n\nEscrevo-vos porque ${reason.charAt(0).toLowerCase()}${reason.slice(1, -1)}. Trabalho com ${service} para empresas locais e gostaria de vos apresentar uma ideia, sem qualquer compromisso.\n\nTeriam disponibilidade para a receber? Se preferirem não ser contactados, indiquem-no e não voltarei a escrever.\n\nCom os melhores cumprimentos${sender ? `,\n${sender}` : "."}`,
+          `Bom dia,\n\nEscrevo-vos porque ${reason.charAt(0).toLowerCase()}${reason.slice(1, -1)}. Eu ${service} para empresas locais e gostaria de vos apresentar uma ideia, sem qualquer compromisso.\n\nTeriam disponibilidade para a receber? Se preferirem não ser contactados, indiquem-no e não voltarei a escrever.\n\nCom os melhores cumprimentos${sender ? `,\n${sender}` : "."}`,
       },
     },
   },
@@ -896,7 +902,71 @@ export const ptPT = {
         taken: "Este nome já está a ser usado. Escolhe outro.",
         invalid: "Este nome não é válido. Usa letras minúsculas, números e hífens.",
         unavailable: "A publicação ainda não está disponível.",
+        forbidden: "Só o administrador pode publicar sem pagamento.",
         error: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
+      },
+      direct: {
+        badge: "Publicação direta",
+        dialogBody:
+          "O site passa a estar público, sem o aviso de proposta não oficial e sem data de apagamento. Não há pagamento na app: combinas o valor com a empresa e cobras por fora.",
+        continue: "Publicar agora",
+        published: "Site publicado.",
+        live: "Publicado por ti, sem subscrição.",
+        unpublish: "Tirar do ar",
+        unpublishWarning:
+          "O site volta a ser uma demo com o aviso e é apagado ao fim de 30 dias, se não o publicares outra vez. O nome fica guardado para ti durante esse tempo.",
+        unpublishConfirm: "Tirar do ar agora",
+        unpublished: "O site saiu do ar.",
+      },
+    },
+    booking: {
+      title: "Marcar horário",
+      nav: "Marcar",
+      lead: (company: string) =>
+        `Escolha o serviço, o dia e a hora. O pedido segue por WhatsApp e a marcação fica feita quando ${company} confirmar.`,
+      hours: "Horário",
+      service: "Serviço",
+      anyService: "Ainda não sei",
+      date: "Dia",
+      time: "Hora",
+      name: "O seu nome",
+      note: "Nota (opcional)",
+      notePlaceholder: "Por exemplo, primeira vez",
+      submit: "Pedir marcação pelo WhatsApp",
+      callToBook: "Ligar para marcar",
+      noPhone: "Para marcar, contacte-nos pelos contactos abaixo.",
+      demoNote:
+        "Nesta proposta, o pedido não é enviado: aparece aqui como chegaria ao WhatsApp da empresa.",
+      previewTitle: "Assim chega o pedido:",
+      sentNote: "Abrimos o WhatsApp com o pedido escrito. Só falta enviar.",
+      errors: {
+        name: "Escreva o seu nome.",
+        date: "Escolha um dia a partir de hoje.",
+        time: "Escolha a hora.",
+      },
+      message: ({
+        service,
+        date,
+        time,
+        name,
+        note,
+      }: {
+        service: string | null;
+        date: string;
+        time: string;
+        name: string;
+        note: string | null;
+      }) =>
+        `Olá! Gostava de marcar ${service ? service.toLowerCase() : "um horário"} para ${date}, às ${time}. O meu nome é ${name}.${note ? `
+${note}` : ""}
+Fico a aguardar a confirmação. Obrigado!`,
+      editor: {
+        enabled: "Secção de marcações",
+        enabledHelp:
+          "O cliente escolhe o serviço, o dia e a hora, e o pedido segue por WhatsApp para a empresa. Sem agenda nem lembretes.",
+        hours: "Horário (opcional)",
+        hoursPlaceholder: "Por exemplo, seg. a sex. 9h–19h, sáb. 9h–13h",
+        hoursHelp: "Escreve só o que a empresa te confirmar.",
       },
     },
     view: {
@@ -1317,8 +1387,8 @@ export const ptPT = {
         next: "Próximo passo",
         voicemail: "Se não atenderem",
       },
-      opening: (company: string, sender: string | null, niche: string) =>
-        `Bom dia, liguei para ${company}, certo? ${sender ? `Chamo-me ${sender} e` : "Eu"} faço sites para ${niche.toLowerCase()} aqui da zona. Tem um minuto?`,
+      opening: (company: string, sender: string | null, niche: string, pitch: string) =>
+        `Bom dia, liguei para ${company}, certo? ${sender ? `Chamo-me ${sender} e` : "Eu"} ${pitch} para ${niche.toLowerCase()} aqui da zona. Tem um minuto?`,
       why: {
         noWebsite: (company: string) => `Procurei ${company} na internet e não encontrei um site vosso.`,
         noOwnWebsite: () => "O endereço que aparece no Google é uma página de outra plataforma, não um site vosso.",
@@ -1327,6 +1397,7 @@ export const ptPT = {
         outdatedSite: () => "O vosso site parece ter alguns anos.",
         fewReviews: () => "Vi que ainda têm poucas avaliações no Google.",
         noOpeningHours: () => "Não encontrei o vosso horário publicado.",
+        bookingPlatform: () => "Vi que as vossas marcações passam por uma plataforma de outra empresa.",
       },
       noReasons: "Estive a ver negócios da zona e lembrei-me de vocês.",
       questions: [
@@ -1352,8 +1423,8 @@ export const ptPT = {
           you: "Sem problema, obrigado pelo seu tempo. Posso deixar-lhe o meu contacto, se um dia precisar?",
         },
       ],
-      next: (company: string) =>
-        `Posso enviar-lhe por WhatsApp um exemplo de como poderia ficar um site para ${company}?`,
+      next: (company: string, booking: boolean) =>
+        `Posso enviar-lhe por WhatsApp um exemplo de como poderia ficar ${booking ? "uma página de marcações" : "um site"} para ${company}?`,
       voicemail: (company: string, sender: string | null) =>
         `Olá, ${sender ? `fala ${sender}` : "bom dia"}. Liguei por causa de um site para ${company}. Vou enviar-lhe uma mensagem com um exemplo. Obrigado!`,
       copy: "Copiar guião",
@@ -1405,6 +1476,10 @@ export const ptPT = {
         noOpeningHours: {
           meaning: "Sem horário publicado, há quem não saiba se está aberto.",
           suggestion: "Publicar o horário no Google e no site.",
+        },
+        bookingPlatform: {
+          meaning: "As marcações passam por uma plataforma de outra empresa, com a marca e as regras dela.",
+          suggestion: "Uma página vossa onde os clientes pedem a marcação diretamente.",
         },
       },
     },

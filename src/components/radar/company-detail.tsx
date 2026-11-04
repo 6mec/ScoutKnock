@@ -111,7 +111,11 @@ export function CompanyDetail({
           phone={company.phone}
           service={service}
         />
-        <CreateDemoButton company={company} isSample={isSample} />
+        <CreateDemoButton
+          company={company}
+          isSample={isSample}
+          withBooking={service === "online_booking"}
+        />
         {saved ? (
           <Button asChild variant="secondary">
             <Link href="/painel/contactos">{copy.openContacts}</Link>
@@ -128,6 +132,7 @@ export function CompanyDetail({
             reasons={opportunity.reasons.map(({ code }) => code)}
             senderName={senderName}
             phone={company.phone}
+            service={service}
           />
         )}
         <DiagnosisButton scored={scored} senderName={senderName} />

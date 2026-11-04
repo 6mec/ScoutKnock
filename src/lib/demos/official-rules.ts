@@ -17,6 +17,8 @@ export type OfficialSite = {
   cancel_at_period_end: boolean;
   period_end: string | null;
   name_reserved_until: string | null;
+  // Publicado pelo admin sem o Stripe (modo pessoal).
+  published_directly?: boolean;
 };
 
 // Enquanto o Stripe tenta cobrar, o site continua no ar: decisão do Daniel.

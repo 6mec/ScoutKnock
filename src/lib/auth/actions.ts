@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
+import { signupsOpen } from "@/lib/personal-mode";
 import { createClient } from "@/lib/supabase/server";
 import { isValidEmail, isValidPassword } from "./validation";
 
@@ -35,6 +36,9 @@ export async function signUp(
   _state: AuthFormState,
   formData: FormData,
 ): Promise<AuthFormState> {
+  // Modo pessoal: nenhuma conta nova, mesmo que alguém chame a ação diretamente.
+  if (!signupsOpen()) return failure(errors.signupsClosed);
+
   const email = field(formData, "email").trim();
   const password = field(formData, "password");
 

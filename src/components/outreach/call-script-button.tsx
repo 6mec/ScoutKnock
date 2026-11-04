@@ -13,7 +13,7 @@ import {
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { buildCallScript, callScriptText } from "@/lib/outreach/rules";
-import type { ReasonCode } from "@/lib/radar/types";
+import type { ReasonCode, ServiceId } from "@/lib/radar/types";
 
 const { outreach: copy } = ptPT;
 
@@ -25,7 +25,9 @@ export function CallScriptButton({
   reasons,
   senderName,
   phone,
+  service,
 }: {
+  service?: ServiceId;
   companyName: string;
   niche: string;
   reasons: ReasonCode[];
@@ -33,7 +35,7 @@ export function CallScriptButton({
   phone?: string | null;
 }) {
   const [open, setOpen] = useState(false);
-  const script = buildCallScript({ companyName, niche, reasons, senderName });
+  const script = buildCallScript({ companyName, niche, reasons, senderName, service });
   const title = copy.call.title(companyName);
 
   async function copyScript() {

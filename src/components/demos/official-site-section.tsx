@@ -15,8 +15,10 @@ import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { openBillingPortal } from "@/lib/billing/actions";
 import {
+  publishOfficialSiteDirectly,
   setOfficialSiteCancel,
   startOfficialCheckout,
+  unpublishOfficialSiteDirectly,
 } from "@/lib/demos/official-actions";
 import {
   MAX_SITE_NAME,
@@ -38,17 +40,22 @@ export type Publishing = {
   available: boolean;
   returned: boolean;
   url: string | null;
+  // Modo pessoal: o admin publica sem o Stripe.
+  direct?: boolean;
 };
 
 function PublishDialog({
   demoId,
   initialName,
   available,
+  direct = false,
 }: {
   demoId: string;
   initialName: string;
   available: boolean;
+  direct?: boolean;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState(initialName);
   const [confirmed, setConfirmed] = useState(false);
@@ -61,6 +68,17 @@ function PublishDialog({
     event.preventDefault();
     setError(null);
     startTransition(async () => {
+      if (direct) {
+        const result = await publishOfficialSiteDirectly(demoId, name, confirmed);
+        if (result.status === "published") {
+          toast.success(copy.direct.published);
+          setOpen(false);
+          router.refresh();
+        } else {
+          setError(copy.errors[result.status]);
+        }
+        return;
+      }
       const result = await startOfficialCheckout(demoId, name, confirmed);
       if (result.status === "checkout") window.location.assign(result.url);
       else setError(copy.errors[result.status]);
@@ -86,9 +104,11 @@ function PublishDialog({
           }}
         >
           <DialogTitle>{copy.publish}</DialogTitle>
-          <DialogDescription>{copy.dialogBody(OFFICIAL_SITE_PRICE_EUR)}</DialogDescription>
-          <Badge variant="amber" className="self-start">
-            {copy.testMode}
+          <DialogDescription>
+            {direct ? copy.direct.dialogBody : copy.dialogBody(OFFICIAL_SITE_PRICE_EUR)}
+          </DialogDescription>
+          <Badge variant={direct ? "accent" : "amber"} className="self-start">
+            {direct ? copy.direct.badge : copy.testMode}
           </Badge>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Field
@@ -121,7 +141,7 @@ function PublishDialog({
                 loadingText={copy.pending}
                 disabled={!valid || !confirmed}
               >
-                {copy.continue}
+                {direct ? copy.direct.continue : copy.continue}
               </Button>
               <Button variant="secondary" onClick={() => setOpen(false)}>
                 {copy.cancelDialog}
@@ -130,6 +150,62 @@ function PublishDialog({
           </form>
         </DialogContent>
       </Dialog>
+    </>
+  );
+}
+
+function DirectLiveSite({
+  demoId,
+  url,
+}: {
+  demoId: string;
+  url: string | null;
+}) {
+  const router = useRouter();
+  const [confirming, setConfirming] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  function unpublish() {
+    startTransition(async () => {
+      const { ok } = await unpublishOfficialSiteDirectly(demoId);
+      if (ok) toast.success(copy.direct.unpublished);
+      else toast.error(ptPT.demos.errors.generic);
+      setConfirming(false);
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noreferrer noopener"
+          data-testid="official-url"
+          className="focus-ring inline-flex min-h-11 items-center self-start rounded-sm break-all text-14 text-accent underline"
+        >
+          {url}
+        </a>
+      )}
+      <p className="text-14 text-muted">{copy.direct.live}</p>
+      {confirming ? (
+        <div className="flex flex-col gap-3 rounded-md border border-danger p-3">
+          <p className="text-14">{copy.direct.unpublishWarning}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="danger" loading={pending} loadingText={copy.pending} onClick={unpublish}>
+              {copy.direct.unpublishConfirm}
+            </Button>
+            <Button variant="secondary" onClick={() => setConfirming(false)}>
+              {copy.keepShort}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button variant="ghost" onClick={() => setConfirming(true)} className="self-start">
+          {copy.direct.unpublish}
+        </Button>
+      )}
     </>
   );
 }
@@ -249,7 +325,9 @@ export function OfficialSiteSection({
       className="flex flex-col gap-3 border-t border-border p-4 lg:p-8"
     >
       <h2 className="text-14 font-bold">{copy.title}</h2>
-      {live && site ? (
+      {live && site?.published_directly ? (
+        <DirectLiveSite demoId={demoId} url={publishing.url} />
+      ) : live && site ? (
         <LiveSite demoId={demoId} site={site} url={publishing.url} />
       ) : waiting ? (
         <div role="status" className="flex flex-col items-start gap-3">
@@ -268,7 +346,8 @@ export function OfficialSiteSection({
           <PublishDialog
             demoId={demoId}
             initialName={site?.name ?? suggestSiteName(companyName)}
-            available={publishing.available}
+            available={publishing.available || Boolean(publishing.direct)}
+            direct={Boolean(publishing.direct)}
           />
         </>
       )}

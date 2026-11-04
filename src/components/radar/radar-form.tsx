@@ -3,6 +3,7 @@
 import {
   ArrowRight,
   Briefcase,
+  CalendarClock,
   CircleAlert,
   CircleCheck,
   Dumbbell,
@@ -232,7 +233,11 @@ export function RadarForm({
                 onChange={() => onChange({ ...values, service: id })}
                 className="sr-only"
               />
-              <Globe aria-hidden="true" size={18} className="text-accent" />
+              {id === "online_booking" ? (
+                <CalendarClock aria-hidden="true" size={18} className="text-accent" />
+              ) : (
+                <Globe aria-hidden="true" size={18} className="text-accent" />
+              )}
               <span className="font-semibold">{copy.services[id]}</span>
               {values.service === id && (
                 <CircleCheck aria-hidden="true" size={16} className="ml-auto text-accent" />

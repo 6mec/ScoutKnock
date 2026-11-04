@@ -1,6 +1,6 @@
-export type ServiceId = "website_creation";
+export type ServiceId = "website_creation" | "online_booking";
 
-export const SERVICE_IDS: ServiceId[] = ["website_creation"];
+export const SERVICE_IDS: ServiceId[] = ["website_creation", "online_booking"];
 
 // Só dados públicos e comerciais. `website` a null significa que não tem site.
 // Nos sinais do site, null significa que ainda não foi verificado e não dá pontos.
@@ -47,7 +47,9 @@ export type ReasonCode =
   | "notMobileFriendly"
   | "outdatedSite"
   | "fewReviews"
-  | "noOpeningHours";
+  | "noOpeningHours"
+  // Só nas marcações: o "site" é uma página de marcações de outra empresa.
+  | "bookingPlatform";
 
 export type ScoreLevel = "strong" | "medium" | "weak";
 

@@ -1,5 +1,5 @@
 import { ptPT } from "@/i18n/pt-PT";
-import type { Company, Opportunity, ReasonCode } from "@/lib/radar/types";
+import type { Company, Opportunity, ReasonCode, ServiceId } from "@/lib/radar/types";
 
 const { outreach: copy } = ptPT;
 
@@ -51,22 +51,24 @@ export function buildCallScript({
   niche,
   reasons,
   senderName,
+  service = "website_creation",
 }: {
   companyName: string;
   niche: string;
   reasons: ReasonCode[];
   senderName: string | null;
+  service?: ServiceId;
 }): CallScript {
   const sender = senderName?.trim() || null;
   // No máximo duas observações: numa chamada, mais do que isso soa a lista.
   const why = reasons.slice(0, 2).map((code) => copy.call.why[code](companyName));
 
   return {
-    opening: copy.call.opening(companyName, sender, niche),
+    opening: copy.call.opening(companyName, sender, niche, ptPT.radar.servicePitch[service]),
     why: why.length > 0 ? why : [copy.call.noReasons],
     questions: copy.call.questions,
     objections: copy.call.objections,
-    next: copy.call.next(companyName),
+    next: copy.call.next(companyName, service === "online_booking"),
     voicemail: copy.call.voicemail(companyName, sender),
   };
 }

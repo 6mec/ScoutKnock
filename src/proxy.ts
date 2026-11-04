@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { subdomainRewritePath } from "@/lib/demos/official-rules";
+import { signupsOpen } from "@/lib/personal-mode";
 import { getSupabaseConfig } from "@/lib/supabase/config";
 
 const PROTECTED_PATHS = ["/painel", "/nova-palavra-passe"];
@@ -14,9 +15,15 @@ export async function proxy(request: NextRequest) {
       "/",
       process.env.OFFICIAL_SITES_BASE_DOMAIN,
     );
-    return rewritePath
-      ? NextResponse.rewrite(new URL(rewritePath, request.url))
-      : NextResponse.next();
+    if (rewritePath) return NextResponse.rewrite(new URL(rewritePath, request.url));
+    // Modo pessoal: sem página de venda, a raiz leva à entrada (ou ao painel).
+    return signupsOpen()
+      ? NextResponse.next()
+      : NextResponse.redirect(new URL("/entrar", request.url));
+  }
+
+  if (request.nextUrl.pathname === "/registar" && !signupsOpen()) {
+    return NextResponse.redirect(new URL("/entrar", request.url));
   }
 
   const { url, publishableKey } = getSupabaseConfig();

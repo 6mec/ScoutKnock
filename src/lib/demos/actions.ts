@@ -9,6 +9,7 @@ import { messageCostEur } from "@/lib/messages/rules";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { IDENTITIES, isIdentityKey, matchIdentity } from "./identities";
+import { bookingByDefault } from "./booking";
 import {
   createDemoSlug,
   MAX_COMPANY_NAME,
@@ -69,6 +70,8 @@ export async function createDemo(
   companyIdValue: unknown,
   draftValue: unknown,
   authorName?: string,
+  // Uma busca de marcações liga a secção de marcações em qualquer nicho.
+  withBooking?: unknown,
 ): Promise<CreateDemoResult> {
   const { supabase, user } = await currentUser();
 
@@ -128,6 +131,7 @@ export async function createDemo(
       about: start.about,
       services: start.services,
       highlights: start.highlights,
+      booking_enabled: withBooking === true || bookingByDefault(nicheStyle),
       author_name: name,
     })
     .select("id")
@@ -179,6 +183,8 @@ export async function saveDemo(
       about: content.about || null,
       services: content.services,
       highlights: content.highlights,
+      booking_enabled: content.bookingEnabled,
+      booking_hours: content.bookingHours || null,
     })
     .eq("id", id)
     .select("id");
