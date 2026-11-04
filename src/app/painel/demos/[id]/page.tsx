@@ -56,6 +56,8 @@ async function Content({
   return (
     <DemoEditor
       demo={demo}
+      // Com a chave da Anthropic, o botão passa a escrever com o Claude.
+      aiEnabled={Boolean(process.env.ANTHROPIC_API_KEY)}
       expiresLabel={
         demo.expires_at
           ? ptPT.demos.expires(dateFormat.format(new Date(demo.expires_at)))

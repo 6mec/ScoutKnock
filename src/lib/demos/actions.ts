@@ -5,14 +5,20 @@ import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
 import { logEvent, reportError } from "@/lib/events/log";
 import { parseCompanyId } from "@/lib/contacts/rules";
+import { messageCostEur } from "@/lib/messages/rules";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { IDENTITIES, isIdentityKey, matchIdentity } from "./identities";
 import {
-  colorForNiche,
   createDemoSlug,
+  MAX_COMPANY_NAME,
+  MAX_LOCALITY,
+  MAX_NICHE,
   parseAuthorName,
   parseDemoContent,
   parseDemoDraft,
 } from "./rules";
+import { getSiteWriter, sampleSiteCopy, type SiteCopy } from "./site-writer";
 
 const { demos: copy } = ptPT;
 const GALLERY_PATH = "/painel/demos";
@@ -97,6 +103,10 @@ export async function createDemo(
     if (!name) return { status: "needsName" };
   }
 
+  // Começa já com a identidade e os textos do modelo do nicho: grátis e sem IA.
+  const nicheStyle = matchIdentity(draft.niche);
+  const identity = IDENTITIES[nicheStyle];
+  const start = sampleSiteCopy({ ...draft, nicheStyle });
   const { data, error } = await supabase
     .from("demo_sites")
     .insert({
@@ -108,9 +118,16 @@ export async function createDemo(
       locality: draft.locality,
       address: draft.address,
       phone: draft.phone,
-      accent_color: colorForNiche(draft.niche),
-      headline: `${draft.niche} · ${draft.locality}`,
-      intro: copy.defaultIntro,
+      template: identity.layout,
+      accent_color: identity.palette.accent,
+      niche_style: nicheStyle,
+      headline: start.headline,
+      intro: start.intro,
+      subheadline: start.subheadline,
+      cta_label: start.ctaLabel,
+      about: start.about,
+      services: start.services,
+      highlights: start.highlights,
       author_name: name,
     })
     .select("id")
@@ -156,6 +173,12 @@ export async function saveDemo(
       accent_color: content.accentColor,
       headline: content.headline,
       intro: content.intro,
+      niche_style: content.nicheStyle,
+      subheadline: content.subheadline || null,
+      cta_label: content.ctaLabel || null,
+      about: content.about || null,
+      services: content.services,
+      highlights: content.highlights,
     })
     .eq("id", id)
     .select("id");
@@ -187,4 +210,63 @@ export async function setDemoSent(
 
   revalidatePath(GALLERY_PATH);
   return { ok: true };
+}
+
+export type GenerateCopyResult =
+  | { ok: true; copy: SiteCopy; isSample: boolean; remaining: number | null }
+  | { ok: false; error: "limit" | "generic" };
+
+function field(value: unknown, max: number) {
+  return typeof value === "string" && value.trim() && value.trim().length <= max
+    ? value.trim()
+    : null;
+}
+
+// Escreve os textos do site. Sem a chave da Anthropic, devolve o modelo do nicho (grátis);
+// com a chave, gasta uma das 3 escritas desta demo antes de chamar o Claude.
+// Não guarda nada: o editor mostra os textos e o freelancer decide.
+export async function generateDemoCopy(
+  id: string,
+  value: unknown,
+): Promise<GenerateCopyResult> {
+  const raw = (typeof value === "object" && value !== null ? value : {}) as Record<string, unknown>;
+  const companyName = field(raw.companyName, MAX_COMPANY_NAME);
+  const niche = field(raw.niche, MAX_NICHE);
+  const locality = field(raw.locality, MAX_LOCALITY);
+  if (!companyName || !niche || !locality) return { ok: false, error: "generic" };
+  const nicheStyle = isIdentityKey(raw.nicheStyle) ? raw.nicheStyle : matchIdentity(niche);
+
+  const { supabase, user } = await currentUser();
+  const { data: demo } = await supabase.from("demo_sites").select("id").eq("id", id).maybeSingle();
+  if (!demo) return { ok: false, error: "generic" };
+
+  const writer = getSiteWriter(process.env.ANTHROPIC_API_KEY, async (usage) => {
+    const { error } = await createAdminClient().from("api_costs").insert({
+      user_id: user.id,
+      provider: "claude",
+      kind: "demo_copy",
+      units: usage.inputTokens + usage.outputTokens,
+      cost_eur: messageCostEur(usage),
+    });
+    if (error) await reportError("demos textos custo", error.code, user.id);
+  });
+
+  let remaining: number | null = null;
+  if (!writer.isSample) {
+    const { data: left, error } = await supabase.rpc("use_demo_ai_generation", { target_demo: id });
+    if (error) {
+      await reportError("demos textos limite", error.code, user.id);
+      return { ok: false, error: "generic" };
+    }
+    if ((left as number) < 0) return { ok: false, error: "limit" };
+    remaining = left as number;
+  }
+
+  try {
+    const copy = await writer.write({ companyName, niche, locality, nicheStyle });
+    return { ok: true, copy, isSample: writer.isSample, remaining };
+  } catch (error) {
+    await reportError("demos textos", error instanceof Error ? error.message.slice(0, 40) : "erro", user.id);
+    return { ok: false, error: "generic" };
+  }
 }
