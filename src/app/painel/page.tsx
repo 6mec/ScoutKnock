@@ -25,6 +25,7 @@ import { PanelHeader } from "@/components/ui/panel-header";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
+import { isCurrentUserAdmin } from "@/lib/account/admin";
 import { PLANS } from "@/lib/account/rules";
 import { requireUser } from "@/lib/auth/current-user";
 import { openBillingPortal } from "@/lib/billing/actions";
@@ -113,7 +114,7 @@ function renewalText({ subscription, usage }: DashboardData) {
   return copy.usage.renews(formatDate(usage.period_end));
 }
 
-function UsageBlock({ data }: { data: DashboardData }) {
+function UsageBlock({ data, isAdmin }: { data: DashboardData; isAdmin: boolean }) {
   const plansLink = (
     <Link href="/painel/planos" className="focus-ring inline-flex min-h-11 items-center rounded-sm text-14 text-accent underline">
       {hasActivePlan(data) ? copy.usage.seePlansUpgrade : copy.usage.seePlans}
@@ -122,6 +123,19 @@ function UsageBlock({ data }: { data: DashboardData }) {
 
   return (
     <Block id="consumo" title={copy.usage.title} icon={Gauge}>
+      {isAdmin ? (
+        <div data-testid="admin-usage" className="flex flex-col gap-2">
+          <p className="font-semibold">{ptPT.plans.admin.state}</p>
+          <p className="type-number text-14 text-muted">
+            {copy.usage.adminUsed(
+              data.usage.searches_used,
+              data.usage.demos_used,
+              data.usage.lookups_used,
+            )}
+          </p>
+          <p className="text-14 text-muted">{ptPT.plans.admin.note}</p>
+        </div>
+      ) : (
       <ul className="flex flex-col gap-4">
         {usageMeters(data).map(({ key, used, limit, percent, reached }) => {
           const text = copy.usage.meter[key](used, limit);
@@ -148,6 +162,7 @@ function UsageBlock({ data }: { data: DashboardData }) {
           );
         })}
       </ul>
+      )}
       <p className="text-14 text-muted">{renewalText(data)}</p>
     </Block>
   );
@@ -474,10 +489,12 @@ function SubscriptionBlock({
   data,
   billingOn,
   locale,
+  isAdmin,
 }: {
   data: DashboardData;
   billingOn: boolean;
   locale?: string | null;
+  isAdmin: boolean;
 }) {
   const { subscription, usage } = data;
   const live = hasLiveSubscription(subscription.status);
@@ -491,8 +508,11 @@ function SubscriptionBlock({
     maximumFractionDigits: 0,
   });
 
+  // O papel de admin passa à frente do pack: os limites são os de admin.
   let state: string = copy.subscription.none;
-  if (isPaymentProblem(subscription.status)) {
+  if (isAdmin) {
+    state = ptPT.plans.admin.state;
+  } else if (isPaymentProblem(subscription.status)) {
     state = copy.subscription.paymentProblem(planName ?? "");
   } else if (subscription.status === "trialing") {
     state = copy.subscription.trial(formatDate(subscription.trial_end ?? usage.period_end));
@@ -591,7 +611,7 @@ async function Content() {
   const supabase = await createClient();
   // O dia de hoje em Lisboa começa no máximo 26 h antes de agora.
   const since = new Date(new Date().getTime() - 26 * 3_600_000).toISOString();
-  const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow, templateRow, portfolioRow] =
+  const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow, templateRow, portfolioRow, isAdmin] =
     await Promise.all([
       supabase.rpc("my_dashboard"),
       supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle(),
@@ -604,6 +624,7 @@ async function Content() {
       supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
       supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
       supabase.from("portfolios").select("published").eq("user_id", user.id).maybeSingle(),
+      isCurrentUserAdmin(supabase),
     ]);
 
   // Vai para o ecrã de erro do painel, com "Tentar outra vez".
@@ -634,7 +655,7 @@ async function Content() {
           portfolioPublished: Boolean(portfolioRow.data?.published),
         })}
       />
-      <UsageBlock data={dashboard} />
+      <UsageBlock data={dashboard} isAdmin={isAdmin} />
       <NextStepBlock data={dashboard} now={now} billingOn={billingOn} />
       <LeadsBlock data={dashboard} />
       <DealsBlock deals={deals} now={now} />
@@ -644,6 +665,7 @@ async function Content() {
         data={dashboard}
         billingOn={billingOn}
         locale={profile?.locale}
+        isAdmin={isAdmin}
       />
     </div>
   );

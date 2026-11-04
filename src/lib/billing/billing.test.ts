@@ -1,15 +1,20 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import Stripe from "stripe";
 import { describe, expect, it, vi } from "vitest";
-import { PLANS } from "@/lib/account/rules";
+import { ADMIN_LIMITS, PLANS, YEARLY_PRICES_EUR } from "@/lib/account/rules";
 import {
   LOWEST_LIMITS,
   buildCheckoutParams,
   currencyForLocale,
   hasLiveSubscription,
   limitsFor,
+  missingBillingEnv,
   parseBillingConfig,
+  parseInterval,
   parsePlanId,
   planForPrice,
+  yearlyAvailable,
   type BillingConfig,
 } from "./rules";
 import { handleStripeEvent, type SubscriptionUpdate } from "./webhook";
@@ -372,4 +377,92 @@ describe("webhook do Stripe", () => {
       stripe.webhooks.constructEvent(payload, "t=1,v1=falsa", "whsec_abc"),
     ).toThrow();
   });
+});
+
+describe("admin", () => {
+  it("o admin tem os limites de admin, com ou sem pack", () => {
+    expect(limitsFor(null, null, true)).toEqual(ADMIN_LIMITS);
+    expect(limitsFor("active", "starter", true)).toEqual(ADMIN_LIMITS);
+    expect(limitsFor("active", "starter", false).searches).toBe(100);
+  });
+
+  it("os limites de admin batem certo com a migração", () => {
+    const sql = readFileSync(
+      join(process.cwd(), "supabase/migrations/20261118000000_admin_and_yearly.sql"),
+      "utf8",
+    );
+    expect(sql).toContain(`public.is_admin(target_user) then ${ADMIN_LIMITS.searches}`);
+    expect(sql).toContain(`public.is_admin(target_user) then ${ADMIN_LIMITS.lookups}`);
+    expect(sql).toContain(`public.is_admin(target_user) then ${ADMIN_LIMITS.monthlyLookups}`);
+  });
+});
+
+describe("chaves em falta", () => {
+  it("lista só os nomes do que falta", () => {
+    expect(missingBillingEnv({})).toEqual([
+      "STRIPE_SECRET_KEY",
+      "STRIPE_WEBHOOK_SECRET",
+      "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+      "SITE_URL",
+      "STRIPE_PRICE_STARTER_EUR",
+      "STRIPE_PRICE_PRO_EUR",
+      "STRIPE_PRICE_AGENCY_EUR",
+    ]);
+    expect(missingBillingEnv({ ...env, NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_x" })).toEqual([]);
+  });
+
+  it("uma chave real conta como em falta", () => {
+    expect(missingBillingEnv({ ...env, STRIPE_SECRET_KEY: "sk_live_x" })).toContain(
+      "STRIPE_SECRET_KEY",
+    );
+  });
+});
+
+describe("pack anual", () => {
+  const yearlyEnv = {
+    ...env,
+    STRIPE_PRICE_STARTER_EUR_YEARLY: "price_sy",
+    STRIPE_PRICE_PRO_EUR_YEARLY: "price_py",
+    STRIPE_PRICE_AGENCY_EUR_YEARLY: "price_ay",
+  };
+  const yearlyConfig = parseBillingConfig(yearlyEnv) as BillingConfig;
+
+  it("lê os preços anuais e reconhece o pack pelo preço anual", () => {
+    expect(yearlyConfig.prices.pro.eurYearly).toBe("price_py");
+    expect(planForPrice(yearlyConfig, "price_ay")).toBe("agency");
+    expect(parseBillingConfig({ ...env, STRIPE_PRICE_PRO_EUR_YEARLY: "x" })?.prices.pro.eurYearly).toBeUndefined();
+  });
+
+  it("sem preço anual decidido, o separador não aparece", () => {
+    expect(yearlyAvailable(null)).toBe(false);
+    expect(yearlyAvailable(config)).toBe(false);
+    // YEARLY_PRICES_EUR continua a null até o Daniel decidir.
+    expect(yearlyAvailable(yearlyConfig)).toBe(
+      PLANS.every(({ id }) => YEARLY_PRICES_EUR[id] !== null),
+    );
+  });
+
+  it("o Checkout anual usa o preço anual e nunca cai no mensal", () => {
+    const base = { plan: "pro" as const, currency: "eur" as const, customerId: "cus_1", userId: "u1", trialUsed: true };
+    expect(
+      buildCheckoutParams({ ...base, config: yearlyConfig, interval: "year" }).line_items,
+    ).toEqual([{ price: "price_py", quantity: 1 }]);
+    expect(() => buildCheckoutParams({ ...base, config, interval: "year" })).toThrow();
+    expect(parseInterval("year")).toBe("year");
+    expect(parseInterval("qualquer")).toBe("month");
+  });
+
+  // Os limites são por mês também no anual: o preço anual a dividir por 12 tem de
+  // cumprir os 30%, como o mensal.
+  const SEARCH_COST = 0.035;
+  const LOOKUP_COST = 0.02;
+  it.each(PLANS.map((plan) => [plan.id, plan] as const))(
+    "%s: o preço anual, quando existir, não passa 30%% por mês",
+    (id, plan) => {
+      const yearly = YEARLY_PRICES_EUR[id];
+      if (yearly === null) return;
+      const monthlyCost = plan.searches * SEARCH_COST + plan.monthlyLookups * LOOKUP_COST;
+      expect(monthlyCost).toBeLessThanOrEqual((yearly / 12) * 0.3);
+    },
+  );
 });

@@ -1,7 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useReducer, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Button } from "@/components/ui/button";
 import { Callout } from "@/components/ui/callout";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -121,28 +129,68 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+export type SearchUsage = { used: number; limit: number };
+
 export function RadarScreen({
   isSample,
   markets,
+  usage: initialUsage,
+  isAdmin,
+  savedIds: initialSavedIds,
 }: {
   isSample: boolean;
   markets: Market[];
+  usage: SearchUsage | null;
+  isAdmin: boolean;
+  savedIds: string[];
 }) {
   const requests = useSyncExternalStore(
     subscribeToNewSearch,
     newSearchRequests,
     () => 0,
   );
+  // Ficam por cima da busca: "Nova busca" recomeça a busca, mas não estes números.
+  const [usage, setUsage] = useState(initialUsage);
+  const [savedIds, setSavedIds] = useState(() => new Set(initialSavedIds));
+  const onSearchCounted = useCallback(
+    () => setUsage((current) => current && { ...current, used: current.used + 1 }),
+    [],
+  );
+  const onSaved = useCallback(
+    (id: string) => setSavedIds((current) => new Set(current).add(id)),
+    [],
+  );
 
-  return <RadarSearch key={requests} isSample={isSample} markets={markets} />;
+  return (
+    <RadarSearch
+      key={requests}
+      isSample={isSample}
+      markets={markets}
+      usage={usage}
+      isAdmin={isAdmin}
+      savedIds={savedIds}
+      onSearchCounted={onSearchCounted}
+      onSaved={onSaved}
+    />
+  );
 }
 
 function RadarSearch({
   isSample,
   markets,
+  usage,
+  isAdmin,
+  savedIds,
+  onSearchCounted,
+  onSaved,
 }: {
   isSample: boolean;
   markets: Market[];
+  usage: SearchUsage | null;
+  isAdmin: boolean;
+  savedIds: ReadonlySet<string>;
+  onSearchCounted: () => void;
+  onSaved: (id: string) => void;
 }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -203,6 +251,8 @@ function RadarSearch({
       if (response.status === 429) return fail("limit");
       if (response.status === 422) return fail("locality");
       if (!response.ok || !response.body) return fail("provider");
+      // Só uma resposta aceite gasta uma busca do limite.
+      onSearchCounted();
 
       await readSearchEvents(response.body, (event) => {
         finished ||= event.type === "done" || event.type === "error";
@@ -242,6 +292,8 @@ function RadarSearch({
         isSample={isSample}
         service={values.service}
         onNewSearch={reset}
+        savedIds={savedIds}
+        onSaved={onSaved}
       />
     );
   }
@@ -249,7 +301,7 @@ function RadarSearch({
   const searching = state.phase === "searching" || found;
 
   return (
-    <div className="mx-auto grid w-full max-w-300 flex-1 items-center gap-8 px-4 py-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:px-8">
+    <div className="mx-auto grid w-full max-w-300 flex-1 grid-cols-[minmax(0,1fr)] items-center gap-8 px-4 py-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:px-8">
       <div key={state.phase} className="flex animate-fade-in flex-col gap-4">
         {isSample && (
           <Callout tone="amber">{copy.sampleNotice}</Callout>
@@ -261,6 +313,8 @@ function RadarSearch({
             onSubmit={() => search()}
             focusOnMount={state.returning}
             markets={markets}
+            usage={usage}
+            isAdmin={isAdmin}
           />
         )}
         {state.phase === "idle" && (
@@ -300,6 +354,11 @@ function RadarSearch({
           >
             <p className="type-body">{copy.errors[state.error]}</p>
             <div className="flex flex-wrap gap-3">
+              {state.error === "limit" && (
+                <Button asChild>
+                  <Link href="/painel/planos">{copy.seePlans}</Link>
+                </Button>
+              )}
               {state.error !== "limit" &&
                 state.error !== "unavailable" &&
                 state.error !== "locality" && (

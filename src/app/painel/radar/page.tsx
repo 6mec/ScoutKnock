@@ -5,8 +5,12 @@ import { ManualRadar } from "@/components/radar/manual-search";
 import { RadarScreen } from "@/components/radar/radar-screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
+import { isCurrentUserAdmin } from "@/lib/account/admin";
+import { requireUser } from "@/lib/auth/current-user";
+import { reportError } from "@/lib/events/log";
 import { enabledMarkets } from "@/lib/markets";
 import { getCompanyProvider } from "@/lib/radar/provider";
+import { createClient } from "@/lib/supabase/server";
 
 const { radar: copy } = ptPT;
 
@@ -31,7 +35,25 @@ async function Content() {
 
   if (!provider) return <ManualRadar />;
 
+  const user = await requireUser();
+  const supabase = await createClient();
+  // Só o consumo e os place_id já guardados: nada do Google sai da base de dados.
+  const [usage, saved, isAdmin] = await Promise.all([
+    supabase.rpc("my_plan_usage").maybeSingle(),
+    supabase.from("contacts").select("company_id"),
+    isCurrentUserAdmin(supabase),
+  ]);
+  if (usage.error) await reportError("radar uso", usage.error.code, user.id);
+
+  const row = usage.data as { searches_used: number; searches_limit: number } | null;
+
   return (
-    <RadarScreen isSample={provider.usesSampleData} markets={enabledMarkets()} />
+    <RadarScreen
+      isSample={provider.usesSampleData}
+      markets={enabledMarkets()}
+      usage={row ? { used: row.searches_used, limit: row.searches_limit } : null}
+      isAdmin={isAdmin}
+      savedIds={(saved.data ?? []).map(({ company_id }) => company_id as string)}
+    />
   );
 }

@@ -45,6 +45,26 @@ Os limites estão em `PLANS` (`src/lib/account/rules.ts`) e em `public.plan_limi
 
 **Por decidir (Daniel):** os preços em reais não cumprem esta conta a câmbios acima de cerca de 2,50 a 2,77 reais por euro, conforme o pack. Os preços ficam como estão por agora. Rever com o câmbio do dia.
 
+### Pack anual (04/11/2026)
+
+**Estado:** construído e desligado. Aparece o separador "Mensal / Anual" quando os três `YEARLY_PRICES_EUR` (`src/lib/account/rules.ts`) deixarem de estar a null e houver os três `STRIPE_PRICE_*_EUR_YEARLY`. Precisa da migração `20261118000000_admin_and_yearly.sql`: no anual, o consumo renova todos os meses a contar do início do período.
+
+**Por decidir (Daniel):** o preço anual. Com os limites de hoje e a regra dos 30%, o mínimo por ano é:
+
+| Pack | 12 × mensal | Mínimo anual | Desconto máximo |
+| --- | --- | --- | --- |
+| Inicial | 228 € | 212 € | 16 € (7%) |
+| Pro | 468 € | 450 € | 18 € (4%) |
+| Agência | 948 € | 943 € | 5 € (0,5%) |
+
+Para dar um desconto maior (por exemplo, 2 meses grátis), é preciso baixar os limites do anual ou esperar pelo custo real, que deve ficar abaixo do pior caso. Um teste obriga a cumprir esta conta.
+
+Um pack "vitalício" (pagar uma vez, como o crieai.app tem) não cumpre a regra: o custo continua todos os meses e a receita não.
+
+## Papel de administrador (04/11/2026)
+
+Quem está em `public.user_roles` com `admin` fica sem limites de pack (10 000 buscas e sites demo, 1000 aberturas por dia). Os tetos do projeto inteiro (`GOOGLE_DAILY_BUDGET_EUR`, `GOOGLE_MONTHLY_BUDGET_EUR`, `SITE_CHECKS_DAILY_LIMIT`) continuam a valer, e as 3 escritas com o Claude por demo também. Só se dá por SQL, no SQL Editor; a app não deixa ninguém tornar-se admin. Nos Planos, o admin vê os packs com os preços propostos, os botões desligados e o nome das variáveis do Stripe que faltam.
+
 ## Mensagens por IA
 
 **Estado:** pendente: precisa de chave.

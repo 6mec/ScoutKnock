@@ -18,7 +18,13 @@ import { MAX_LABEL } from "@/lib/contacts/rules";
 const { contacts: copy } = ptPT;
 
 // O campo começa vazio de propósito: o nome é escrito pelo freelancer, não copiado do Google.
-export function SaveContactButton({ companyId }: { companyId: string }) {
+export function SaveContactButton({
+  companyId,
+  onSaved,
+}: {
+  companyId: string;
+  onSaved?: (companyId: string) => void;
+}) {
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
@@ -32,6 +38,7 @@ export function SaveContactButton({ companyId }: { companyId: string }) {
         setOpen(false);
         setLabel("");
         toast.success(copy.savedToContacts);
+        onSaved?.(companyId);
       } else {
         toast.error(copy.errors.generic);
       }

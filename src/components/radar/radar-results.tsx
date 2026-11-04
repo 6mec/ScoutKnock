@@ -8,9 +8,20 @@ import {
   DialogContent,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/field";
 import { ScoreChip } from "@/components/ui/score-chip";
 import { ptPT } from "@/i18n/pt-PT";
 import { duration, ease } from "@/lib/motion";
+import {
+  applyResultFilters,
+  DEFAULT_RESULT_FILTERS,
+  RESULT_SORTS,
+  RESULT_TOGGLES,
+  toggleFilter,
+  type ResultFilters,
+  type ResultSort,
+} from "@/lib/radar/results";
 import type { ScoredCompany } from "@/lib/radar/search-events";
 import type { ScoreLevel, ServiceId } from "@/lib/radar/types";
 import { useMediaQuery } from "@/lib/use-media-query";
@@ -26,23 +37,30 @@ export function RadarResults({
   isSample,
   service,
   onNewSearch,
+  savedIds,
+  onSaved,
 }: {
   results: ScoredCompany[];
   isSample: boolean;
   service: ServiceId;
   onNewSearch: () => void;
+  savedIds: ReadonlySet<string>;
+  onSaved: (id: string) => void;
 }) {
   const isWide = useMediaQuery("(min-width: 1024px)");
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
+  const [filters, setFilters] = useState<ResultFilters>(DEFAULT_RESULT_FILTERS);
+  const filter = filters.level;
+  const setFilter = (level: ResultFilters["level"]) =>
+    setFilters((current) => ({ ...current, level }));
+  const filtered =
+    filters.toggles.length > 0 || filters.level !== "all";
   const [selectedId, setSelectedId] = useState(results[0]?.company.id);
   const [sheetOpen, setSheetOpen] = useState(false);
   const headingRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => headingRef.current?.focus(), []);
 
-  const visible = results.filter(
-    ({ opportunity }) => filter === "all" || opportunity.level === filter,
-  );
+  const visible = applyResultFilters(results, filters, savedIds);
   // A nota pode mudar com a verificação: a folha aberta não salta para outra empresa.
   const selected =
     visible.find(({ company }) => company.id === selectedId) ??
@@ -73,7 +91,8 @@ export function RadarResults({
                 {results.length}
               </span>{" "}
               {results.length === 1 ? copy.countOne : copy.countOther} ·{" "}
-              {copy.sorted}
+              {copy.sortedBy[filters.sort]}
+              {filtered && <> · {copy.showing(visible.length, results.length)}</>}
             </p>
             <Button variant="secondary" size="sm" onClick={onNewSearch}>
               {copy.newSearch}
@@ -88,24 +107,76 @@ export function RadarResults({
                   ? copy.siteCheck.summaryChecking(checkingSites)
                   : copy.siteCheck.summaryDone)}
             </p>
+            <div className="flex w-full flex-wrap items-center justify-between gap-3">
+              <div
+                role="group"
+                aria-label={copy.filterLabel}
+                className="flex flex-wrap gap-1.5"
+              >
+                {FILTERS.map((level) => (
+                  <button
+                    key={level}
+                    type="button"
+                    aria-pressed={filter === level}
+                    onClick={() => setFilter(level)}
+                    className={cn(
+                      "focus-ring min-h-11 rounded-md border border-border px-3 text-14 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
+                      filter === level &&
+                        "border-border-input bg-surface-raised text-foreground",
+                    )}
+                  >
+                    {level === "all" ? copy.filterAll : copy.levels[level]}
+                  </button>
+                ))}
+              </div>
+              <label className="flex items-center gap-2 text-13 text-muted">
+                {copy.sortLabel}
+                <Select
+                  data-testid="results-sort"
+                  value={filters.sort}
+                  onChange={(event) =>
+                    setFilters((current) => ({
+                      ...current,
+                      sort: event.target.value as ResultSort,
+                    }))
+                  }
+                  className="w-auto md:text-14"
+                >
+                  {RESULT_SORTS.map((sort) => (
+                    <option key={sort} value={sort}>
+                      {copy.sorts[sort]}
+                    </option>
+                  ))}
+                </Select>
+              </label>
+            </div>
             <div
               role="group"
-              aria-label={copy.filterLabel}
-              className="flex w-full flex-wrap gap-1.5"
+              aria-labelledby="results-toggles"
+              className="flex w-full flex-wrap items-center gap-1.5"
             >
-              {FILTERS.map((level) => (
+              <span id="results-toggles" className="mr-1 text-13 text-muted">
+                {copy.togglesLabel}
+              </span>
+              {RESULT_TOGGLES.map((toggle) => (
                 <button
-                  key={level}
+                  key={toggle}
                   type="button"
-                  aria-pressed={filter === level}
-                  onClick={() => setFilter(level)}
+                  data-testid={`toggle-${toggle}`}
+                  aria-pressed={filters.toggles.includes(toggle)}
+                  onClick={() =>
+                    setFilters((current) => ({
+                      ...current,
+                      toggles: toggleFilter(current.toggles, toggle),
+                    }))
+                  }
                   className={cn(
-                    "focus-ring min-h-11 rounded-md border border-border px-3 text-14 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
-                    filter === level &&
-                      "border-border-input bg-surface-raised text-foreground",
+                    "focus-ring min-h-11 rounded-full border border-dashed border-border px-3.5 text-13 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
+                    filters.toggles.includes(toggle) &&
+                      "border-solid border-accent/50 bg-accent-soft text-foreground",
                   )}
                 >
-                  {level === "all" ? copy.filterAll : copy.levels[level]}
+                  {copy.toggles[toggle]}
                 </button>
               ))}
             </div>
@@ -116,7 +187,16 @@ export function RadarResults({
             </p>
           )}
           {visible.length === 0 ? (
-            <p className="px-4 py-8 text-muted lg:px-8">{copy.filterEmpty}</p>
+            <div className="flex flex-col items-start gap-3 px-4 py-8 lg:px-8">
+              <p className="text-muted">{copy.filterEmpty}</p>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setFilters(DEFAULT_RESULT_FILTERS)}
+              >
+                {copy.clearFilters}
+              </Button>
+            </div>
           ) : (
             <LayoutGroup>
               <ul>
@@ -152,8 +232,19 @@ export function RadarResults({
                             className="w-24 shrink-0 [&>span:first-child]:min-w-12"
                           />
                           <span className="min-w-0 flex-1">
-                            <span className="block truncate font-semibold">
-                              {company.name}
+                            <span className="flex min-w-0 items-center gap-2">
+                              <span className="truncate font-semibold">
+                                {company.name}
+                              </span>
+                              {savedIds.has(company.id) && (
+                                <Badge
+                                  variant="outline"
+                                  data-testid="saved-badge"
+                                  className="shrink-0"
+                                >
+                                  {copy.savedBadge}
+                                </Badge>
+                              )}
                             </span>
                             <span className="block truncate text-13 text-muted">
                               {company.locality} ·{" "}
@@ -186,6 +277,8 @@ export function RadarResults({
                   scored={selected}
                   isSample={isSample}
                   service={service}
+                  saved={savedIds.has(selected.company.id)}
+                  onSaved={onSaved}
                   title={
                     <h2 className="type-heading text-32">
                       {selected.company.name}
@@ -204,6 +297,8 @@ export function RadarResults({
                     scored={selected}
                     isSample={isSample}
                     service={service}
+                    saved={savedIds.has(selected.company.id)}
+                    onSaved={onSaved}
                     title={
                       <DialogTitle className="text-24">
                         {selected.company.name}

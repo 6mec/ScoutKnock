@@ -1,10 +1,14 @@
+import { Phone } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { SaveContactButton } from "@/components/contacts/save-contact-button";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
 import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ScoreBreakdown } from "@/components/ui/score-breakdown";
 import { ptPT } from "@/i18n/pt-PT";
+import { isLikelyLandline } from "@/lib/radar/results";
 import type { ScoredCompany } from "@/lib/radar/search-events";
 import type { ServiceId } from "@/lib/radar/types";
 import { SiteCheckNote } from "./site-check-note";
@@ -16,12 +20,17 @@ export function CompanyDetail({
   isSample,
   service,
   title,
+  saved = false,
+  onSaved,
 }: {
   scored: ScoredCompany;
   isSample: boolean;
   service: ServiceId;
   title: ReactNode;
+  saved?: boolean;
+  onSaved?: (companyId: string) => void;
 }) {
+  const landline = isLikelyLandline(company.phone);
   const rows: [string, ReactNode][] = [
     [copy.details.address, company.address],
     [
@@ -40,7 +49,26 @@ export function CompanyDetail({
       ),
     ],
     ...(company.phone
-      ? ([[copy.details.phone, company.phone]] as [string, ReactNode][])
+      ? ([
+          [
+            copy.details.phone,
+            <span key="phone" className="flex flex-col items-start gap-1">
+              <a
+                href={`tel:${company.phone.replace(/[^d+]/g, "")}`}
+                className="focus-ring inline-flex min-h-11 items-center gap-2 rounded-sm text-accent underline"
+              >
+                <Phone aria-hidden="true" size={15} />
+                {company.phone}
+                <span className="sr-only"> · {copy.call}</span>
+              </a>
+              {landline && (
+                <span data-testid="landline-note" className="text-13 text-amber">
+                  {copy.landline}
+                </span>
+              )}
+            </span>,
+          ],
+        ] as [string, ReactNode][])
       : []),
     [copy.details.reviews, company.reviewCount],
     [
@@ -52,7 +80,10 @@ export function CompanyDetail({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col items-start gap-2">
-        {isSample && <Badge variant="amber">{copy.sampleBadge}</Badge>}
+        <div className="flex flex-wrap gap-2 empty:hidden">
+          {isSample && <Badge variant="amber">{copy.sampleBadge}</Badge>}
+          {saved && <Badge variant="outline">{copy.savedBadge}</Badge>}
+        </div>
         {title}
       </div>
       <div className="flex flex-wrap gap-3">
@@ -63,7 +94,13 @@ export function CompanyDetail({
           service={service}
         />
         <CreateDemoButton company={company} isSample={isSample} />
-        <SaveContactButton companyId={company.id} />
+        {saved ? (
+          <Button asChild variant="secondary">
+            <Link href="/painel/contactos">{copy.openContacts}</Link>
+          </Button>
+        ) : (
+          <SaveContactButton companyId={company.id} onSaved={onSaved} />
+        )}
       </div>
       <div className="panel p-5">
         <ScoreBreakdown opportunity={opportunity} />

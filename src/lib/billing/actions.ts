@@ -9,7 +9,9 @@ import {
   buildCheckoutParams,
   currencyForLocale,
   hasLiveSubscription,
+  parseInterval,
   parsePlanId,
+  yearlyAvailable,
 } from "./rules";
 import { ensureStripeCustomer } from "./customer";
 import { getBilling } from "./stripe";
@@ -28,11 +30,14 @@ async function currentUser() {
   return { supabase, user };
 }
 
-// O plano vem do formulário, mas o preço e o utilizador são sempre do servidor.
-export async function startCheckout(planValue: unknown) {
+// O plano e o período vêm do formulário, mas o preço e o utilizador são sempre do
+// servidor. O anual só passa se estiver ligado em todos os packs.
+export async function startCheckout(planValue: unknown, intervalValue?: unknown) {
   const plan = parsePlanId(planValue);
+  const interval = parseInterval(intervalValue);
   const billing = getBilling();
   if (!plan || !billing) redirect(FAILED_PATH);
+  if (interval === "year" && !yearlyAvailable(billing.config)) redirect(FAILED_PATH);
 
   const { supabase, user } = await currentUser();
   const { config, stripe } = billing;
@@ -76,6 +81,7 @@ export async function startCheckout(planValue: unknown) {
           customerId,
           userId: user.id,
           trialUsed: row?.trial_used ?? false,
+          interval,
         }),
       );
       url = session.url;
