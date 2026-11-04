@@ -87,7 +87,7 @@ export function Field({
 
 function controlClasses(invalid: boolean, className?: string) {
   return cn(
-    "focus-ring w-full rounded-md border border-border-input bg-surface text-16 text-foreground placeholder:text-muted",
+    "focus-ring w-full rounded-md border border-border-input bg-surface text-16 text-foreground shadow-[inset_0_1px_2px_rgb(0_0_0/0.04)] placeholder:text-muted md:text-15",
     "transition-colors duration-(--duration-fast) ease-out hovered:border-muted",
     "disabled:cursor-not-allowed disabled:opacity-50",
     invalid && "border-danger hovered:border-danger",
@@ -109,11 +109,11 @@ export function Input({
         {...control}
         aria-busy={loading || undefined}
         readOnly={loading || props.readOnly}
-        className={controlClasses(invalid, cn("h-12 px-3", loading && "pr-10", className))}
+        className={controlClasses(invalid, cn("h-11 px-3", loading && "pr-10", className))}
         {...props}
       />
       {loading && (
-        <Spinner className="absolute top-4 right-3 text-muted" />
+        <Spinner className="absolute top-3.5 right-3 text-muted" />
       )}
     </div>
   );
@@ -142,7 +142,7 @@ export function PasswordInput({
         type="button"
         aria-label={visible ? hideLabel : showLabel}
         onClick={() => setVisible((current) => !current)}
-        className="focus-ring absolute top-0.5 right-0.5 inline-flex size-11 items-center justify-center rounded-md text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground"
+        className="focus-ring absolute top-0 right-0 inline-flex size-11 items-center justify-center rounded-md text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground"
       >
         <Icon aria-hidden="true" size={18} strokeWidth={1.75} />
       </button>
@@ -164,7 +164,7 @@ export function Select({
         {...control}
         className={controlClasses(
           invalid,
-          cn("h-12 appearance-none pr-10 pl-3", className),
+          cn("h-11 appearance-none pr-10 pl-3", className),
         )}
         {...props}
       >
@@ -174,7 +174,7 @@ export function Select({
         aria-hidden="true"
         size={16}
         strokeWidth={1.75}
-        className="pointer-events-none absolute top-4 right-3 text-muted"
+        className="pointer-events-none absolute top-3.5 right-3 text-muted"
       />
     </div>
   );

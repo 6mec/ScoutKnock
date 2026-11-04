@@ -226,7 +226,7 @@ export function GenerateMessageButton({
           {citesSite && (
             <p
               data-testid="site-check-warning"
-              className="rounded-md border border-amber p-3 text-14 text-amber"
+              className="rounded-md border border-amber/30 bg-amber-soft p-3 text-14 text-amber"
             >
               {copy.checkSiteWarning}
             </p>

@@ -69,7 +69,7 @@ async function Gallery() {
         <li key={demo.id}>
           <Link
             href={`/painel/demos/${demo.id}`}
-            className="focus-ring group block overflow-hidden rounded-lg border border-border bg-surface transition-colors duration-(--duration-fast) ease-out hovered:border-border-input"
+            className="focus-ring group block overflow-hidden panel transition-colors duration-(--duration-fast) ease-out hovered:border-border-input"
           >
             <div aria-hidden="true" inert className="h-44 overflow-hidden">
               <div className="pointer-events-none w-[250%] origin-top-left scale-40">

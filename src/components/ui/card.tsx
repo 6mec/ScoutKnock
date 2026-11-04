@@ -24,7 +24,7 @@ export function Card({
     <Component
       aria-disabled={disabled || undefined}
       className={cn(
-        "block rounded-md border border-border bg-surface p-4",
+        "panel block rounded-md p-4",
         interactive && interactiveClasses,
         error && "border-danger",
         disabled && "pointer-events-none opacity-50",
@@ -39,7 +39,7 @@ export function Panel({ className, ...props }: ComponentProps<"section">) {
   return (
     <section
       className={cn(
-        "rounded-lg border border-border bg-surface p-6",
+        "panel p-6",
         className,
       )}
       {...props}

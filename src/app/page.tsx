@@ -136,7 +136,7 @@ export default function Home() {
           <div className="relative mx-auto flex w-full max-w-300 flex-wrap items-center gap-14 px-4 pt-32 pb-14 lg:px-10 lg:pt-36 lg:pb-24">
             <div className="min-w-0 flex-[1_1_440px]">
               <Entrance index={0}>
-                <span className="type-number inline-flex rounded-pill border border-border bg-surface px-3.5 py-1.5 text-13 text-muted">
+                <span className="type-mono inline-flex rounded-pill border border-border bg-surface px-3.5 py-1.5 text-13 text-muted">
                   <LiveDot
                     status="searching"
                     label={copy.hero.badge}
@@ -181,7 +181,7 @@ export default function Home() {
 
         <div
           aria-hidden="true"
-          className="group type-number overflow-hidden border-b border-border bg-surface py-5 text-14 tracking-[.06em] whitespace-nowrap text-muted uppercase"
+          className="group type-mono overflow-hidden border-b border-border bg-surface py-5 text-14 tracking-[.06em] whitespace-nowrap text-muted uppercase"
         >
           <div className="flex w-max animate-marquee group-hover:[animation-play-state:paused]">
             <NicheList />

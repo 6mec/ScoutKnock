@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
+import { parseDailyGoal, type ContactEvent } from "./crm";
 import {
   MANUAL_PREFIX,
   manualColumns,
@@ -66,7 +67,7 @@ export async function saveContact(
 async function updateContact(
   id: string,
   area: string,
-  values: Record<string, string | null>,
+  values: Record<string, string | number | boolean | null>,
 ): Promise<Result> {
   const { supabase, user } = await currentUser();
   const { data, error } = await supabase
@@ -111,7 +112,49 @@ export async function saveContactDetails(
     next_action: details.nextAction,
     next_action_at: details.nextActionAt,
     notes: details.notes,
+    deal_value: details.dealValue,
+    do_not_contact: details.doNotContact,
   });
+}
+
+// Histórico do contacto: só lê a base de dados, sem chamadas pagas.
+export async function getContactHistory(
+  id: string,
+): Promise<{ ok: true; events: ContactEvent[] } | { ok: false }> {
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase
+    .from("contact_events")
+    .select("contact_id, kind, status, created_at")
+    .eq("contact_id", id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+
+  if (error) {
+    await reportError("contactos historico", error.code, user.id);
+    return { ok: false };
+  }
+  return { ok: true, events: (data ?? []) as ContactEvent[] };
+}
+
+export async function setDailyGoal(value: unknown): Promise<Result> {
+  const goal = parseDailyGoal(value);
+  if (!goal) return { ok: false };
+
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ daily_goal: goal })
+    .eq("id", user.id)
+    .select("id");
+
+  if (error || !data?.length) {
+    await reportError("contactos meta", error?.code ?? "sem linha", user.id);
+    return { ok: false };
+  }
+
+  revalidatePath(CONTACTS_PATH);
+  revalidatePath("/painel");
+  return { ok: true };
 }
 
 // Modelo fixo com o nome que o freelancer escreveu: sem chamadas ao Google nem à

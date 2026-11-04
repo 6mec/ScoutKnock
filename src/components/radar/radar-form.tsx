@@ -38,7 +38,7 @@ export function RadarForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6"
+      className="flex flex-col gap-4 panel p-6"
     >
       <p className="type-body text-muted">{copy.empty}</p>
       <Field label={copy.serviceLabel}>

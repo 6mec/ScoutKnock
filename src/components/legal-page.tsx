@@ -51,7 +51,7 @@ export function LegalPage({
         </nav>
         <main className="flex max-w-[70ch] flex-col gap-6">
           <h1 className="type-display text-32 lg:text-44">{title}</h1>
-          <p className="rounded-md border border-amber p-4 text-amber">
+          <p className="rounded-md border border-amber/30 bg-amber-soft p-4 text-amber">
             {ptPT.legal.reviewNotice}
           </p>
           <div className="type-body flex flex-col gap-4">

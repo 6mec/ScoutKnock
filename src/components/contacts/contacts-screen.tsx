@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Field, Input } from "@/components/ui/field";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { setContactStatus } from "@/lib/contacts/actions";
+import { dayOf, type ContactEvent } from "@/lib/contacts/crm";
 import { manualColumns, type ManualCompany } from "@/lib/contacts/manual";
 import {
   marksLastContact,
+  searchContacts,
   type Contact,
   type ContactDetails,
   type ContactStatus,
@@ -19,53 +22,70 @@ import { AddCompanyButton } from "./add-company-button";
 import { ContactDialog } from "./contact-dialog";
 import { ContactsBoard } from "./contacts-board";
 import { ContactsTable } from "./contacts-table";
+import { CrmToday } from "./crm-today";
 import { ImportListButton } from "./import-list-button";
 
 const { contacts: copy } = ptPT;
 
 export function ContactsScreen({
   initial,
+  events: initialEvents,
+  dailyGoal: initialGoal,
   statusFilter,
 }: {
   initial: Contact[];
+  events: ContactEvent[];
+  dailyGoal: number;
   statusFilter: ContactStatus | null;
 }) {
   const [contacts, setContacts] = useState(initial);
+  const [events, setEvents] = useState(initialEvents);
+  const [dailyGoal, setDailyGoal] = useState(initialGoal);
   const [lastInitial, setLastInitial] = useState(initial);
   const [openId, setOpenId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [now] = useState(() => Date.now());
 
   // O Next guarda este ecrã escondido: ao voltar, os dados novos do servidor mandam.
   if (initial !== lastInitial) {
     setLastInitial(initial);
     setContacts(initial);
+    setEvents(initialEvents);
+    setDailyGoal(initialGoal);
   }
 
   const open = contacts.find(({ id }) => id === openId);
-  const visible = statusFilter
+  const filtered = statusFilter
     ? contacts.filter(({ status }) => status === statusFilter)
     : contacts;
+  const visible = searchContacts(filtered, search);
 
   function changeStatus(id: string, status: ContactStatus) {
     const previous = contacts;
+    const previousEvents = events;
+    const current = contacts.find((contact) => contact.id === id);
+    if (!current || current.status === status) return;
+    const at = new Date().toISOString();
 
     // Muda logo no ecrã; se o servidor recusar, volta atrás.
-    setContacts((current) =>
-      current.map((contact) =>
+    setContacts((list) =>
+      list.map((contact) =>
         contact.id === id
           ? {
               ...contact,
               status,
-              last_contacted_at: marksLastContact(status)
-                ? new Date().toISOString()
-                : contact.last_contacted_at,
+              last_contacted_at: marksLastContact(status) ? at : contact.last_contacted_at,
             }
           : contact,
       ),
     );
+    // O mesmo que o gatilho da base de dados grava, para a meta e o ritmo mudarem já.
+    setEvents((list) => [...list, { contact_id: id, kind: "status", status, created_at: at }]);
 
     setContactStatus(id, status).then(({ ok }) => {
       if (!ok) {
         setContacts(previous);
+        setEvents(previousEvents);
         toast.error(copy.errors.generic);
       }
     });
@@ -82,6 +102,8 @@ export function ContactsScreen({
               next_action: details.nextAction,
               next_action_at: details.nextActionAt,
               notes: details.notes,
+              deal_value: details.dealValue,
+              do_not_contact: details.doNotContact,
             }
           : contact,
       ),
@@ -136,7 +158,27 @@ export function ContactsScreen({
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-4 px-4 py-6 lg:px-8">
-      <div className="flex flex-wrap gap-3">{manualActions}</div>
+      <CrmToday
+        contacts={contacts}
+        events={events}
+        dailyGoal={dailyGoal}
+        now={now}
+        today={dayOf(now)}
+        onGoalChange={setDailyGoal}
+        onOpen={setOpenId}
+        onStatusChange={changeStatus}
+      />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <Field label={copy.table.search} className="w-full max-w-md">
+          <Input
+            type="search"
+            value={search}
+            placeholder={copy.table.searchHelp}
+            onChange={(event) => setSearch(event.target.value)}
+          />
+        </Field>
+        <div className="flex flex-wrap gap-2">{manualActions}</div>
+      </div>
       {statusFilter && (
         <div className="flex flex-wrap items-center gap-x-4" data-testid="contacts-filter">
           <p className="font-semibold">
@@ -148,12 +190,17 @@ export function ContactsScreen({
           >
             {copy.filter.clear}
           </Link>
-          {visible.length === 0 && (
+          {filtered.length === 0 && (
             <p role="status" className="w-full text-muted">
               {copy.filter.empty}
             </p>
           )}
         </div>
+      )}
+      {search && visible.length === 0 && (
+        <p role="status" className="text-muted">
+          {copy.table.noMatches}
+        </p>
       )}
       <Tabs defaultValue="board">
         <TabsList>

@@ -116,7 +116,7 @@ export function CreateDemoButton({
         >
           <DialogTitle>{copy.form.title}</DialogTitle>
           <DialogDescription>{copy.form.body}</DialogDescription>
-          <p className="rounded-md border border-amber p-3 text-14">
+          <p className="rounded-md border border-amber/30 bg-amber-soft p-3 text-14">
             {copy.form.warning}
           </p>
           {!prefill && (

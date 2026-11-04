@@ -29,7 +29,7 @@ export function DemoWindow() {
           <span className="size-2.5 rounded-pill bg-border" />
           <span className="size-2.5 rounded-pill bg-border" />
         </span>
-        <span className="type-number ml-2 min-w-0 flex-1 truncate rounded-sm bg-background px-2.5 py-1 text-12 text-muted">
+        <span className="type-mono ml-2 min-w-0 flex-1 truncate rounded-sm bg-background px-2.5 py-1 text-12 text-muted">
           {copy.url}
         </span>
       </div>

@@ -1,5 +1,6 @@
 "use client";
 
+import { KeyRound, Palette, Trash2 } from "lucide-react";
 import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, Input } from "@/components/ui/field";
+import { PanelHeader } from "@/components/ui/panel-header";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import {
@@ -23,7 +25,7 @@ import { MAX_AUTHOR_NAME, parseAuthorName } from "@/lib/demos/rules";
 
 const { account: copy } = ptPT;
 const THEMES: Theme[] = ["dark", "light"];
-const cardClasses = "flex flex-col gap-4 rounded-lg border border-border bg-surface p-6";
+const cardClasses = "panel flex flex-col gap-4 p-6";
 
 export function AccountScreen({
   email,
@@ -91,9 +93,7 @@ export function AccountScreen({
       </form>
 
       <section aria-labelledby="account-theme" className={cardClasses}>
-        <h2 id="account-theme" className="type-heading text-20">
-          {copy.theme}
-        </h2>
+        <PanelHeader id="account-theme" icon={Palette} title={copy.theme} />
         <div role="group" aria-labelledby="account-theme" className="flex gap-2">
           {THEMES.map((id) => (
             <Button
@@ -108,8 +108,8 @@ export function AccountScreen({
         </div>
       </section>
 
-      <section className={cardClasses}>
-        <h2 className="type-heading text-20">{ptPT.auth.fields.password}</h2>
+      <section aria-labelledby="account-password" className={cardClasses}>
+        <PanelHeader id="account-password" icon={KeyRound} title={ptPT.auth.fields.password} />
         <Button
           variant="secondary"
           loading={sending}
@@ -121,8 +121,8 @@ export function AccountScreen({
         </Button>
       </section>
 
-      <section className={cardClasses}>
-        <h2 className="type-heading text-20">{copy.deleteTitle}</h2>
+      <section aria-labelledby="account-delete" className={cardClasses}>
+        <PanelHeader id="account-delete" icon={Trash2} tone="muted" title={copy.deleteTitle} />
         <p className="type-body text-muted">{copy.deleteWarning}</p>
         <Dialog onOpenChange={() => setConfirmation("")}>
           <DialogTrigger asChild>

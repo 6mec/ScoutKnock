@@ -19,7 +19,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           >
             <Logo />
           </Link>
-          <section className="rounded-lg border border-border bg-surface p-6">
+          <section className="panel p-6">
             {children}
           </section>
         </div>

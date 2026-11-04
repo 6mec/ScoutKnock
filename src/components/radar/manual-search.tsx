@@ -1,10 +1,12 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MapPinned } from "lucide-react";
 import { useState } from "react";
 import { AddCompanyButton } from "@/components/contacts/add-company-button";
 import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
 import { Field, Input } from "@/components/ui/field";
+import { PanelHeader } from "@/components/ui/panel-header";
 import { ptPT } from "@/i18n/pt-PT";
 import { googleMapsSearchUrl } from "@/lib/contacts/manual";
 
@@ -16,20 +18,22 @@ const { radar } = ptPT;
 export function ManualSearchActions({
   niche,
   locality,
+  children,
 }: {
   niche: string;
   locality: string;
+  children?: React.ReactNode;
 }) {
   return (
-    <section
-      aria-labelledby="procurar-a-mao"
-      className="flex flex-col gap-3 rounded-lg border border-border bg-surface p-5"
-    >
-      <h2 id="procurar-a-mao" className="font-semibold">
-        {copy.manualTitle}
-      </h2>
-      <p className="text-14 text-muted">{copy.openMapsHint}</p>
-      <div className="flex flex-wrap gap-3">
+    <section aria-labelledby="procurar-a-mao" className="panel flex flex-col gap-5 p-5">
+      <PanelHeader
+        id="procurar-a-mao"
+        icon={MapPinned}
+        title={copy.manualTitle}
+        description={copy.openMapsHint}
+      />
+      {children}
+      <div className="flex flex-wrap gap-2">
         <Button asChild variant="secondary">
           <a
             href={googleMapsSearchUrl(niche, locality)}
@@ -52,11 +56,10 @@ export function ManualRadar() {
   const [locality, setLocality] = useState("");
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8 lg:px-8">
-      <p className="type-body rounded-md border border-amber px-4 py-3 text-amber">
-        {copy.radarOff}
-      </p>
-      <div className="grid gap-4 rounded-lg border border-border bg-surface p-5 sm:grid-cols-2">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-8 lg:px-8">
+      <Callout tone="amber">{copy.radarOff}</Callout>
+      <ManualSearchActions niche={niche} locality={locality}>
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label={radar.nicheLabel}>
           <Input
             value={niche}
@@ -74,7 +77,7 @@ export function ManualRadar() {
           />
         </Field>
       </div>
-      <ManualSearchActions niche={niche} locality={locality} />
+      </ManualSearchActions>
     </div>
   );
 }

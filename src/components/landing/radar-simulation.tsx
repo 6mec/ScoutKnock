@@ -161,7 +161,7 @@ export function RadarSimulation() {
             </svg>
             <p
               role="status"
-              className="type-number min-h-5 text-center text-13 text-muted"
+              className="type-mono min-h-5 text-center text-13 text-muted"
             >
               {searching
                 ? example.searching(label)
@@ -215,13 +215,13 @@ export function RadarSimulation() {
                 <div className="flex items-baseline gap-2">
                   <span
                     className={cn(
-                      "type-number text-64 leading-none font-semibold",
+                      "type-mono text-64 leading-none font-semibold",
                       scoreColors[opportunity.level],
                     )}
                   >
                     {opportunity.score}
                   </span>
-                  <span className="type-number text-13 text-muted">
+                  <span className="type-mono text-13 text-muted">
                     {example.scoreSuffix} · {radar.levels[opportunity.level]}
                   </span>
                 </div>
@@ -239,7 +239,7 @@ export function RadarSimulation() {
                         className="flex justify-between gap-4 border-t border-border py-2.5"
                       >
                         <span>{radar.reasons[reason.code]}</span>
-                        <span className="type-number shrink-0 text-accent">
+                        <span className="type-mono shrink-0 text-accent">
                           +{reason.points}
                         </span>
                       </li>

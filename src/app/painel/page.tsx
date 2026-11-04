@@ -1,12 +1,24 @@
 import type { Metadata } from "next";
+import {
+  ArrowRight,
+  CreditCard,
+  Euro,
+  Gauge,
+  Globe,
+  Search,
+  Users,
+  type LucideIcon,
+} from "lucide-react";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { NewSearchLink } from "@/components/app/new-search-link";
+import { StatusDot } from "@/components/contacts/status-dot";
 import { RefreshOnShow } from "@/components/dashboard/refresh-on-show";
 import { RepeatSearchButton } from "@/components/dashboard/repeat-search-button";
 import { PlanSubmitButton } from "@/components/plans/plan-submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PanelHeader } from "@/components/ui/panel-header";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
@@ -19,7 +31,13 @@ import {
   isPaymentProblem,
   parseBillingConfig,
 } from "@/lib/billing/rules";
-import { CONTACT_STATUSES } from "@/lib/contacts/rules";
+import {
+  contactedToday,
+  DEFAULT_DAILY_GOAL,
+  dealTotals,
+  type ContactEvent,
+} from "@/lib/contacts/crm";
+import { CONTACT_STATUSES, type Contact } from "@/lib/contacts/rules";
 import {
   DEMO_WARNING_DAYS,
   daysUntil,
@@ -55,11 +73,13 @@ export const metadata: Metadata = {
 function Block({
   id,
   title,
+  icon,
   className,
   children,
 }: {
   id: string;
   title: string;
+  icon: LucideIcon;
   className?: string;
   children: ReactNode;
 }) {
@@ -67,14 +87,9 @@ function Block({
     <section
       aria-labelledby={id}
       data-testid={`block-${id}`}
-      className={cn(
-        "flex min-w-0 flex-col gap-4 rounded-lg border border-border bg-surface p-5",
-        className,
-      )}
+      className={cn("panel flex min-w-0 flex-col gap-4 p-5", className)}
     >
-      <h3 id={id} className="section-label text-muted">
-        {title}
-      </h3>
+      <PanelHeader id={id} icon={icon} title={title} as="h3" />
       {children}
     </section>
   );
@@ -98,7 +113,7 @@ function UsageBlock({ data }: { data: DashboardData }) {
   );
 
   return (
-    <Block id="consumo" title={copy.usage.title}>
+    <Block id="consumo" title={copy.usage.title} icon={Gauge}>
       <ul className="flex flex-col gap-4">
         {usageMeters(data).map(({ key, used, limit, percent, reached }) => {
           const text = copy.usage.meter[key](used, limit);
@@ -195,7 +210,12 @@ function NextStepBlock({
   const [text, button] = content[step.kind]();
 
   return (
-    <Block id="proximo-passo" title={copy.next.title}>
+    <Block
+      id="proximo-passo"
+      title={copy.next.title}
+      icon={ArrowRight}
+      className="panel-glow"
+    >
       <p data-testid="next-step" className="type-heading text-20 lg:text-24">
         {text}
       </p>
@@ -206,7 +226,7 @@ function NextStepBlock({
 
 function LeadsBlock({ data }: { data: DashboardData }) {
   return (
-    <Block id="contactos" title={copy.leads.title} className="lg:col-span-2">
+    <Block id="contactos" title={copy.leads.title} icon={Users} className="lg:col-span-2">
       {totalLeads(data.leads) === 0 ? (
         <EmptyLine text={copy.leads.empty} />
       ) : (
@@ -215,12 +235,13 @@ function LeadsBlock({ data }: { data: DashboardData }) {
             <li key={status}>
               <Link
                 href={`/painel/contactos?estado=${status}`}
-                className="focus-ring flex min-h-11 flex-col gap-1 rounded-md border border-border-subtle p-3 transition-colors duration-(--duration-fast) ease-out hovered:border-accent"
+                className="panel-row focus-ring flex min-h-11 flex-col gap-1 p-3 transition-colors duration-(--duration-fast) ease-out hovered:border-accent/40"
               >
                 <span className="type-number text-24 font-semibold">
                   {data.leads[status] ?? 0}
                 </span>
-                <span className="text-14 text-muted">
+                <span className="flex items-center gap-2 text-13 text-muted">
+                  <StatusDot status={status} />
                   {ptPT.contacts.statuses[status]}
                 </span>
               </Link>
@@ -228,6 +249,51 @@ function LeadsBlock({ data }: { data: DashboardData }) {
           ))}
         </ul>
       )}
+    </Block>
+  );
+}
+
+const money = new Intl.NumberFormat("pt-PT", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+});
+
+type Deals = {
+  contacts: Pick<Contact, "status" | "deal_value" | "do_not_contact">[];
+  events: ContactEvent[];
+  goal: number;
+};
+
+// Valores escritos pelo freelancer nas fichas; nada é estimado nem inventado.
+function DealsBlock({ deals, now }: { deals: Deals; now: number }) {
+  const totals = dealTotals(deals.contacts);
+  const done = contactedToday(deals.events, now);
+  const stat = (id: string, label: string, value: string, detail?: string) => (
+    <div
+      key={id}
+      data-testid={`deals-${id}`}
+      className="panel-row flex flex-col gap-1 p-3"
+    >
+      <span className="text-13 text-muted">{label}</span>
+      <span className="type-number text-24 font-semibold">{value}</span>
+      {detail && <span className="type-number text-13 text-muted">{detail}</span>}
+    </div>
+  );
+
+  return (
+    <Block id="negocios" title={copy.deals.title} icon={Euro} className="lg:col-span-2">
+      <div className="grid gap-2 sm:grid-cols-3">
+        {stat("hoje", copy.deals.today, copy.deals.todayValue(done, deals.goal))}
+        {stat("aberto", copy.deals.open, money.format(totals.open), copy.deals.count(totals.openCount))}
+        {stat("ganho", copy.deals.won, money.format(totals.won), copy.deals.count(totals.wonCount))}
+      </div>
+      {totals.openCount + totals.wonCount === 0 && (
+        <p className="text-14 text-muted">{copy.deals.noValues}</p>
+      )}
+      <Link href="/painel/contactos" className="focus-ring inline-flex min-h-11 items-center self-start rounded-sm text-14 text-accent underline">
+        {copy.deals.openContacts}
+      </Link>
     </Block>
   );
 }
@@ -251,7 +317,7 @@ function SearchesBlock({
   const { searches_used: used, searches_limit: limit } = data.usage;
 
   return (
-    <Block id="buscas" title={copy.searches.title}>
+    <Block id="buscas" title={copy.searches.title} icon={Search}>
       {data.searches.length === 0 ? (
         <EmptyLine text={copy.searches.empty} />
       ) : (
@@ -297,7 +363,7 @@ function DemosBlock({ data, now }: { data: DashboardData; now: number }) {
   const { active, items } = data.demos;
 
   return (
-    <Block id="demos" title={copy.demos.title}>
+    <Block id="demos" title={copy.demos.title} icon={Globe}>
       {active === 0 ? (
         <EmptyLine text={copy.demos.empty} />
       ) : (
@@ -382,7 +448,12 @@ function SubscriptionBlock({
   }
 
   return (
-    <Block id="subscricao" title={copy.subscription.title} className="lg:col-span-2">
+    <Block
+      id="subscricao"
+      title={copy.subscription.title}
+      icon={CreditCard}
+      className="lg:col-span-2"
+    >
       <p
         role={isPaymentProblem(subscription.status) ? "alert" : undefined}
         data-testid="subscription-state"
@@ -405,7 +476,7 @@ function SubscriptionBlock({
             {PLANS.map((plan) => (
               <li
                 key={plan.id}
-                className="flex flex-col gap-1 rounded-md border border-border-subtle p-3"
+                className="panel-row flex flex-col gap-1 p-3"
               >
                 <p className="font-semibold">{ptPT.plans.names[plan.id]}</p>
                 {billingOn && (
@@ -448,7 +519,10 @@ function DashboardSkeleton() {
 export default function DashboardPage() {
   return (
     <div className="mx-auto flex w-full max-w-300 flex-col gap-6 px-4 py-6 lg:px-8 lg:py-8">
-      <h2 className="type-heading text-32">{copy.title}</h2>
+      <div className="flex flex-col gap-1">
+        <h2 className="type-heading text-24 lg:text-32">{copy.title}</h2>
+        <p className="text-muted">{copy.subtitle}</p>
+      </div>
       <Suspense fallback={<DashboardSkeleton />}>
         <Content />
       </Suspense>
@@ -460,10 +534,20 @@ export default function DashboardPage() {
 async function Content() {
   const user = await requireUser();
   const supabase = await createClient();
-  const [{ data, error }, { data: profile }] = await Promise.all([
-    supabase.rpc("my_dashboard"),
-    supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle(),
-  ]);
+  // O dia de hoje em Lisboa começa no máximo 26 h antes de agora.
+  const since = new Date(new Date().getTime() - 26 * 3_600_000).toISOString();
+  const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow] =
+    await Promise.all([
+      supabase.rpc("my_dashboard"),
+      supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle(),
+      supabase.from("contacts").select("status, deal_value, do_not_contact"),
+      supabase
+        .from("contact_events")
+        .select("contact_id, kind, status, created_at")
+        .eq("kind", "status")
+        .gte("created_at", since),
+      supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
+    ]);
 
   // Vai para o ecrã de erro do painel, com "Tentar outra vez".
   if (error || !data) {
@@ -475,6 +559,12 @@ async function Content() {
   const now = new Date().getTime();
   const billingOn = parseBillingConfig(process.env) !== null;
   const isSample = getCompanyProvider({ userId: user.id })?.usesSampleData ?? false;
+  // Se estas leituras falharem, o bloco mostra zeros em vez de partir o painel.
+  const deals: Deals = {
+    contacts: (dealRows.data ?? []) as Deals["contacts"],
+    events: (todayEvents.data ?? []) as ContactEvent[],
+    goal: (goalRow.data?.daily_goal as number | undefined) ?? DEFAULT_DAILY_GOAL,
+  };
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -482,6 +572,7 @@ async function Content() {
       <UsageBlock data={dashboard} />
       <NextStepBlock data={dashboard} now={now} billingOn={billingOn} />
       <LeadsBlock data={dashboard} />
+      <DealsBlock deals={deals} now={now} />
       <SearchesBlock data={dashboard} isSample={isSample} />
       <DemosBlock data={dashboard} now={now} />
       <SubscriptionBlock

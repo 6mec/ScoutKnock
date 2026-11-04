@@ -17,11 +17,11 @@ export function DialogContent({
 }: ComponentProps<typeof DialogPrimitive.Content>) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-canvas/80 data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
+      <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-canvas/70 backdrop-blur-sm data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in" />
       <DialogPrimitive.Content
         className={cn(
           // shrink-0: com conteúdo alto, o diálogo faz scroll em vez de esmagar os botões.
-          "fixed inset-0 z-50 m-auto flex h-fit max-h-[85dvh] w-[calc(100%-32px)] max-w-md flex-col gap-4 overflow-y-auto rounded-lg border border-border bg-surface-raised p-6 shadow-float [&>*]:shrink-0",
+          "fixed inset-0 z-50 m-auto flex h-fit max-h-[85dvh] w-[calc(100%-32px)] max-w-md flex-col gap-4 overflow-y-auto rounded-lg border border-panel-border bg-surface p-6 shadow-float [&>*]:shrink-0",
           "focus-ring data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in",
           className,
         )}

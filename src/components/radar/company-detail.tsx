@@ -65,13 +65,13 @@ export function CompanyDetail({
         <CreateDemoButton company={company} isSample={isSample} />
         <SaveContactButton companyId={company.id} />
       </div>
-      <div className="rounded-lg border border-border bg-surface p-5">
+      <div className="panel p-5">
         <ScoreBreakdown opportunity={opportunity} />
         <div className="mt-3">
           <SiteCheckNote status={siteCheck} />
         </div>
       </div>
-      <div className="rounded-lg border border-border bg-surface p-5">
+      <div className="panel p-5">
         <h3 className="text-14 font-bold">{copy.details.title}</h3>
         <dl className="mt-3 flex flex-col gap-3">
           {rows.map(([label, value]) => (

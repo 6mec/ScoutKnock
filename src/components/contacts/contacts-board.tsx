@@ -20,6 +20,7 @@ import {
   type ContactStatus,
 } from "@/lib/contacts/rules";
 import { cn } from "@/lib/utils";
+import { StatusDot } from "./status-dot";
 import { StatusMenu } from "./status-menu";
 
 const { contacts: copy } = ptPT;
@@ -46,6 +47,17 @@ export function formatDay(day: string) {
   return dateFormat.format(new Date(`${day}T00:00:00Z`));
 }
 
+const money = new Intl.NumberFormat("pt-PT", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 2,
+  minimumFractionDigits: 0,
+});
+
+export function formatMoney(value: number) {
+  return money.format(value);
+}
+
 function CardContent({
   contact,
   onOpen,
@@ -62,14 +74,24 @@ function CardContent({
           <button
             type="button"
             onClick={() => onOpen(contact.id)}
-            className="focus-ring min-h-11 min-w-0 flex-1 rounded-sm text-left font-semibold underline-offset-2 hovered:underline"
+            className="focus-ring min-h-11 min-w-0 flex-1 rounded-sm text-left text-15 leading-snug font-semibold underline-offset-2 hovered:underline"
           >
             {contact.label}
           </button>
         ) : (
-          <p className="min-h-11 min-w-0 flex-1 font-semibold">{contact.label}</p>
+          <p className="min-h-11 min-w-0 flex-1 text-15 leading-snug font-semibold">{contact.label}</p>
         )}
       </div>
+      {(contact.deal_value !== null || contact.do_not_contact) && (
+        <p className="flex flex-wrap gap-x-3 text-13 text-muted">
+          {contact.deal_value !== null && (
+            <span className="type-number font-medium text-foreground">
+              {formatMoney(contact.deal_value)}
+            </span>
+          )}
+          {contact.do_not_contact && <span>{copy.crm.doNotContactBadge}</span>}
+        </p>
+      )}
       {contact.next_action && (
         <p className="text-13">
           {contact.next_action}
@@ -107,7 +129,7 @@ function Card({
       {...listeners}
       data-testid="contact-card"
       className={cn(
-        "flex cursor-grab flex-col gap-2 rounded-md border border-border bg-surface p-3 touch-manipulation select-none",
+        "flex cursor-grab flex-col gap-1.5 rounded-md border border-panel-border bg-surface px-3 pt-1 pb-3 shadow-[inset_0_1px_0_var(--panel-highlight),0_1px_2px_rgb(0_0_0/0.06)] transition-colors duration-(--duration-fast) touch-manipulation select-none hovered:border-border-strong",
         isDragging && "opacity-40",
       )}
     >
@@ -133,6 +155,7 @@ function Column({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   const headingId = `contacts-column-${status}`;
+  const total = contacts.reduce((sum, contact) => sum + Number(contact.deal_value ?? 0), 0);
 
   return (
     <section
@@ -140,17 +163,21 @@ function Column({
       aria-labelledby={headingId}
       data-testid={`column-${status}`}
       className={cn(
-        "flex w-68 shrink-0 flex-col gap-3 rounded-lg border border-border-subtle bg-background p-3 transition-colors duration-(--duration-fast) ease-out",
+        "flex w-68 shrink-0 flex-col gap-3 rounded-lg border border-border-subtle bg-surface-raised/40 p-2.5 transition-colors duration-(--duration-fast) ease-out",
         isOver && "border-accent",
       )}
     >
-      <div className="flex items-center justify-between gap-2 px-1">
-        <h2 id={headingId} className="text-14 font-semibold">
+      <div className="flex items-center justify-between gap-2 px-1.5 pt-1">
+        <h2 id={headingId} className="flex items-center gap-2 text-13 font-semibold">
+          <StatusDot status={status} />
           {copy.statuses[status]}
         </h2>
-        <span className="type-number text-12 text-muted">{contacts.length}</span>
+        <span className="type-number rounded-pill bg-surface-raised px-2 py-0.5 text-12 text-muted">
+          {contacts.length}
+          {total > 0 && ` · ${formatMoney(total)}`}
+        </span>
       </div>
-      <ul className="flex min-h-24 flex-1 flex-col gap-2">
+      <ul className="flex min-h-20 flex-1 flex-col gap-2">
         {contacts.map((contact) => (
           <Card
             key={contact.id}

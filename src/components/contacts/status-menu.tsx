@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ptPT } from "@/i18n/pt-PT";
 import { CONTACT_STATUSES, type Contact, type ContactStatus } from "@/lib/contacts/rules";
+import { StatusDot } from "./status-dot";
 
 const { contacts: copy } = ptPT;
 
@@ -42,10 +43,12 @@ export function StatusMenu({
           ref={triggerRef}
           data-status-menu={contact.id}
           variant="secondary"
+          size="sm"
           aria-label={`${copy.changeStatus}: ${contact.label}, ${copy.statuses[contact.status]}`}
         >
-          {copy.changeStatus}
-          <ChevronDown aria-hidden="true" size={14} strokeWidth={1.75} />
+          <StatusDot status={contact.status} />
+          {copy.statuses[contact.status]}
+          <ChevronDown aria-hidden="true" size={14} strokeWidth={1.75} className="text-muted" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" onCloseAutoFocus={restoreFocus}>
@@ -60,6 +63,7 @@ export function StatusMenu({
                 <Check aria-hidden="true" size={14} strokeWidth={2} />
               )}
             </span>
+            <StatusDot status={status} />
             {copy.statuses[status]}
           </DropdownMenuItem>
         ))}

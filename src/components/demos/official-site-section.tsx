@@ -173,7 +173,7 @@ function LiveSite({
         </a>
       )}
       {site.status === "past_due" && (
-        <div role="alert" className="flex flex-col gap-3 rounded-md border border-amber p-3 text-14 text-amber">
+        <div role="alert" className="flex flex-col gap-3 rounded-md border border-amber/30 bg-amber-soft p-3 text-14 text-amber">
           <p>{copy.paymentProblem}</p>
           <form action={openBillingPortal}>
             <Button type="submit" variant="secondary">
@@ -261,7 +261,7 @@ export function OfficialSiteSection({
       ) : (
         <>
           {site?.status === "ended" && site.name_reserved_until && (
-            <p role="status" className="rounded-md border border-amber p-3 text-14 text-amber">
+            <p role="status" className="rounded-md border border-amber/30 bg-amber-soft p-3 text-14 text-amber">
               {copy.ended(site.name, formatDate(site.name_reserved_until))}
             </p>
           )}

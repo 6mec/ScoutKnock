@@ -25,7 +25,7 @@ const TYPING_INTERVAL_MS = 28;
 
 function FiltersScreen() {
   return (
-    <div className="type-number flex flex-col gap-2 text-13">
+    <div className="type-mono flex flex-col gap-2 text-13">
       {screens.filters.map((filter, index) => (
         <Reveal key={filter.label} index={index}>
           <div className="flex justify-between gap-4 rounded-sm border border-border bg-background px-3 py-2.5">
@@ -49,7 +49,7 @@ function ScoreScreen({ animated }: { animated: boolean }) {
 
   return (
     <div className="flex flex-col gap-3 rounded-sm border border-border bg-background p-3">
-      <div className="type-number flex justify-between text-13">
+      <div className="type-mono flex justify-between text-13">
         <span className="text-muted">{copy.example.company}</span>
         <span className="font-semibold text-accent">
           <span className="sr-only">{score}</span>
@@ -96,7 +96,7 @@ function ProposeScreen({ animated }: { animated: boolean }) {
   return (
     <div className="flex flex-col gap-3">
       <div className="rounded-sm border border-border bg-background p-3 text-13">
-        <p className="type-number mb-1.5 text-12 text-amber">
+        <p className="type-mono mb-1.5 text-12 text-amber">
           {screens.draftBadge}
         </p>
         <p className="min-h-10 leading-normal text-muted">
@@ -146,7 +146,7 @@ function ScrollStory() {
               >
                 <span
                   className={cn(
-                    "type-number text-24 transition-colors duration-(--duration-fast)",
+                    "type-mono text-24 transition-colors duration-(--duration-fast)",
                     index === active ? "text-accent" : "text-muted",
                   )}
                 >
@@ -171,7 +171,7 @@ function ScrollStory() {
             className="flex min-h-96 flex-col gap-4 rounded-lg border border-border bg-surface p-7"
           >
             <div className="flex items-center justify-between gap-4">
-              <span className="type-number text-13 text-muted">
+              <span className="type-mono text-13 text-muted">
                 0{active + 1} · {steps[active].title}
               </span>
               <Badge variant="amber">{screens.badge}</Badge>
@@ -203,7 +203,7 @@ function StepCards() {
         <li key={step.title}>
           <Reveal onScroll className="h-full">
             <div className="flex h-full flex-col gap-4 rounded-lg border border-border bg-surface p-6">
-              <span className="type-number text-24 text-muted">
+              <span className="type-mono text-24 text-muted">
                 0{index + 1}
               </span>
               <h3 className="type-heading text-24">{step.title}</h3>

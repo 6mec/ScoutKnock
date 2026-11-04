@@ -2,17 +2,15 @@
 
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { useState } from "react";
-import { Field, Input } from "@/components/ui/field";
 import { ptPT } from "@/i18n/pt-PT";
 import {
-  searchContacts,
   sortContacts,
   type Contact,
   type ContactSortKey,
   type ContactStatus,
   type SortDirection,
 } from "@/lib/contacts/rules";
-import { formatDay } from "./contacts-board";
+import { formatDay, formatMoney } from "./contacts-board";
 import { StatusMenu } from "./status-menu";
 
 const { contacts: copy } = ptPT;
@@ -20,6 +18,7 @@ const COLUMNS: { key: ContactSortKey; label: string }[] = [
   { key: "name", label: copy.table.company },
   { key: "status", label: copy.table.status },
   { key: "nextAction", label: copy.table.nextAction },
+  { key: "value", label: copy.table.value },
 ];
 const ARIA_SORT = { asc: "ascending", desc: "descending" } as const;
 
@@ -32,11 +31,10 @@ export function ContactsTable({
   onOpen: (id: string) => void;
   onStatusChange: (id: string, status: ContactStatus) => void;
 }) {
-  const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<ContactSortKey>("name");
   const [direction, setDirection] = useState<SortDirection>("asc");
   const SortIcon = direction === "asc" ? ArrowUp : ArrowDown;
-  const rows = sortContacts(searchContacts(contacts, search), sortKey, direction);
+  const rows = sortContacts(contacts, sortKey, direction);
 
   function sortBy(key: ContactSortKey) {
     if (key === sortKey) {
@@ -49,23 +47,13 @@ export function ContactsTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <Field label={copy.table.search} className="max-w-md">
-        <Input
-          type="search"
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-        />
-      </Field>
-      {rows.length === 0 ? (
-        <p role="status" className="text-muted">
-          {copy.table.noMatches}
-        </p>
-      ) : (
+      {/* Sem linhas, o ecrã dos contactos já diz porquê (filtro ou pesquisa). */}
+      {rows.length === 0 ? null : (
         <div
           tabIndex={0}
           role="region"
           aria-label={copy.views.table}
-          className="focus-ring overflow-x-auto rounded-lg border border-border bg-surface"
+          className="focus-ring overflow-x-auto panel"
         >
           <table className="w-full min-w-180 text-left text-14">
             <thead className="border-b border-border">
@@ -102,12 +90,14 @@ export function ContactsTable({
                     >
                       {contact.label}
                     </button>
+                    {contact.do_not_contact && (
+                      <span className="block px-3 text-13 font-normal text-muted">
+                        {copy.crm.doNotContactBadge}
+                      </span>
+                    )}
                   </th>
                   <td className="px-4 py-2">
-                    <div className="flex flex-col items-start gap-1">
-                      <span>{copy.statuses[contact.status]}</span>
-                      <StatusMenu contact={contact} onChange={onStatusChange} />
-                    </div>
+                    <StatusMenu contact={contact} onChange={onStatusChange} />
                   </td>
                   <td className="px-4 py-2">
                     {contact.next_action ?? "–"}
@@ -116,6 +106,9 @@ export function ContactsTable({
                         {formatDay(contact.next_action_at)}
                       </span>
                     )}
+                  </td>
+                  <td className="type-number px-4 py-2">
+                    {contact.deal_value === null ? "–" : formatMoney(contact.deal_value)}
                   </td>
                 </tr>
               ))}

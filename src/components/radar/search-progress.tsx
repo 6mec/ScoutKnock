@@ -26,7 +26,7 @@ export function SearchProgress({
   const active = STEPS.filter((step) => steps[step] === "active").at(-1);
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6">
+    <div className="flex flex-col gap-4 panel p-6">
       <p aria-live="polite" className="sr-only">
         {active ? copy.steps[active] : ""}
         {companies.length > 0 && `. ${countLabel(companies.length)}`}

@@ -35,6 +35,8 @@ function contact(values: Partial<Contact>): Contact {
     manual_website: null,
     manual_reviews: null,
     manual_hours: null,
+    deal_value: null,
+    do_not_contact: false,
     ...values,
   };
 }
@@ -45,6 +47,8 @@ const details = {
   nextAction: " Ligar ",
   nextActionAt: "2026-11-20",
   notes: "",
+  dealValue: "",
+  doNotContact: false,
 };
 
 describe("parseContactDetails", () => {
@@ -55,7 +59,15 @@ describe("parseContactDetails", () => {
       nextAction: "Ligar",
       nextActionAt: "2026-11-20",
       notes: null,
+      dealValue: null,
+      doNotContact: false,
     });
+  });
+
+  it("lê o valor da proposta e o 'não contactar'", () => {
+    expect(
+      parseContactDetails({ ...details, dealValue: "1.200,50", doNotContact: true }),
+    ).toMatchObject({ dealValue: 1200.5, doNotContact: true });
   });
 
   it("aceita a data vazia", () => {
@@ -72,6 +84,8 @@ describe("parseContactDetails", () => {
     { ...details, label: "  " },
     { ...details, label: "a".repeat(MAX_LABEL + 1) },
     { ...details, confirmedContact: "a".repeat(MAX_CONFIRMED_CONTACT + 1) },
+    { ...details, dealValue: "abc" },
+    { ...details, doNotContact: "sim" },
   ])("rejeita %j", (value) => {
     expect(parseContactDetails(value)).toBeNull();
   });
@@ -116,6 +130,15 @@ describe("searchContacts", () => {
 
   it("procura também nas notas", () => {
     expect(searchContacts(list, "lisboa").map(({ id }) => id)).toEqual(["1"]);
+  });
+
+  it("procura pelo telefone, com ou sem espaços", () => {
+    const withPhones = [
+      contact({ id: "1", manual_phone: "912 345 678" }),
+      contact({ id: "2", confirmed_contact: "+351 220 000 111" }),
+    ];
+    expect(searchContacts(withPhones, "912345").map(({ id }) => id)).toEqual(["1"]);
+    expect(searchContacts(withPhones, "220 000").map(({ id }) => id)).toEqual(["2"]);
   });
 
   it("sem pesquisa devolve todos", () => {

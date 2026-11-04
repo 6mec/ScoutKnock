@@ -100,7 +100,7 @@ async function Content({
       {usage && (
         <section
           aria-label={copy.usageLabel}
-          className="flex flex-col gap-4 rounded-lg border border-border bg-surface p-6"
+          className="flex flex-col gap-4 panel p-6"
         >
           <p className="font-semibold">
             {usage.status === "trialing" && usage.trial_end
@@ -132,7 +132,7 @@ async function Content({
           <li
             key={plan.id}
             className={cn(
-              "flex flex-col gap-5 rounded-lg border border-border bg-surface p-6",
+              "flex flex-col gap-5 panel p-6",
               plan.recommended && "border-accent",
             )}
           >

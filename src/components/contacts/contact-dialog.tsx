@@ -12,11 +12,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { SiteCheckNote } from "@/components/radar/site-check-note";
+import { Switch } from "@/components/ui/switch";
 import {
+  getContactHistory,
   removeContact,
   saveContactDetails,
   saveManualCompany,
 } from "@/lib/contacts/actions";
+import type { ContactEvent } from "@/lib/contacts/crm";
 import type {
   ContactCompany,
   ContactCompanyEvent,
@@ -36,6 +39,7 @@ import {
   MAX_LABEL,
   MAX_NEXT_ACTION,
   MAX_NOTES,
+  parseDealValue,
   type Contact,
   type ContactDetails,
   type ContactStatus,
@@ -55,6 +59,73 @@ const dateTimeFormat = new Intl.DateTimeFormat("pt-PT", {
   dateStyle: "medium",
   timeZone: "Europe/Lisbon",
 });
+const historyFormat = new Intl.DateTimeFormat("pt-PT", {
+  dateStyle: "medium",
+  timeStyle: "short",
+  timeZone: "Europe/Lisbon",
+});
+
+// O valor guardado volta ao campo escrito à portuguesa ("1200,5").
+function dealText(value: number | null) {
+  return value === null ? "" : String(value).replace(".", ",");
+}
+
+// Lido da base de dados ao abrir: nunca é uma chamada paga. O estado muda o
+// histórico, por isso volta a ler quando muda.
+function HistorySection({ contactId, status }: { contactId: string; status: ContactStatus }) {
+  const [events, setEvents] = useState<ContactEvent[] | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    getContactHistory(contactId).then((result) => {
+      if (!active) return;
+      if (result.ok) setEvents(result.events);
+      else setFailed(true);
+    });
+    return () => {
+      active = false;
+    };
+  }, [contactId, status]);
+
+  return (
+    <section
+      aria-labelledby="contact-history"
+      data-testid="contact-history"
+      className="flex flex-col gap-2"
+    >
+      <h3 id="contact-history" className="text-13 text-muted">
+        {copy.crm.historyTitle}
+      </h3>
+      {failed ? (
+        <p className="text-14 text-muted">{copy.crm.historyError}</p>
+      ) : events === null ? (
+        <Skeleton className="h-12 rounded-md" />
+      ) : events.length === 0 ? (
+        <p className="text-14 text-muted">{copy.crm.historyEmpty}</p>
+      ) : (
+        <ol className="flex flex-col gap-2 border-l border-border pl-4">
+          {events.map((event, index) => (
+            <li key={`${event.created_at}-${index}`} className="relative text-14">
+              <span
+                aria-hidden="true"
+                className="absolute top-1.5 -left-[21px] size-2.5 rounded-pill border-2 border-surface bg-border-strong"
+              />
+              <span>
+                {event.kind === "created"
+                  ? copy.crm.historyCreated
+                  : copy.crm.historyStatus(copy.statuses[event.status])}
+              </span>
+              <span className="type-number block text-13 text-muted">
+                {historyFormat.format(new Date(event.created_at))}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </section>
+  );
+}
 
 function CompanySection({
   company,
@@ -240,6 +311,11 @@ export function ContactDialog({
   const [nextAction, setNextAction] = useState(contact.next_action ?? "");
   const [nextActionAt, setNextActionAt] = useState(contact.next_action_at ?? "");
   const [notes, setNotes] = useState(contact.notes ?? "");
+  const [dealValue, setDealValue] = useState(dealText(contact.deal_value));
+  const [doNotContact, setDoNotContact] = useState(contact.do_not_contact);
+  const dealInvalid = parseDealValue(dealValue) === undefined;
+  // Os botões de mensagem seguem o que está guardado, não o interruptor por guardar.
+  const blocked = contact.do_not_contact;
   const [company, setCompany] = useState<ContactCompany | null>(null);
   const [confirmingRemoval, setConfirmingRemoval] = useState(false);
   const [saving, startSaving] = useTransition();
@@ -300,6 +376,7 @@ export function ContactDialog({
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
+    if (dealInvalid) return;
     startSaving(async () => {
       const savedLabel = isManual ? savedManual.name : label;
       const { ok } = await saveContactDetails(contact.id, {
@@ -308,6 +385,8 @@ export function ContactDialog({
         nextAction,
         nextActionAt,
         notes,
+        dealValue,
+        doNotContact,
       });
 
       if (ok) {
@@ -317,6 +396,8 @@ export function ContactDialog({
           nextAction: nextAction.trim() || null,
           nextActionAt: nextActionAt || null,
           notes: notes.trim() || null,
+          dealValue: parseDealValue(dealValue) ?? null,
+          doNotContact,
         });
         toast.success(copy.saved);
       } else {
@@ -338,11 +419,15 @@ export function ContactDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent aria-describedby={undefined} className="max-w-lg">
-        <DialogTitle>{contact.label}</DialogTitle>
-        <div className="flex flex-wrap items-center justify-end gap-3">
+      <DialogContent aria-describedby={undefined} className="max-w-lg gap-5 lg:max-w-240">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pr-10">
+          <DialogTitle className="pr-0">{contact.label}</DialogTitle>
           <StatusMenu contact={contact} onChange={onStatusChange} />
+          {contact.do_not_contact && <Badge variant="outline">{copy.crm.doNotContactBadge}</Badge>}
         </div>
+        {/* No computador: a empresa à esquerda, o acompanhamento à direita. */}
+        <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
+        <div className="flex min-w-0 flex-col gap-4">
         {isManual ? (
           <>
             <ManualCompanySection
@@ -353,12 +438,14 @@ export function ContactDialog({
               onSaved={(saved) => onManualSaved(contact.id, saved)}
             />
             <div className="flex flex-wrap gap-3">
-              <GenerateMessageButton
-                source={{ kind: "contact", id: contact.id }}
-                companyName={savedManual.name}
-                phone={savedManual.phone}
-                variant="secondary"
-              />
+              {!blocked && (
+                <GenerateMessageButton
+                  source={{ kind: "contact", id: contact.id }}
+                  companyName={savedManual.name}
+                  phone={savedManual.phone}
+                  variant="secondary"
+                />
+              )}
               <CreateDemoButton
                 company={companyFromManual(contact.company_id, savedManual)}
                 isSample={false}
@@ -369,7 +456,7 @@ export function ContactDialog({
         ) : (
           <>
             <CompanySection company={company} siteCheck={siteCheck} />
-            {found && (
+            {found && !blocked && (
               <GenerateMessageButton
                 source={{ kind: "contact", id: contact.id }}
                 companyName={found.name}
@@ -379,10 +466,18 @@ export function ContactDialog({
             )}
           </>
         )}
-        <FollowUpButton
-          contact={contact}
-          phone={isManual ? savedManual.phone : found?.phone}
-        />
+        {blocked ? (
+          <p role="status" className="rounded-md border border-border p-3 text-14 text-muted">
+            {copy.crm.doNotContactNote}
+          </p>
+        ) : (
+          <FollowUpButton
+            contact={contact}
+            phone={isManual ? savedManual.phone : found?.phone}
+          />
+        )}
+        </div>
+        <div className="flex min-w-0 flex-col gap-4 lg:rounded-lg lg:border lg:border-border-subtle lg:bg-surface-raised/30 lg:p-4">
         <dl>
           <dt className="text-13 text-muted">{copy.details.lastContact}</dt>
           <dd>
@@ -430,10 +525,35 @@ export function ContactDialog({
               onChange={(event) => setNotes(event.target.value)}
             />
           </Field>
+          <Field
+            label={copy.crm.dealValue}
+            help={copy.crm.dealValueHelp}
+            error={dealInvalid ? copy.crm.dealValueInvalid : undefined}
+            className="max-w-60"
+          >
+            <Input
+              inputMode="decimal"
+              value={dealValue}
+              placeholder="0"
+              onChange={(event) => setDealValue(event.target.value)}
+            />
+          </Field>
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3">
+            <label htmlFor={`dnc-${contact.id}`} className="flex flex-col gap-1">
+              <span className="text-14 font-medium">{copy.crm.doNotContact}</span>
+              <span className="text-13 text-muted">{copy.crm.doNotContactHelp}</span>
+            </label>
+            <Switch
+              id={`dnc-${contact.id}`}
+              checked={doNotContact}
+              onCheckedChange={setDoNotContact}
+            />
+          </div>
           <Button type="submit" loading={saving} loadingText={copy.saving}>
             {copy.save}
           </Button>
         </form>
+        <HistorySection contactId={contact.id} status={contact.status} />
         {confirmingRemoval ? (
           <div className="flex flex-col gap-3 rounded-md border border-danger p-4">
             <p>{copy.removeWarning}</p>
@@ -460,6 +580,8 @@ export function ContactDialog({
             {copy.remove}
           </Button>
         )}
+        </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

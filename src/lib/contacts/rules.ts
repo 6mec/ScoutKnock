@@ -12,6 +12,7 @@ export const MAX_LABEL = 120;
 export const MAX_CONFIRMED_CONTACT = 200;
 export const MAX_NEXT_ACTION = 200;
 export const MAX_NOTES = 2000;
+export const MAX_DEAL_VALUE = 1_000_000;
 
 // Só o place_id e o que o freelancer escreve. Nome, morada, telefone, site e nota
 // do Google não se guardam: vêm na hora, ao abrir o contacto. Os campos manual_*
@@ -35,6 +36,8 @@ export type Contact = {
   manual_website: string | null;
   manual_reviews: number | null;
   manual_hours: boolean | null;
+  deal_value: number | null;
+  do_not_contact: boolean;
 };
 
 export type ContactDetails = {
@@ -43,9 +46,11 @@ export type ContactDetails = {
   nextAction: string | null;
   nextActionAt: string | null;
   notes: string | null;
+  dealValue: number | null;
+  doNotContact: boolean;
 };
 
-export type ContactSortKey = "name" | "status" | "nextAction";
+export type ContactSortKey = "name" | "status" | "nextAction" | "value";
 export type SortDirection = "asc" | "desc";
 
 export function isContactStatus(value: unknown): value is ContactStatus {
@@ -104,15 +109,18 @@ export function parseCompanyId(value: unknown) {
 export function parseContactDetails(value: unknown): ContactDetails | null {
   if (typeof value !== "object" || value === null) return null;
 
-  const { label, confirmedContact, nextAction, nextActionAt, notes } =
+  const { label, confirmedContact, nextAction, nextActionAt, notes, dealValue, doNotContact } =
     value as Record<string, unknown>;
   const parsedLabel = parseContactLabel(label);
+  const deal = parseDealValue(dealValue);
   if (
     !parsedLabel ||
     typeof confirmedContact !== "string" ||
     typeof nextAction !== "string" ||
     typeof nextActionAt !== "string" ||
-    typeof notes !== "string"
+    typeof notes !== "string" ||
+    typeof doNotContact !== "boolean" ||
+    deal === undefined
   ) {
     return null;
   }
@@ -136,7 +144,32 @@ export function parseContactDetails(value: unknown): ContactDetails | null {
     nextAction: action || null,
     nextActionAt: nextActionAt || null,
     notes: text || null,
+    dealValue: deal,
+    doNotContact,
   };
+}
+
+// Valor em euros escrito à portuguesa ("1.200,50", "1200.5", "300 €"). Vazio é null;
+// inválido é undefined.
+export function parseDealValue(value: unknown): number | null | undefined {
+  if (value === null || value === "") return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) && value >= 0 && value <= MAX_DEAL_VALUE
+      ? Math.round(value * 100) / 100
+      : undefined;
+  }
+  if (typeof value !== "string") return undefined;
+
+  let text = value.replace(/€|\s/g, "");
+  if (!text) return null;
+  if (text.includes(",")) {
+    text = text.replace(/\./g, "").replace(",", ".");
+  } else if (/^\d{1,3}(\.\d{3})+$/.test(text)) {
+    text = text.replace(/\./g, "");
+  }
+  if (!/^\d+(\.\d{1,2})?$/.test(text)) return undefined;
+
+  return parseDealValue(Number(text));
 }
 
 function normalize(text: string) {
@@ -150,8 +183,15 @@ export function searchContacts(contacts: Contact[], search: string) {
   const wanted = normalize(search.trim());
   if (!wanted) return contacts;
 
-  return contacts.filter((contact) =>
-    normalize(`${contact.label} ${contact.notes ?? ""}`).includes(wanted),
+  const digits = search.replace(/\D/g, "");
+
+  return contacts.filter(
+    (contact) =>
+      normalize(`${contact.label} ${contact.notes ?? ""}`).includes(wanted) ||
+      (digits.length >= 3 &&
+        `${contact.manual_phone ?? ""} ${contact.confirmed_contact ?? ""}`
+          .replace(/\D/g, "")
+          .includes(digits)),
   );
 }
 
@@ -176,6 +216,10 @@ export function sortContacts(
         if (!a.next_action_at) return b.next_action_at ? 1 : 0;
         if (!b.next_action_at) return -1;
         return sign * a.next_action_at.localeCompare(b.next_action_at);
+      case "value":
+        if (a.deal_value === null) return b.deal_value === null ? 0 : 1;
+        if (b.deal_value === null) return -1;
+        return sign * (a.deal_value - b.deal_value);
     }
   });
 }

@@ -43,7 +43,7 @@ export function HeroRadar() {
         {hero.filters.map((filter) => (
           <span
             key={filter}
-            className="type-number rounded-sm border border-border bg-background px-2.5 py-1 text-12"
+            className="type-mono rounded-sm border border-border bg-background px-2.5 py-1 text-12"
           >
             {filter}
           </span>
@@ -128,7 +128,7 @@ export function HeroRadar() {
             >
               <span
                 className={cn(
-                  "type-number inline-flex h-8 min-w-10 items-center justify-center rounded-sm px-2 text-18 font-semibold",
+                  "type-mono inline-flex h-8 min-w-10 items-center justify-center rounded-sm px-2 text-18 font-semibold",
                   chipClasses[opportunity.level],
                 )}
               >
@@ -146,7 +146,7 @@ export function HeroRadar() {
           ))}
         </ul>
       </div>
-      <p className="type-number border-t border-border px-4 py-2.5 text-12 text-muted">
+      <p className="type-mono border-t border-border px-4 py-2.5 text-12 text-muted">
         {hero.exampleNote}
       </p>
     </div>

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useReducer, useRef, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
+import { Callout } from "@/components/ui/callout";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ptPT } from "@/i18n/pt-PT";
 import type { Market } from "@/lib/markets";
@@ -251,9 +252,7 @@ function RadarSearch({
     <div className="mx-auto grid w-full max-w-300 flex-1 items-center gap-8 px-4 py-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:px-8">
       <div key={state.phase} className="flex animate-fade-in flex-col gap-4">
         {isSample && (
-          <p className="rounded-md border border-amber px-4 py-3 text-14 text-amber">
-            {copy.sampleNotice}
-          </p>
+          <Callout tone="amber">{copy.sampleNotice}</Callout>
         )}
         {state.phase === "idle" && (
           <RadarForm
@@ -279,12 +278,9 @@ function RadarSearch({
           !found &&
           isSample &&
           !hasSampleCompanies(values.locality) && (
-            <p
-              role="status"
-              className="rounded-md border border-amber px-4 py-3 text-14 text-amber"
-            >
+            <Callout role="status" tone="amber">
               {copy.sampleOnlyIn}
-            </p>
+            </Callout>
           )}
         {state.phase === "results" && !found && (
           <EmptyState
@@ -300,7 +296,7 @@ function RadarSearch({
         {state.phase === "error" && state.error && (
           <div
             role="alert"
-            className="flex flex-col items-start gap-4 rounded-lg border border-border bg-surface p-6"
+            className="flex flex-col items-start gap-4 panel p-6"
           >
             <p className="type-body">{copy.errors[state.error]}</p>
             <div className="flex flex-wrap gap-3">
