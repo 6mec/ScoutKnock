@@ -118,16 +118,12 @@ export function PortfolioEditor({
   }
 
   return (
-    <div className="grid w-full gap-6 px-4 py-6 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:px-8">
+    <div className="grid w-full gap-6 px-4 pt-4 pb-6 lg:grid-cols-[minmax(0,460px)_minmax(0,1fr)] lg:px-8">
       <form onSubmit={handleSubmit} noValidate className="flex min-w-0 flex-col gap-4">
         <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <h2 className="type-heading text-24">{copy.title}</h2>
-            <Badge variant={saved.published ? "accent" : "outline"}>
-              {saved.published ? copy.published : copy.draft}
-            </Badge>
-          </div>
-          <p className="text-14 text-muted">{copy.subtitle}</p>
+          <Badge variant={saved.published ? "accent" : "outline"} className="self-start">
+            {saved.published ? copy.published : copy.draft}
+          </Badge>
           {saved.slug && saved.published && (
             <div className="flex flex-wrap gap-2 pt-1">
               <Button asChild variant="secondary" size="sm">

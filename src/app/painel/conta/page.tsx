@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageIntro } from "@/components/app/page-intro";
 import { Suspense } from "react";
 import { AccountScreen } from "@/components/account/account-screen";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,9 +14,16 @@ export const metadata: Metadata = {
 
 export default function AccountPage() {
   return (
-    <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
-      <Content />
-    </Suspense>
+    <>
+      <PageIntro
+        title={ptPT.pages.account.title}
+        description={ptPT.pages.account.description}
+        className="mx-auto w-full max-w-2xl pt-8"
+      />
+      <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
+        <Content />
+      </Suspense>
+    </>
   );
 }
 

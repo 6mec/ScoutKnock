@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { PageIntro } from "@/components/app/page-intro";
 import { PortfolioEditor, type PortfolioFormValues } from "@/components/portfolio/portfolio-editor";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
@@ -15,9 +16,12 @@ export const metadata: Metadata = {
 
 export default function PortfolioPage() {
   return (
-    <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
-      <Content />
-    </Suspense>
+    <>
+      <PageIntro title={ptPT.portfolio.title} description={ptPT.portfolio.subtitle} />
+      <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
+        <Content />
+      </Suspense>
+    </>
   );
 }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageIntro } from "@/components/app/page-intro";
 import Link from "next/link";
 import { Suspense } from "react";
 import { DemoView } from "@/components/demos/demo-view";
@@ -24,7 +25,12 @@ const dateFormat = new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium" });
 
 export default function DemosPage() {
   return (
-    <div className="mx-auto w-full max-w-300 px-4 py-8 lg:px-8">
+    <div className="mx-auto flex w-full max-w-300 flex-col gap-6 px-4 py-8 lg:px-8">
+      <PageIntro
+        title={ptPT.pages.demos.title}
+        description={ptPT.pages.demos.description}
+        className="p-0 lg:p-0"
+      />
       <Suspense fallback={<Skeleton className="h-72 w-full rounded-lg" />}>
         <Gallery />
       </Suspense>

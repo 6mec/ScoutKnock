@@ -173,7 +173,7 @@ export function ContactsScreen({
 
   return (
     <PortfolioLinkContext value={portfolioUrl}>
-    <div className="flex w-full min-w-0 flex-col gap-4 px-4 py-6 lg:px-8">
+    <div className="flex w-full min-w-0 flex-col gap-4 px-4 pt-4 pb-6 lg:px-8">
       <CrmToday
         contacts={contacts}
         events={events}

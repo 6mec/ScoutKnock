@@ -1,7 +1,6 @@
 "use client";
 
-import { ArrowLeft, Plus, Printer, Save, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { Plus, Printer, Save, Trash2 } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Textarea } from "@/components/ui/field";
@@ -198,18 +197,9 @@ export function ProposalEditor({
   }
 
   return (
-    <div className="grid w-full gap-6 px-4 py-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:px-8 print:block print:p-0">
+    <div className="grid w-full gap-6 px-4 pt-4 pb-6 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:px-8 print:block print:p-0">
       <div className="flex min-w-0 flex-col gap-4 print:hidden">
-        <Button asChild variant="ghost" size="sm" className="self-start">
-          <Link href="/painel/contactos">
-            <ArrowLeft aria-hidden="true" size={16} strokeWidth={1.75} />
-            {copy.back}
-          </Link>
-        </Button>
-        <div className="flex flex-col gap-1">
-          <h2 className="type-heading text-24">{copy.pageTitle(clientName)}</h2>
-          <p className="text-14 text-muted">{copy.intro}</p>
-        </div>
+        <h3 className="text-15 font-semibold">{copy.pageTitle(clientName)}</h3>
 
         <section aria-labelledby="proposta-dados" className="panel flex flex-col gap-4 p-5">
           <h3 id="proposta-dados" className="text-14 font-semibold">{copy.you}</h3>

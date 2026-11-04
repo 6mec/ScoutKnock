@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { PageIntro } from "@/components/app/page-intro";
 import { ContactsScreen } from "@/components/contacts/contacts-screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
@@ -22,9 +23,12 @@ export default function ContactsPage({
   searchParams,
 }: PageProps<"/painel/contactos">) {
   return (
-    <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
-      <Content searchParams={searchParams} />
-    </Suspense>
+    <>
+      <PageIntro title={ptPT.contacts.pageTitle} description={ptPT.contacts.pageSubtitle} />
+      <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
+        <Content searchParams={searchParams} />
+      </Suspense>
+    </>
   );
 }
 

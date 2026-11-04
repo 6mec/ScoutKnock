@@ -846,6 +846,8 @@ export const ptPT = {
   },
   contacts: {
     empty: "Ainda não tens contactos. Guarda uma empresa no Radar para começares.",
+    pageTitle: "O teu funil",
+    pageSubtitle: "Quem chamaste, quem respondeu e quem precisa de retorno.",
     saveToContacts: "Guardar nos contactos",
     savedToContacts: "Guardado nos contactos",
     saveDialog: {
@@ -1056,6 +1058,20 @@ export const ptPT = {
     },
     errors: {
       generic: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",
+    },
+  },
+  pages: {
+    demos: {
+      title: "Os teus sites demo",
+      description: "As propostas de site que criaste para cada empresa. Uma demo que não seja aceite é apagada ao fim de 30 dias.",
+    },
+    plans: {
+      title: "Planos e consumo",
+      description: "O que cada pack inclui por mês e o que já usaste neste período.",
+    },
+    account: {
+      title: "A tua conta",
+      description: "O teu nome, o tema, a palavra-passe e o apagamento da conta.",
     },
   },
   portfolio: {

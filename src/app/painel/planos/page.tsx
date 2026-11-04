@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageIntro } from "@/components/app/page-intro";
 import { Suspense } from "react";
 import { PlanSubmitButton } from "@/components/plans/plan-submit-button";
 import { Badge } from "@/components/ui/badge";
@@ -44,9 +45,16 @@ export const metadata: Metadata = {
 
 export default function PlansPage({ searchParams }: PageProps<"/painel/planos">) {
   return (
-    <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
-      <Content searchParams={searchParams} />
-    </Suspense>
+    <>
+      <PageIntro
+        title={ptPT.pages.plans.title}
+        description={ptPT.pages.plans.description}
+        className="mx-auto w-full max-w-300 pt-8"
+      />
+      <Suspense fallback={<Skeleton className="m-4 h-96 rounded-lg lg:m-8" />}>
+        <Content searchParams={searchParams} />
+      </Suspense>
+    </>
   );
 }
 
@@ -76,7 +84,7 @@ async function Content({
   const subscribedPlan = live ? usage?.plan : null;
 
   return (
-    <div className="mx-auto flex w-full max-w-300 flex-col gap-6 px-4 py-8 lg:px-8">
+    <div className="mx-auto flex w-full max-w-300 flex-col gap-6 px-4 pt-6 pb-8 lg:px-8">
       {billingOn && (
         <p className="self-start">
           <Badge variant="amber">{copy.testMode}</Badge>
@@ -137,7 +145,7 @@ async function Content({
             )}
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h2 className="type-heading text-24">{copy.names[plan.id]}</h2>
+              <h3 className="type-heading text-24">{copy.names[plan.id]}</h3>
               {plan.recommended && <Badge variant="accent">{copy.recommended}</Badge>}
             </div>
             <p className="text-muted">

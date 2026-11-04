@@ -68,7 +68,7 @@ export function AccountScreen({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-8 lg:px-8">
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pt-6 pb-8 lg:px-8">
       <form onSubmit={handleSave} className={cardClasses}>
         <Field label={ptPT.auth.fields.email}>
           <Input value={email} readOnly />
