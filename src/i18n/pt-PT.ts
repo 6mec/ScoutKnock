@@ -489,6 +489,7 @@ export const ptPT = {
     sampleOnlyIn:
       "Em modo de exemplo, só há empresas no Porto, em Lisboa, em Braga e em Coimbra.",
     attribution: "Dados do Google Maps",
+    mapNote: "Exemplo ilustrativo: as empresas e a sua posição no mapa são fictícias.",
     sampleNotice:
       "Exemplo ilustrativo: as empresas abaixo são fictícias, porque a busca real ainda não está ligada.",
     sampleBadge: "Exemplo ilustrativo",
@@ -673,7 +674,7 @@ export const ptPT = {
     },
     leads: {
       title: "Contactos por estado",
-      empty: "Ainda não tens contactos. Guarda uma empresa no Radar para começares.",
+      empty: "Ainda não tens contactos. Guarda uma empresa no Radar, ou adiciona uma à mão, para começares.",
     },
     searches: {
       title: "Últimas buscas",
@@ -896,6 +897,56 @@ export const ptPT = {
       nextAction: "Próxima ação",
       date: "Data",
       notes: "Notas",
+    },
+    manual: {
+      add: "Adicionar empresa",
+      addTitle: "Adicionar empresa à mão",
+      addBody:
+        "Escreve o que viste, por exemplo no Google Maps. Só o nome é obrigatório; o resto ajuda a calcular a nota e a preparar a mensagem.",
+      added: "Empresa adicionada aos contactos.",
+      name: "Nome da empresa",
+      niche: "Nicho",
+      locality: "Localidade",
+      phone: "Telefone",
+      website: "Site",
+      websiteHelp: "Deixa vazio se não tiver site. Uma página de Instagram ou Facebook conta como sem site próprio.",
+      address: "Morada",
+      reviews: "Avaliações no Google",
+      reviewsHelp: "O número que aparece ao lado das estrelas. Deixa vazio se não souberes.",
+      hours: "Tem horário publicado?",
+      hoursUnknown: "Não sei",
+      hoursYes: "Sim",
+      hoursNo: "Não",
+      submit: "Adicionar",
+      cancel: "Cancelar",
+      invalid: "Revê os campos: o nome é obrigatório e o site tem de ser um endereço válido.",
+      sectionTitle: "Dados que escreveste",
+      sectionNote: "Empresa adicionada à mão: estes dados não vêm do Google.",
+      saveCompany: "Guardar dados da empresa",
+      savedCompany: "Dados da empresa guardados.",
+      openMaps: "Procurar no Google Maps",
+      openMapsHint: "Abre o Google Maps noutro separador. Escolhe as empresas e adiciona-as aqui uma a uma.",
+      manualTitle: "Procurar à mão",
+      radarOff: "A busca automática está desligada. Procura as empresas no Google Maps e adiciona aqui as que te interessarem: a nota, a mensagem e o site demo funcionam na mesma.",
+      importButton: "Colar lista",
+      importTitle: "Colar uma lista de empresas",
+      importBody:
+        "Uma empresa por linha. Sem cabeçalho, a ordem é: nome; telefone; nicho; localidade; site. Também podes colar de uma folha de cálculo com cabeçalho (Nome, Telefone, Nicho, Localidade, Site, Morada, Avaliações).",
+      importLabel: "Lista",
+      importPreview: (count: number, duplicates: number, invalid: number) =>
+        [
+          count === 1 ? "1 empresa para adicionar" : `${count} empresas para adicionar`,
+          duplicates ? (duplicates === 1 ? "1 repetida" : `${duplicates} repetidas`) : null,
+          invalid ? (invalid === 1 ? "1 linha sem nome válido" : `${invalid} linhas sem nome válido`) : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      importTooMany: (max: number) => `Só entram as primeiras ${max} linhas.`,
+      importSubmit: "Adicionar à lista de contactos",
+      imported: (count: number, duplicates: number) =>
+        `${count === 1 ? "1 empresa adicionada" : `${count} empresas adicionadas`}${duplicates ? ` · ${duplicates === 1 ? "1 repetida ficou de fora" : `${duplicates} repetidas ficaram de fora`}` : ""}.`,
+      importNothing: "Nenhuma empresa nova para adicionar.",
+      badge: "Adicionada à mão",
     },
     errors: {
       generic: "Algo correu mal. Tenta outra vez e, se continuar, contacta o suporte.",

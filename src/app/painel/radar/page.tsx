@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Suspense } from "react";
+import { ManualRadar } from "@/components/radar/manual-search";
 import { RadarScreen } from "@/components/radar/radar-screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
@@ -28,13 +29,7 @@ async function Content() {
 
   const provider = getCompanyProvider();
 
-  if (!provider) {
-    return (
-      <p className="type-body mx-auto w-full max-w-3xl px-4 py-12 lg:px-8">
-        {copy.unavailable}
-      </p>
-    );
-  }
+  if (!provider) return <ManualRadar />;
 
   return (
     <RadarScreen isSample={provider.usesSampleData} markets={enabledMarkets()} />

@@ -6,12 +6,19 @@ import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 import {
+  MANUAL_PREFIX,
+  manualColumns,
+  parseCompanyList,
+  parseManualCompany,
+} from "./manual";
+import {
   followUpState,
   isContactStatus,
   marksLastContact,
   parseCompanyId,
   parseContactDetails,
   parseContactLabel,
+  type Contact,
 } from "./rules";
 
 const CONTACTS_PATH = "/painel/contactos";
@@ -154,6 +161,110 @@ export async function getFollowUp(
       (profile?.display_name as string | null) ?? null,
     ),
   };
+}
+
+// Empresas manuais: o id é gerado aqui e começa por "manual-", nunca vem do browser.
+export async function addManualContact(
+  value: unknown,
+): Promise<{ ok: true; contact: Contact } | { ok: false }> {
+  const company = parseManualCompany(value);
+  if (!company) return { ok: false };
+
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase
+    .from("contacts")
+    .insert({
+      user_id: user.id,
+      company_id: `${MANUAL_PREFIX}${crypto.randomUUID()}`,
+      label: company.name,
+      ...manualColumns(company),
+    })
+    .select("*")
+    .single();
+
+  if (error || !data) {
+    await reportError("contactos manual", error?.code ?? "sem linha", user.id);
+    return { ok: false };
+  }
+
+  revalidatePath(CONTACTS_PATH);
+  return { ok: true, contact: data as Contact };
+}
+
+// Colar uma lista: as repetidas, pelo nome ou pelo telefone, ficam de fora.
+export async function importManualContacts(
+  input: unknown,
+): Promise<
+  | { ok: true; added: number; duplicates: number; invalid: number; tooMany: boolean }
+  | { ok: false }
+> {
+  if (typeof input !== "string" || input.length > 100_000) return { ok: false };
+
+  const { supabase, user } = await currentUser();
+  const { data: existing, error: readError } = await supabase
+    .from("contacts")
+    .select("label, manual_phone, confirmed_contact");
+  if (readError) {
+    await reportError("contactos importar", readError.code, user.id);
+    return { ok: false };
+  }
+
+  const parsed = parseCompanyList(
+    input,
+    (existing ?? []).map((row) => ({
+      label: row.label as string,
+      phone: (row.manual_phone ?? row.confirmed_contact) as string | null,
+    })),
+  );
+
+  if (parsed.companies.length > 0) {
+    const { error } = await supabase.from("contacts").insert(
+      parsed.companies.map((company) => ({
+        user_id: user.id,
+        company_id: `${MANUAL_PREFIX}${crypto.randomUUID()}`,
+        label: company.name,
+        ...manualColumns(company),
+      })),
+    );
+    if (error) {
+      await reportError("contactos importar", error.code, user.id);
+      return { ok: false };
+    }
+    revalidatePath(CONTACTS_PATH);
+  }
+
+  return {
+    ok: true,
+    added: parsed.companies.length,
+    duplicates: parsed.duplicates,
+    invalid: parsed.invalid,
+    tooMany: parsed.tooMany,
+  };
+}
+
+// Só em empresas manuais: o filtro pelo prefixo impede mexer nas do Google.
+export async function saveManualCompany(
+  id: string,
+  value: unknown,
+): Promise<Result> {
+  const company = parseManualCompany(value);
+  if (!company) return { ok: false };
+
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase
+    .from("contacts")
+    .update({ label: company.name, ...manualColumns(company) })
+    .eq("id", id)
+    .like("company_id", `${MANUAL_PREFIX}%`)
+    .select("id");
+
+  if (error || !data?.length) {
+    await reportError("contactos manual guardar", error?.code ?? "sem linha", user.id);
+    return { ok: false };
+  }
+
+  revalidatePath(CONTACTS_PATH);
+  return { ok: true };
 }
 
 export async function removeContact(id: string): Promise<Result> {

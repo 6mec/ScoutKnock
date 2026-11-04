@@ -2,7 +2,7 @@ import type {
   ContactCompany,
   ContactCompanyEvent,
 } from "@/lib/contacts/company-events";
-import { lookupCompanyForUser } from "@/lib/radar/lookup-server";
+import { lookupContactCompany } from "@/lib/contacts/company-server";
 import { scoreCompany } from "@/lib/radar/score";
 import { getSiteChecker } from "@/lib/radar/site-checker";
 import { thirdPartyKind } from "@/lib/radar/site-rules";
@@ -35,22 +35,17 @@ export async function POST(
       };
 
       try {
-        const { data: contact } = await supabase
-          .from("contacts")
-          .select("company_id")
-          .eq("id", id)
-          .maybeSingle();
-        if (!contact) return finish({ status: "unavailable" });
-
-        const lookup = await lookupCompanyForUser(supabase, contact.company_id, user.id);
+        const lookup = await lookupContactCompany(supabase, id, user.id);
         if (lookup.status !== "ok") return finish(lookup);
 
         const { company, isSample } = lookup;
+        const isManual = lookup.isManual ?? false;
         send({
           type: "company",
           company: {
             status: "ok",
             isSample,
+            isManual,
             name: company.name,
             address: company.address,
             phone: company.phone ?? null,

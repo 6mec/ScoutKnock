@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
+import { CreateDemoButton } from "@/components/demos/create-demo-button";
 import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,12 +12,24 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { SiteCheckNote } from "@/components/radar/site-check-note";
-import { removeContact, saveContactDetails } from "@/lib/contacts/actions";
+import {
+  removeContact,
+  saveContactDetails,
+  saveManualCompany,
+} from "@/lib/contacts/actions";
 import type {
   ContactCompany,
   ContactCompanyEvent,
 } from "@/lib/contacts/company-events";
 import type { SiteCheckStatus } from "@/lib/radar/search-events";
+import {
+  companyFromManual,
+  isManualCompanyId,
+  manualCompanyOf,
+  type ManualCompany,
+} from "@/lib/contacts/manual";
+import { scoreCompany } from "@/lib/radar/score";
+import { SERVICE_IDS } from "@/lib/radar/types";
 import { readNdjson } from "@/lib/read-ndjson";
 import {
   MAX_CONFIRMED_CONTACT,
@@ -28,6 +41,13 @@ import {
   type ContactStatus,
 } from "@/lib/contacts/rules";
 import { FollowUpButton } from "./follow-up-button";
+import {
+  ManualCompanyFields,
+  manualFormOf,
+  manualInput,
+  parseManualForm,
+  type ManualForm,
+} from "./manual-company-fields";
 import { StatusMenu } from "./status-menu";
 
 const { contacts: copy } = ptPT;
@@ -118,19 +138,101 @@ function CompanySection({
   );
 }
 
+// Empresa adicionada à mão: os dados editam-se aqui e a nota muda enquanto se escreve.
+function ManualCompanySection({
+  contactId,
+  companyId,
+  form,
+  onChange,
+  onSaved,
+}: {
+  contactId: string;
+  companyId: string;
+  form: ManualForm;
+  onChange: (form: ManualForm) => void;
+  onSaved: (company: ManualCompany) => void;
+}) {
+  const [saving, startSaving] = useTransition();
+  const [invalid, setInvalid] = useState(false);
+  const parsed = parseManualForm(form);
+  const manual = copy.manual;
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!parsed) {
+      setInvalid(true);
+      return;
+    }
+    startSaving(async () => {
+      const { ok } = await saveManualCompany(contactId, manualInput(form));
+      if (ok) {
+        onSaved(parsed);
+        toast.success(manual.savedCompany);
+      } else {
+        toast.error(copy.errors.generic);
+      }
+    });
+  }
+
+  return (
+    <section
+      data-testid="contact-company"
+      aria-label={manual.sectionTitle}
+      className="flex flex-col gap-4 rounded-lg border border-border p-4"
+    >
+      <div className="flex flex-wrap items-center gap-2">
+        <h3 className="font-semibold">{manual.sectionTitle}</h3>
+        <Badge variant="outline">{manual.badge}</Badge>
+      </div>
+      {parsed && (
+        <ScoreBreakdown
+          opportunity={scoreCompany(companyFromManual(companyId, parsed), SERVICE_IDS[0])}
+        />
+      )}
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
+        <ManualCompanyFields
+          form={form}
+          onChange={(next) => {
+            onChange(next);
+            setInvalid(false);
+          }}
+        />
+        <div aria-live="polite">
+          {invalid && (
+            <p role="alert" className="text-14 text-danger">
+              {manual.invalid}
+            </p>
+          )}
+        </div>
+        <Button type="submit" variant="secondary" loading={saving} loadingText={copy.saving}>
+          {manual.saveCompany}
+        </Button>
+      </form>
+      <p className="text-13 text-muted">{manual.sectionNote}</p>
+    </section>
+  );
+}
+
 export function ContactDialog({
   contact,
   onClose,
   onStatusChange,
   onSaved,
+  onManualSaved,
   onRemoved,
 }: {
   contact: Contact;
   onClose: () => void;
   onStatusChange: (id: string, status: ContactStatus) => void;
   onSaved: (id: string, details: ContactDetails) => void;
+  onManualSaved: (id: string, company: ManualCompany) => void;
   onRemoved: (id: string) => void;
 }) {
+  const isManual = isManualCompanyId(contact.company_id);
+  const [manualForm, setManualForm] = useState(() =>
+    manualFormOf(manualCompanyOf(contact)),
+  );
+  const savedManual = manualCompanyOf(contact);
   const [label, setLabel] = useState(contact.label);
   const [confirmedContact, setConfirmedContact] = useState(
     contact.confirmed_contact ?? "",
@@ -150,6 +252,8 @@ export function ContactDialog({
 
   useEffect(() => {
     clearTimeout(pendingAbort.current);
+    // As manuais não têm nada a pedir: os dados são os do próprio contacto.
+    if (isManual) return;
     if (!requested.current) {
       requested.current = true;
       const current = new AbortController();
@@ -192,13 +296,14 @@ export function ContactDialog({
     return () => {
       pendingAbort.current = setTimeout(() => controller.current?.abort(), 0);
     };
-  }, [contact.id]);
+  }, [contact.id, isManual]);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     startSaving(async () => {
+      const savedLabel = isManual ? savedManual.name : label;
       const { ok } = await saveContactDetails(contact.id, {
-        label,
+        label: savedLabel,
         confirmedContact,
         nextAction,
         nextActionAt,
@@ -207,7 +312,7 @@ export function ContactDialog({
 
       if (ok) {
         onSaved(contact.id, {
-          label: label.trim(),
+          label: savedLabel.trim(),
           confirmedContact: confirmedContact.trim() || null,
           nextAction: nextAction.trim() || null,
           nextActionAt: nextActionAt || null,
@@ -238,16 +343,46 @@ export function ContactDialog({
         <div className="flex flex-wrap items-center justify-end gap-3">
           <StatusMenu contact={contact} onChange={onStatusChange} />
         </div>
-        <CompanySection company={company} siteCheck={siteCheck} />
-        {found && (
-          <GenerateMessageButton
-            source={{ kind: "contact", id: contact.id }}
-            companyName={found.name}
-            phone={found.phone}
-            variant="secondary"
-          />
+        {isManual ? (
+          <>
+            <ManualCompanySection
+              contactId={contact.id}
+              companyId={contact.company_id}
+              form={manualForm}
+              onChange={setManualForm}
+              onSaved={(saved) => onManualSaved(contact.id, saved)}
+            />
+            <div className="flex flex-wrap gap-3">
+              <GenerateMessageButton
+                source={{ kind: "contact", id: contact.id }}
+                companyName={savedManual.name}
+                phone={savedManual.phone}
+                variant="secondary"
+              />
+              <CreateDemoButton
+                company={companyFromManual(contact.company_id, savedManual)}
+                isSample={false}
+                prefill
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <CompanySection company={company} siteCheck={siteCheck} />
+            {found && (
+              <GenerateMessageButton
+                source={{ kind: "contact", id: contact.id }}
+                companyName={found.name}
+                phone={found.phone}
+                variant="secondary"
+              />
+            )}
+          </>
         )}
-        <FollowUpButton contact={contact} phone={found?.phone} />
+        <FollowUpButton
+          contact={contact}
+          phone={isManual ? savedManual.phone : found?.phone}
+        />
         <dl>
           <dt className="text-13 text-muted">{copy.details.lastContact}</dt>
           <dd>
@@ -257,14 +392,16 @@ export function ContactDialog({
           </dd>
         </dl>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <Field label={copy.details.label}>
-            <Input
-              value={label}
-              maxLength={MAX_LABEL}
-              required
-              onChange={(event) => setLabel(event.target.value)}
-            />
-          </Field>
+          {!isManual && (
+            <Field label={copy.details.label}>
+              <Input
+                value={label}
+                maxLength={MAX_LABEL}
+                required
+                onChange={(event) => setLabel(event.target.value)}
+              />
+            </Field>
+          )}
           <Field label={copy.details.confirmedContact}>
             <Input
               value={confirmedContact}

@@ -7,6 +7,7 @@ import {
   type MessageEvent,
   type MessageRequest,
 } from "@/lib/messages/rules";
+import { lookupContactCompany } from "@/lib/contacts/company-server";
 import { lookupCompanyForUser } from "@/lib/radar/lookup-server";
 import { scoreCompany } from "@/lib/radar/score";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -14,25 +15,18 @@ import { createClient } from "@/lib/supabase/server";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
-// O id do contacto é lido no servidor, e os dados vêm sempre do fornecedor.
+// O id do contacto é lido no servidor. Os dados vêm do fornecedor ou, nas empresas
+// manuais, do que o próprio freelancer escreveu.
 async function findCompany(
   supabase: Supabase,
   { source }: MessageRequest,
   userId: string,
 ) {
-  let companyId = source.id;
-
   if (source.kind === "contact") {
-    const { data } = await supabase
-      .from("contacts")
-      .select("company_id")
-      .eq("id", source.id)
-      .maybeSingle();
-    if (!data) return { status: "unavailable" as const };
-    companyId = data.company_id as string;
+    return lookupContactCompany(supabase, source.id, userId);
   }
 
-  return lookupCompanyForUser(supabase, companyId, userId);
+  return lookupCompanyForUser(supabase, source.id, userId);
 }
 
 export async function POST(request: Request) {

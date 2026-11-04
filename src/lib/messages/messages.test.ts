@@ -343,6 +343,13 @@ describe("links de envio manual", () => {
 
   it("sem indicativo ou sem número, deixa o WhatsApp pedir o contacto", () => {
     expect(whatsappUrl("Olá", "900 000 001")).toBe("https://wa.me/?text=Ol%C3%A1");
+    expect(whatsappUrl("Olá", "253 000 000")).toBe("https://wa.me/?text=Ol%C3%A1");
+  });
+
+  it("um telemóvel português sem indicativo ganha o +351", () => {
+    expect(whatsappUrl("Olá", "912 345 678")).toBe(
+      "https://wa.me/351912345678?text=Ol%C3%A1",
+    );
     expect(whatsappUrl("Olá", null)).toBe("https://wa.me/?text=Ol%C3%A1");
   });
 

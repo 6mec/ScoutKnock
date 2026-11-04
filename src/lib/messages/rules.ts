@@ -92,9 +92,16 @@ export function messageCostEur({ inputTokens, outputTokens }: MessageUsage) {
   return (inputTokens * 0.1 + outputTokens * 0.5) / 1_000_000;
 }
 
-// Sem indicativo não dá para saber o país: o WhatsApp pede então o contacto.
+// Sem indicativo não dá para saber o país, salvo num telemóvel português de 9
+// algarismos (91, 92, 93 ou 96), como quem escreve o número à mão. Nos outros, o
+// WhatsApp pede o contacto.
 export function whatsappUrl(message: string, phone?: string | null) {
-  const number = phone?.trim().startsWith("+") ? phone.replace(/\D/g, "") : "";
+  const digits = phone?.replace(/\D/g, "") ?? "";
+  const number = phone?.trim().startsWith("+")
+    ? digits
+    : /^9[1236]\d{7}$/.test(digits)
+      ? `351${digits}`
+      : "";
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 

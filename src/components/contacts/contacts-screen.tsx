@@ -8,15 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { setContactStatus } from "@/lib/contacts/actions";
+import { manualColumns, type ManualCompany } from "@/lib/contacts/manual";
 import {
   marksLastContact,
   type Contact,
   type ContactDetails,
   type ContactStatus,
 } from "@/lib/contacts/rules";
+import { AddCompanyButton } from "./add-company-button";
 import { ContactDialog } from "./contact-dialog";
 import { ContactsBoard } from "./contacts-board";
 import { ContactsTable } from "./contacts-table";
+import { ImportListButton } from "./import-list-button";
 
 const { contacts: copy } = ptPT;
 
@@ -85,6 +88,28 @@ export function ContactsScreen({
     );
   }
 
+  function handleManualSaved(id: string, company: ManualCompany) {
+    setContacts((current) =>
+      current.map((contact) =>
+        contact.id === id
+          ? { ...contact, label: company.name, ...manualColumns(company) }
+          : contact,
+      ),
+    );
+  }
+
+  function handleAdded(contact: Contact) {
+    setContacts((current) => [contact, ...current]);
+    setOpenId(contact.id);
+  }
+
+  const manualActions = (
+    <>
+      <AddCompanyButton onAdded={handleAdded} />
+      <ImportListButton contacts={contacts} />
+    </>
+  );
+
   function handleRemoved(id: string) {
     setOpenId(null);
     setContacts((current) => current.filter((contact) => contact.id !== id));
@@ -97,9 +122,12 @@ export function ContactsScreen({
           title={copy.empty}
           className="bg-surface"
           action={
-            <Button asChild variant="secondary">
-              <Link href="/painel/radar">{ptPT.app.commands.goRadar}</Link>
-            </Button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button asChild variant="secondary">
+                <Link href="/painel/radar">{ptPT.app.commands.goRadar}</Link>
+              </Button>
+              {manualActions}
+            </div>
           }
         />
       </div>
@@ -108,6 +136,7 @@ export function ContactsScreen({
 
   return (
     <div className="flex w-full min-w-0 flex-col gap-4 px-4 py-6 lg:px-8">
+      <div className="flex flex-wrap gap-3">{manualActions}</div>
       {statusFilter && (
         <div className="flex flex-wrap items-center gap-x-4" data-testid="contacts-filter">
           <p className="font-semibold">
@@ -153,6 +182,7 @@ export function ContactsScreen({
           onClose={() => setOpenId(null)}
           onStatusChange={changeStatus}
           onSaved={handleSaved}
+          onManualSaved={handleManualSaved}
           onRemoved={handleRemoved}
         />
       )}

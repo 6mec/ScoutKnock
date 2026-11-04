@@ -28,6 +28,13 @@ function contact(values: Partial<Contact>): Contact {
     next_action_at: null,
     notes: null,
     created_at: "2026-11-01T00:00:00Z",
+    manual_niche: null,
+    manual_locality: null,
+    manual_address: null,
+    manual_phone: null,
+    manual_website: null,
+    manual_reviews: null,
+    manual_hours: null,
     ...values,
   };
 }

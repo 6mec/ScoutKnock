@@ -259,3 +259,12 @@ Registo, confirmação de conta e recuperação de palavra-passe saem pelo Supab
 - [ ] Recuperação de palavra-passe com o mesmo email.
 - [ ] Lista de espera em produção: o email chega, e o link confirma e permite sair.
 - [ ] Os emails não caem no spam.
+
+## Mapa da busca (04/11/2026)
+
+**Funciona hoje:** durante a busca, o globo roda até à localidade e abre o mapa real da região (Leaflet, imagens do OpenStreetMap), com um pino por empresa de exemplo. As coordenadas dos concelhos vêm da nossa lista; não se usa o geocodificador do OpenStreetMap.
+
+**Antes de abrir ao público:**
+- [ ] As imagens vêm de `tile.openstreetmap.org`, que só aceita uso leve e com a atribuição visível. Com muitos utilizadores, trocar por um fornecedor próprio para isso. É também um pedido a terceiros que a T7 tem de listar.
+- [ ] Empresas do Google não têm pinos: os termos do Google não deixam mostrar dados do Google Places num mapa que não seja do Google, e a busca não pede coordenadas. Para pinos reais seria preciso o mapa do Google (Maps JavaScript API, com chave).
+- [ ] Empresas adicionadas à mão também não têm pinos, porque não têm coordenadas.

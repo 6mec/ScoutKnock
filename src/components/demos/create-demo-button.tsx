@@ -35,13 +35,16 @@ const EMPTY_DRAFT = {
 };
 
 // Os campos começam vazios de propósito: os dados do Google ficam ao lado, só para
-// consulta, e o que se grava é o que o freelancer escreve.
+// consulta, e o que se grava é o que o freelancer escreve. Com prefill (empresas
+// adicionadas à mão), os dados já são dele e entram preenchidos.
 export function CreateDemoButton({
   company,
   isSample,
+  prefill = false,
 }: {
   company: Company;
   isSample: boolean;
+  prefill?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -58,8 +61,20 @@ export function CreateDemoButton({
   function handleOpen() {
     startChecking(async () => {
       const existing = await findMyDemo(company.id);
-      if (existing) router.push(`/painel/demos/${existing}`);
-      else setOpen(true);
+      if (existing) {
+        router.push(`/painel/demos/${existing}`);
+        return;
+      }
+      if (prefill) {
+        setDraft({
+          companyName: company.name,
+          niche: company.niche,
+          locality: company.locality,
+          address: company.address,
+          phone: company.phone ?? "",
+        });
+      }
+      setOpen(true);
     });
   }
 
@@ -104,22 +119,24 @@ export function CreateDemoButton({
           <p className="rounded-md border border-amber p-3 text-14">
             {copy.form.warning}
           </p>
-          <section
-            aria-label={copy.form.referenceTitle}
-            data-testid="demo-reference"
-            className="flex flex-col gap-2 rounded-md border border-border p-3 text-14"
-          >
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-semibold">{copy.form.referenceTitle}</h3>
-              {isSample && <Badge variant="amber">{ptPT.radar.sampleBadge}</Badge>}
-            </div>
-            <p>{company.name}</p>
-            <p>{company.address}</p>
-            {company.phone && <p>{company.phone}</p>}
-            {!isSample && (
-              <p className="text-13 text-muted">{ptPT.radar.attribution}</p>
-            )}
-          </section>
+          {!prefill && (
+            <section
+              aria-label={copy.form.referenceTitle}
+              data-testid="demo-reference"
+              className="flex flex-col gap-2 rounded-md border border-border p-3 text-14"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="font-semibold">{copy.form.referenceTitle}</h3>
+                {isSample && <Badge variant="amber">{ptPT.radar.sampleBadge}</Badge>}
+              </div>
+              <p>{company.name}</p>
+              <p>{company.address}</p>
+              {company.phone && <p>{company.phone}</p>}
+              {!isSample && (
+                <p className="text-13 text-muted">{ptPT.radar.attribution}</p>
+              )}
+            </section>
+          )}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <Field label={copy.editor.companyName}>
               <Input
@@ -127,7 +144,9 @@ export function CreateDemoButton({
                 maxLength={MAX_COMPANY_NAME}
                 autoComplete="off"
                 required
-                onChange={(event) => update({ companyName: event.target.value })}
+                onChange={(event) =>
+                  update({ companyName: event.target.value })
+                }
               />
             </Field>
             <Field label={copy.editor.niche}>

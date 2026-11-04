@@ -131,6 +131,7 @@
   --animate-radar-sweep-slow: spinner 14s linear infinite;
   --animate-blip: blip 4s linear infinite;
   --animate-sim-blip: sim-blip 200ms linear both;
+  --animate-pin-drop: pin-drop 450ms var(--ease-out) both;
   --animate-ping: ping-ring 4s var(--ease-out) infinite;
   --animate-breathe: breathe 4s var(--ease-in-out) infinite;
   --animate-marquee: marquee 40s linear infinite;
@@ -151,6 +152,21 @@
     opacity: 1;
     transform: none;
     filter: none;
+  }
+}
+
+@keyframes pin-drop {
+  0% {
+    opacity: 0;
+    transform: translateY(-18px) scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(2px) scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -351,6 +367,7 @@
     --animate-radar-sweep-slow: none;
     --animate-blip: none;
     --animate-sim-blip: none;
+    --animate-pin-drop: none;
     --animate-ping: none;
     --animate-breathe: none;
     --animate-marquee: none;

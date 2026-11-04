@@ -14,7 +14,8 @@ export const MAX_NEXT_ACTION = 200;
 export const MAX_NOTES = 2000;
 
 // Só o place_id e o que o freelancer escreve. Nome, morada, telefone, site e nota
-// do Google não se guardam: vêm na hora, ao abrir o contacto.
+// do Google não se guardam: vêm na hora, ao abrir o contacto. Os campos manual_*
+// só existem nas empresas adicionadas à mão e são escritos pelo freelancer.
 export type Contact = {
   id: string;
   company_id: string;
@@ -27,6 +28,13 @@ export type Contact = {
   next_action_at: string | null;
   notes: string | null;
   created_at: string;
+  manual_niche: string | null;
+  manual_locality: string | null;
+  manual_address: string | null;
+  manual_phone: string | null;
+  manual_website: string | null;
+  manual_reviews: number | null;
+  manual_hours: boolean | null;
 };
 
 export type ContactDetails = {

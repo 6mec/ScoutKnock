@@ -3,10 +3,12 @@ import type { Company } from "./types";
 
 const unchecked = { isSlow: null, isMobileFriendly: null, isOutdated: null };
 
-// Empresas fictícias, só para desenvolvimento. Nunca são usadas em produção.
+// Empresas fictícias, só para desenvolvimento. Nunca são usadas em produção. As
+// coordenadas também são inventadas, perto do centro de cada cidade, para o mapa da busca.
 export const SAMPLE_COMPANIES: Company[] = [
   {
     id: "sample-1",
+    location: [41.1532, -8.6094],
     name: "Barbearia Horizonte",
     niche: "Barbearias",
     locality: "Porto",
@@ -19,6 +21,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-2",
+    location: [41.1468, -8.6152],
     name: "Barbearia Fictícia do Bairro",
     niche: "Barbearias",
     locality: "Porto",
@@ -31,6 +34,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-3",
+    location: [41.1585, -8.6235],
     name: "Corte Exemplo",
     niche: "Barbearias",
     locality: "Porto",
@@ -43,6 +47,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-4",
+    location: [41.1441, -8.6019],
     name: "Barbearia Modelo",
     niche: "Barbearias",
     locality: "Porto",
@@ -55,6 +60,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-5",
+    location: [38.7169, -9.1399],
     name: "Tasca Fictícia",
     niche: "Restaurantes",
     locality: "Lisboa",
@@ -67,6 +73,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-6",
+    location: [38.7262, -9.1501],
     name: "Restaurante Exemplo",
     niche: "Restaurantes",
     locality: "Lisboa",
@@ -79,6 +86,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-7",
+    location: [41.5502, -8.4229],
     name: "Barbearia Exemplo de Braga",
     niche: "Barbearias",
     locality: "Braga",
@@ -91,6 +99,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-8",
+    location: [41.5418, -8.4302],
     name: "Restaurante Fictício do Minho",
     niche: "Restaurantes",
     locality: "Braga",
@@ -103,6 +112,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-9",
+    location: [40.2069, -8.4196],
     name: "Barbearia Fictícia de Coimbra",
     niche: "Barbearias",
     locality: "Coimbra",
@@ -115,6 +125,7 @@ export const SAMPLE_COMPANIES: Company[] = [
   },
   {
     id: "sample-10",
+    location: [40.2003, -8.4065],
     name: "Tasca Exemplo de Coimbra",
     niche: "Restaurantes",
     locality: "Coimbra",

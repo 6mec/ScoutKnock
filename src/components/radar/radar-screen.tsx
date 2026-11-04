@@ -20,6 +20,7 @@ import {
 } from "@/lib/radar/search-events";
 import { SERVICE_IDS, type SearchQuery } from "@/lib/radar/types";
 import { RadarForm } from "./radar-form";
+import { ManualSearchActions } from "./manual-search";
 import { RadarResults } from "./radar-results";
 import { RadarStage } from "./radar-stage";
 import { SearchProgress, type StepStatus } from "./search-progress";
@@ -144,6 +145,8 @@ function RadarSearch({
 }) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, initialState);
+  // Os resultados esperam que o último pino caia no mapa da busca.
+  const [mapDone, setMapDone] = useState(false);
   const [values, setValues] = useState<SearchQuery>({
     service: SERVICE_IDS[0],
     niche: "",
@@ -176,6 +179,7 @@ function RadarSearch({
   async function search(query: SearchQuery = values) {
     const controller = new AbortController();
     controllerRef.current = controller;
+    setMapDone(false);
     dispatch({ type: "start" });
 
     const fail = (code: SearchErrorCode) =>
@@ -226,7 +230,11 @@ function RadarSearch({
     dispatch({ type: "reset" });
   };
 
-  if (state.phase === "results" && state.companies.length > 0) {
+  const found = state.phase === "results" && state.companies.length > 0;
+  const target = findLocation(values.locality, markets);
+
+  // Sem coordenadas da localidade não há mapa, e os resultados aparecem logo.
+  if (found && (mapDone || !target)) {
     return (
       <RadarResults
         results={state.companies}
@@ -237,7 +245,7 @@ function RadarSearch({
     );
   }
 
-  const searching = state.phase === "searching";
+  const searching = state.phase === "searching" || found;
 
   return (
     <div className="mx-auto grid w-full max-w-300 flex-1 items-center gap-8 px-4 py-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:px-8">
@@ -256,14 +264,19 @@ function RadarSearch({
             markets={markets}
           />
         )}
+        {state.phase === "idle" && (
+          <ManualSearchActions niche={values.niche} locality={values.locality} />
+        )}
         {searching && (
           <SearchProgress
             steps={state.steps}
             companies={state.companies}
-            onCancel={() => controllerRef.current?.abort()}
+            // Com os resultados já chegados, cancelar só salta o resto da animação.
+            onCancel={() => (found ? setMapDone(true) : controllerRef.current?.abort())}
           />
         )}
         {state.phase === "results" &&
+          !found &&
           isSample &&
           !hasSampleCompanies(values.locality) && (
             <p
@@ -273,7 +286,7 @@ function RadarSearch({
               {copy.sampleOnlyIn}
             </p>
           )}
-        {state.phase === "results" && (
+        {state.phase === "results" && !found && (
           <EmptyState
             title={copy.noResults}
             action={
@@ -304,8 +317,14 @@ function RadarSearch({
         )}
       </div>
       <RadarStage
+        // No telemóvel, o mapa da busca fica por cima da lista para se ver.
+        className={searching ? "order-first lg:order-none" : undefined}
         searching={searching}
-        target={findLocation(values.locality, markets)}
+        target={target}
+        isSample={isSample}
+        companies={state.companies}
+        done={state.phase !== "searching"}
+        onMapComplete={() => setMapDone(true)}
       />
     </div>
   );

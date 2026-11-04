@@ -13,6 +13,11 @@ Fonte de verdade da fila de trabalho. Quem escreve as tarefas: o Daniel e o assi
 
 ## Em curso
 
+### T9. Modo manual, sem custos (04/11/2026)
+Sem chave do Google, o Radar passa a "Procurar à mão": link oficial de pesquisa do Google Maps (só abre o Maps, não lê nada dele) e "Adicionar empresa". Nos Contactos, "Adicionar empresa" e "Colar lista" (uma por linha, com ou sem cabeçalho, repetidas pelo nome ou telefone ficam de fora). Nas empresas manuais, a ficha edita os dados escritos, a nota calcula-se com eles sem inventar motivos, e a mensagem e o site demo usam-nos sem chamar o Google.
+Depende da migração `20261113000000_manual_companies.sql`. Fluxo estudado com o REA (CRM e Encontrar clientes do crieai.app) e validado no código; nada copiado.
+Animação da busca (estudada com o REA no `MapSearchAnimation` do crieai.app): o globo roda até à localidade, abre o mapa real da região (Leaflet e OpenStreetMap) e voa até à cidade; as empresas de exemplo caem como pinos na cor da nota e os resultados aparecem quando o último assenta. Limites do mapa em `docs/pendente.md`. Telemóveis WhatsApp sem +351 passam a abrir a conversa certa.
+
 ### T8. Landing com personalidade e correções pequenas
 Por esta ordem, parando no fim de cada bloco com capturas antes/depois: (1) simulação interativa, que substitui a secção dos interruptores e mantém os pontos de cada motivo; (2) cartões flutuantes fixos no herói, só no computador e sem temporizador nem animação de entrada/saída, e "Como funciona" com ecrã maior e menos scroll; (3) planos na app e na landing, com limites, "Preço em breve", "abertura de contacto" explicada e só os 5 €/mês do site oficial; (4) propostas 1 a 5 da T5.
 Lighthouse mínimo de 95 nos ecrãs alterados (landing, entrada, painel, Contactos e outros mexidos); Demos e Conta reportam-se à parte. Só dados de exemplo; não numerar secções além de "Como funciona"; sem números inventados, urgência nem falsas notificações.

@@ -35,6 +35,9 @@ export type Company = {
   reviewCount: number;
   hasOpeningHours: boolean;
   site: SiteSignals;
+  // Só nas empresas de exemplo. As do Google não trazem coordenadas: os termos do
+  // Google não deixam mostrá-las num mapa que não seja do Google.
+  location?: [number, number];
 };
 
 export type ReasonCode =

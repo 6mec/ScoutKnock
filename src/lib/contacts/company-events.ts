@@ -4,6 +4,8 @@ export type ContactCompany =
   | {
       status: "ok";
       isSample: boolean;
+      // Dados escritos pelo freelancer, sem o Google.
+      isManual: boolean;
       name: string;
       address: string;
       phone: string | null;
