@@ -1,5 +1,7 @@
 "use client";
 
+import { FileText } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
 import { GenerateMessageButton } from "@/components/messages/generate-message-button";
@@ -53,6 +55,7 @@ import {
   type ManualForm,
 } from "./manual-company-fields";
 import { StatusMenu } from "./status-menu";
+import { WhatsappCallButton } from "./whatsapp-call-button";
 
 const { contacts: copy } = ptPT;
 const dateTimeFormat = new Intl.DateTimeFormat("pt-PT", {
@@ -286,6 +289,7 @@ function ManualCompanySection({
 
 export function ContactDialog({
   contact,
+  whatsappTemplate,
   onClose,
   onStatusChange,
   onSaved,
@@ -293,6 +297,7 @@ export function ContactDialog({
   onRemoved,
 }: {
   contact: Contact;
+  whatsappTemplate: string | null;
   onClose: () => void;
   onStatusChange: (id: string, status: ContactStatus) => void;
   onSaved: (id: string, details: ContactDetails) => void;
@@ -424,6 +429,35 @@ export function ContactDialog({
           <DialogTitle className="pr-0">{contact.label}</DialogTitle>
           <StatusMenu contact={contact} onChange={onStatusChange} />
           {contact.do_not_contact && <Badge variant="outline">{copy.crm.doNotContactBadge}</Badge>}
+        </div>
+        {/* Ações rápidas do CRM: chamar, registar a resposta e preparar a proposta. */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Nas do Google, espera pelos dados para não mostrar "sem telefone" antes do tempo. */}
+          {(isManual || company !== null) && (
+            <WhatsappCallButton
+              contact={contact}
+              phone={(isManual ? savedManual.phone : found?.phone) ?? contact.confirmed_contact}
+              template={whatsappTemplate}
+              onStatusChange={onStatusChange}
+            />
+          )}
+          {(contact.status === "to_contact" || contact.status === "contacted") && (
+            <Button
+              variant="secondary"
+              onClick={() => {
+                onStatusChange(contact.id, "replied");
+                toast.success(copy.crm.repliedDone);
+              }}
+            >
+              {copy.crm.replied}
+            </Button>
+          )}
+          <Button asChild variant="secondary">
+            <Link href={`/painel/contactos/${contact.id}/proposta`}>
+              <FileText aria-hidden="true" size={16} strokeWidth={1.75} />
+              {copy.crm.proposal}
+            </Link>
+          </Button>
         </div>
         {/* No computador: a empresa à esquerda, o acompanhamento à direita. */}
         <div className="grid gap-5 lg:grid-cols-2 lg:items-start">

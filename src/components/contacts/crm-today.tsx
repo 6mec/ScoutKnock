@@ -25,8 +25,10 @@ import {
   type ContactEvent,
 } from "@/lib/contacts/crm";
 import type { Contact, ContactStatus } from "@/lib/contacts/rules";
+import { whatsappNumber } from "@/lib/messages/rules";
 import { cn } from "@/lib/utils";
 import { formatDay } from "./contacts-board";
+import { WhatsappCallButton } from "./whatsapp-call-button";
 
 const { contacts: copy } = ptPT;
 const MAX_RETURNS_SHOWN = 4;
@@ -259,10 +261,12 @@ function ReturnsPanel({
 
 function QueuePanel({
   contacts,
+  whatsappTemplate,
   onOpen,
   onStatusChange,
 }: {
   contacts: Contact[];
+  whatsappTemplate: string | null;
   onOpen: (id: string) => void;
   onStatusChange: (id: string, status: ContactStatus) => void;
 }) {
@@ -282,9 +286,19 @@ function QueuePanel({
             <Button size="sm" onClick={() => onOpen(next.id)}>
               {copy.crm.queueOpen}
             </Button>
-            <Button size="sm" variant="secondary" onClick={() => onStatusChange(next.id, "contacted")}>
-              {copy.crm.queueContacted}
-            </Button>
+            {whatsappNumber(next.manual_phone ?? next.confirmed_contact) ? (
+              <WhatsappCallButton
+                size="sm"
+                contact={next}
+                phone={next.manual_phone ?? next.confirmed_contact}
+                template={whatsappTemplate}
+                onStatusChange={onStatusChange}
+              />
+            ) : (
+              <Button size="sm" variant="secondary" onClick={() => onStatusChange(next.id, "contacted")}>
+                {copy.crm.queueContacted}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="ghost"
@@ -314,6 +328,7 @@ export function CrmToday({
   dailyGoal,
   now,
   today,
+  whatsappTemplate,
   onGoalChange,
   onOpen,
   onStatusChange,
@@ -323,6 +338,7 @@ export function CrmToday({
   dailyGoal: number;
   now: number;
   today: string;
+  whatsappTemplate: string | null;
   onGoalChange: (goal: number) => void;
   onOpen: (id: string) => void;
   onStatusChange: (id: string, status: ContactStatus) => void;
@@ -334,7 +350,12 @@ export function CrmToday({
         goal={dailyGoal}
         onGoalChange={onGoalChange}
       />
-      <QueuePanel contacts={contacts} onOpen={onOpen} onStatusChange={onStatusChange} />
+      <QueuePanel
+        contacts={contacts}
+        whatsappTemplate={whatsappTemplate}
+        onOpen={onOpen}
+        onStatusChange={onStatusChange}
+      />
       <ReturnsPanel returns={dueReturns(contacts, now)} today={today} onOpen={onOpen} />
       <PacePanel pace={dailyPace(events, now)} goal={dailyGoal} />
     </div>

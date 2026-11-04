@@ -101,7 +101,7 @@ export function AppNav({ account }: { account: ReactNode }) {
     <nav
       aria-label={copy.nav.label}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-30 flex items-center gap-1 border-t border-border bg-surface px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]",
+        "fixed inset-x-0 bottom-0 z-30 flex items-center gap-1 border-t print:hidden border-border bg-surface px-2 pt-2 pb-[calc(8px+env(safe-area-inset-bottom))]",
         "md:sticky md:top-0 md:h-dvh md:shrink-0 md:flex-col md:items-stretch md:gap-2 md:border-t-0 md:border-r md:px-3 md:py-5",
         "md:transition-[width] md:duration-(--duration-base) md:ease-out",
         collapsed ? "md:w-16" : "md:w-58",

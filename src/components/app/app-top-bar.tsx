@@ -30,7 +30,7 @@ function PageTitle() {
 // O segmento só se conhece no pedido nas rotas dinâmicas, daí o Suspense.
 export function AppTopBar() {
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-8">
+    <header className="sticky top-0 z-20 flex h-16 print:hidden items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur-md lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
         {/* No computador, o logótipo está no menu lateral. */}
         <Link

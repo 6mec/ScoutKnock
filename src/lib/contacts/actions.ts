@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
-import { parseDailyGoal, type ContactEvent } from "./crm";
+import { parseDailyGoal, parseWhatsappTemplate, type ContactEvent } from "./crm";
 import {
   MANUAL_PREFIX,
   manualColumns,
@@ -19,6 +19,7 @@ import {
   parseCompanyId,
   parseContactDetails,
   parseContactLabel,
+  parseDealValue,
   type Contact,
 } from "./rules";
 
@@ -134,6 +135,58 @@ export async function getContactHistory(
     return { ok: false };
   }
   return { ok: true, events: (data ?? []) as ContactEvent[] };
+}
+
+// O total da proposta passa a ser o valor da ficha; o contacto passa a "Proposta"
+// se ainda não estava fechado.
+export async function saveProposalTotal(id: string, value: unknown): Promise<Result> {
+  const total = parseDealValue(value);
+  if (total === undefined || total === null) return { ok: false };
+
+  const { supabase, user } = await currentUser();
+  const { data: current } = await supabase
+    .from("contacts")
+    .select("status")
+    .eq("id", id)
+    .maybeSingle();
+  if (!current) return { ok: false };
+
+  const closed = current.status === "won" || current.status === "lost";
+  const { data, error } = await supabase
+    .from("contacts")
+    .update({ deal_value: total, ...(closed ? {} : { status: "proposal" }) })
+    .eq("id", id)
+    .select("id");
+
+  if (error || !data?.length) {
+    await reportError("contactos proposta", error?.code ?? "sem linha", user.id);
+    return { ok: false };
+  }
+
+  revalidatePath(CONTACTS_PATH);
+  revalidatePath("/painel");
+  return { ok: true };
+}
+
+// Vazio volta ao modelo da app.
+export async function setWhatsappTemplate(value: unknown): Promise<Result> {
+  const template = parseWhatsappTemplate(value);
+  if (template === undefined) return { ok: false };
+
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ whatsapp_template: template })
+    .eq("id", user.id)
+    .select("id");
+
+  if (error || !data?.length) {
+    await reportError("contactos modelo whatsapp", error?.code ?? "sem linha", user.id);
+    return { ok: false };
+  }
+
+  revalidatePath(CONTACTS_PATH);
+  return { ok: true };
 }
 
 export async function setDailyGoal(value: unknown): Promise<Result> {

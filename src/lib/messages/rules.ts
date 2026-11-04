@@ -96,13 +96,20 @@ export function messageCostEur({ inputTokens, outputTokens }: MessageUsage) {
 // algarismos (91, 92, 93 ou 96), como quem escreve o número à mão. Nos outros, o
 // WhatsApp pede o contacto.
 export function whatsappUrl(message: string, phone?: string | null) {
-  const digits = phone?.replace(/\D/g, "") ?? "";
-  const number = phone?.trim().startsWith("+")
-    ? digits
-    : /^9[1236]\d{7}$/.test(digits)
-      ? `351${digits}`
-      : "";
+  const number = whatsappNumber(phone) ?? "";
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
+// Número para o wa.me: com indicativo (+ ou 00), telemóvel português de 9
+// algarismos ou já com 351 à frente. Fixos e números incompletos dão null.
+export function whatsappNumber(phone?: string | null) {
+  const raw = phone?.trim() ?? "";
+  const digits = raw.replace(/\D/g, "");
+  if (raw.startsWith("+")) return digits.length >= 8 ? digits : null;
+  if (raw.startsWith("00")) return digits.length >= 10 ? digits.slice(2) : null;
+  if (/^9[1236]\d{7}$/.test(digits)) return `351${digits}`;
+  if (/^3519[1236]\d{7}$/.test(digits)) return digits;
+  return null;
 }
 
 export function emailUrl(message: string, subject: string) {

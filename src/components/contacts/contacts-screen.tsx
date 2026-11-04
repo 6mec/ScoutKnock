@@ -9,7 +9,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { setContactStatus } from "@/lib/contacts/actions";
-import { dayOf, type ContactEvent } from "@/lib/contacts/crm";
+import {
+  CONTACT_FILTERS,
+  dayOf,
+  filterContacts,
+  type ContactEvent,
+  type ContactFilter,
+} from "@/lib/contacts/crm";
 import { manualColumns, type ManualCompany } from "@/lib/contacts/manual";
 import {
   marksLastContact,
@@ -23,6 +29,8 @@ import { ContactDialog } from "./contact-dialog";
 import { ContactsBoard } from "./contacts-board";
 import { ContactsTable } from "./contacts-table";
 import { CrmToday } from "./crm-today";
+import { ExportCsvButton } from "./export-csv-button";
+import { WhatsappTemplateButton } from "./whatsapp-template-button";
 import { ImportListButton } from "./import-list-button";
 
 const { contacts: copy } = ptPT;
@@ -31,11 +39,13 @@ export function ContactsScreen({
   initial,
   events: initialEvents,
   dailyGoal: initialGoal,
+  whatsappTemplate: initialTemplate,
   statusFilter,
 }: {
   initial: Contact[];
   events: ContactEvent[];
   dailyGoal: number;
+  whatsappTemplate: string | null;
   statusFilter: ContactStatus | null;
 }) {
   const [contacts, setContacts] = useState(initial);
@@ -44,6 +54,8 @@ export function ContactsScreen({
   const [lastInitial, setLastInitial] = useState(initial);
   const [openId, setOpenId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [quickFilter, setQuickFilter] = useState<ContactFilter>("all");
+  const [template, setTemplate] = useState(initialTemplate);
   const [now] = useState(() => Date.now());
 
   // O Next guarda este ecrã escondido: ao voltar, os dados novos do servidor mandam.
@@ -58,7 +70,7 @@ export function ContactsScreen({
   const filtered = statusFilter
     ? contacts.filter(({ status }) => status === statusFilter)
     : contacts;
-  const visible = searchContacts(filtered, search);
+  const visible = searchContacts(filterContacts(filtered, quickFilter, now), search);
 
   function changeStatus(id: string, status: ContactStatus) {
     const previous = contacts;
@@ -164,6 +176,7 @@ export function ContactsScreen({
         dailyGoal={dailyGoal}
         now={now}
         today={dayOf(now)}
+        whatsappTemplate={template}
         onGoalChange={setDailyGoal}
         onOpen={setOpenId}
         onStatusChange={changeStatus}
@@ -177,7 +190,27 @@ export function ContactsScreen({
             onChange={(event) => setSearch(event.target.value)}
           />
         </Field>
-        <div className="flex flex-wrap gap-2">{manualActions}</div>
+        <div className="flex flex-wrap gap-2">
+          {manualActions}
+          <WhatsappTemplateButton template={template} onSaved={setTemplate} />
+          <ExportCsvButton contacts={visible} />
+        </div>
+      </div>
+      <div role="group" aria-label={copy.crm.filters.label} className="flex flex-wrap gap-2">
+        {CONTACT_FILTERS.map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            aria-pressed={quickFilter === filter}
+            onClick={() => setQuickFilter(filter)}
+            className="focus-ring relative inline-flex h-8 items-center gap-1.5 rounded-pill border border-border px-3 text-13 text-muted transition-colors duration-(--duration-fast) before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] hovered:text-foreground aria-pressed:border-accent/40 aria-pressed:bg-accent-soft aria-pressed:text-accent"
+          >
+            {copy.crm.filters[filter]}
+            <span className="type-number text-12 opacity-80">
+              {filterContacts(filtered, filter, now).length}
+            </span>
+          </button>
+        ))}
       </div>
       {statusFilter && (
         <div className="flex flex-wrap items-center gap-x-4" data-testid="contacts-filter">
@@ -197,7 +230,7 @@ export function ContactsScreen({
           )}
         </div>
       )}
-      {search && visible.length === 0 && (
+      {(search || quickFilter !== "all") && visible.length === 0 && (
         <p role="status" className="text-muted">
           {copy.table.noMatches}
         </p>
@@ -226,6 +259,7 @@ export function ContactsScreen({
         <ContactDialog
           key={open.id}
           contact={open}
+          whatsappTemplate={template}
           onClose={() => setOpenId(null)}
           onStatusChange={changeStatus}
           onSaved={handleSaved}

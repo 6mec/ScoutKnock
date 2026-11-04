@@ -36,7 +36,7 @@ async function Content({
   const supabase = await createClient();
   // Um dia a mais, para o primeiro dia do ritmo ficar completo em Lisboa.
   const since = new Date(new Date().getTime() - (PACE_DAYS + 1) * DAY_MS).toISOString();
-  const [contacts, events, profile] = await Promise.all([
+  const [contacts, events, profile, template] = await Promise.all([
     supabase.from("contacts").select("*").order("created_at", { ascending: false }),
     supabase
       .from("contact_events")
@@ -45,6 +45,8 @@ async function Content({
       .gte("created_at", since)
       .limit(5000),
     supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
+    // À parte: se esta coluna faltar, a meta continua a ler-se.
+    supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
   ]);
 
   if (contacts.error) {
@@ -63,6 +65,7 @@ async function Content({
       initial={contacts.data as Contact[]}
       events={(events.data ?? []) as ContactEvent[]}
       dailyGoal={(profile.data?.daily_goal as number | undefined) ?? DEFAULT_DAILY_GOAL}
+      whatsappTemplate={(template.data?.whatsapp_template as string | null | undefined) ?? null}
       statusFilter={parseStatusFilter(estado)}
     />
   );

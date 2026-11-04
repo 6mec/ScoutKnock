@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/painel">) {
           </Suspense>
         }
       />
-      <div className="canvas-grid flex min-w-0 flex-1 flex-col bg-canvas pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0">
+      <div className="canvas-grid flex min-w-0 flex-1 flex-col bg-canvas pb-[calc(64px+env(safe-area-inset-bottom))] md:pb-0 print:bg-white print:bg-none print:pb-0">
         <AppTopBar />
         <main className="flex flex-1 flex-col">{children}</main>
       </div>

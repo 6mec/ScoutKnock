@@ -410,6 +410,16 @@
   }
 }
 
+@media print {
+  body {
+    background: #fff;
+  }
+
+  @page {
+    margin: 16mm;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;

@@ -120,3 +120,76 @@ export function dealTotals(
   }
   return { open, won, openCount, wonCount };
 }
+
+// Mensagem do "Chamar no WhatsApp": {nome} passa a ser o nome da empresa.
+export const MAX_WHATSAPP_TEMPLATE = 1000;
+
+export function parseWhatsappTemplate(value: unknown) {
+  if (typeof value !== "string") return undefined;
+  const text = value.trim();
+  if (text.length > MAX_WHATSAPP_TEMPLATE) return undefined;
+  return text || null;
+}
+
+export function fillTemplate(template: string, name: string) {
+  return template.replace(/\{nome\}/gi, name).trim();
+}
+
+// Filtros rápidos dos contactos.
+export const CONTACT_FILTERS = ["all", "due", "stale", "valued", "blocked"] as const;
+export type ContactFilter = (typeof CONTACT_FILTERS)[number];
+export const STALE_AFTER_DAYS = 3;
+
+export function filterContacts(contacts: Contact[], filter: ContactFilter, now: number) {
+  switch (filter) {
+    case "all":
+      return contacts;
+    case "due": {
+      const due = new Set(dueReturns(contacts, now).map(({ id }) => id));
+      return contacts.filter(({ id }) => due.has(id));
+    }
+    // Contactadas, sem resposta, há mais de 3 dias.
+    case "stale":
+      return contacts.filter(
+        (contact) =>
+          contact.status === "contacted" &&
+          !contact.do_not_contact &&
+          contact.last_contacted_at !== null &&
+          now - new Date(contact.last_contacted_at).getTime() > STALE_AFTER_DAYS * DAY_MS,
+      );
+    case "valued":
+      return contacts.filter((contact) => contact.deal_value !== null);
+    case "blocked":
+      return contacts.filter((contact) => contact.do_not_contact);
+  }
+}
+
+// Folha para o Excel em português: separador ";", BOM e só o que o freelancer
+// escreveu (os dados do Google não se guardam, por isso também não saem daqui).
+export function contactsCsv(
+  contacts: Contact[],
+  headers: string[],
+  statusName: (status: ContactStatus) => string,
+) {
+  const cell = (value: string | number | null | undefined) => {
+    const text = value === null || value === undefined ? "" : String(value);
+    // Evita que o Excel trate o texto como fórmula.
+    const safe = /^[=+\-@\t\r]/.test(text) ? `'${text}` : text;
+    return /[";\r\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+  };
+  const rows = contacts.map((contact) => [
+    contact.label,
+    statusName(contact.status),
+    contact.manual_phone ?? contact.confirmed_contact,
+    contact.manual_niche,
+    contact.manual_locality,
+    contact.manual_website,
+    contact.deal_value === null ? null : String(contact.deal_value).replace(".", ","),
+    contact.next_action,
+    contact.next_action_at,
+    contact.last_contacted_at ? dayOf(contact.last_contacted_at) : null,
+    contact.do_not_contact ? "sim" : "",
+    contact.notes,
+  ]);
+  return "\uFEFF" + [headers, ...rows].map((row) => row.map(cell).join(";")).join("\r\n");
+}
