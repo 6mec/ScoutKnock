@@ -677,6 +677,20 @@ export const ptPT = {
       title: "Contactos por estado",
       empty: "Ainda não tens contactos. Guarda uma empresa no Radar, ou adiciona uma à mão, para começares.",
     },
+    onboarding: {
+      title: "Primeiros passos",
+      progress: (done: number, total: number) => `${done} de ${total} feitos`,
+      done: "Feito",
+      todo: "Por fazer",
+      steps: {
+        addCompany: "Guarda a primeira empresa, no Radar ou à mão",
+        contactCompany: "Contacta uma empresa, por exemplo com \"Chamar no WhatsApp\"",
+        message: "Escreve a tua mensagem do WhatsApp",
+        demo: "Cria um site demo para uma empresa",
+        proposal: "Escreve o valor de uma proposta na ficha",
+        portfolio: "Publica o teu portfólio",
+      },
+    },
     deals: {
       title: "Negócios",
       today: "Contactadas hoje",

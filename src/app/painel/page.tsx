@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import {
   ArrowRight,
+  Check,
+  Circle,
+  ListChecks,
   CreditCard,
   Euro,
   Gauge,
@@ -38,6 +41,11 @@ import {
   type ContactEvent,
 } from "@/lib/contacts/crm";
 import { CONTACT_STATUSES, type Contact } from "@/lib/contacts/rules";
+import {
+  ONBOARDING_LINKS,
+  ONBOARDING_STEPS,
+  onboardingProgress,
+} from "@/lib/dashboard/onboarding";
 import {
   DEMO_WARNING_DAYS,
   daysUntil,
@@ -298,6 +306,53 @@ function DealsBlock({ deals, now }: { deals: Deals; now: number }) {
   );
 }
 
+// Desaparece quando está tudo feito; cada passo leva ao sítio onde se faz.
+function OnboardingBlock({ progress }: { progress: ReturnType<typeof onboardingProgress> }) {
+  if (progress.complete) return null;
+  const steps = copy.onboarding.steps;
+
+  return (
+    <Block id="primeiros-passos" title={copy.onboarding.title} icon={ListChecks} className="lg:col-span-2">
+      <div className="flex flex-col gap-2">
+        <p className="type-number text-14 text-muted">
+          {copy.onboarding.progress(progress.count, progress.total)}
+        </p>
+        <Progress
+          value={progress.percent}
+          label={copy.onboarding.progress(progress.count, progress.total)}
+        />
+      </div>
+      <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {ONBOARDING_STEPS.map((step) => {
+          const done = progress.done[step];
+          return (
+            <li key={step}>
+              <Link
+                href={ONBOARDING_LINKS[step]}
+                data-done={done || undefined}
+                className="panel-row focus-ring flex min-h-11 items-start gap-3 p-3 text-14 transition-colors duration-(--duration-fast) hovered:border-accent/40"
+              >
+                {done ? (
+                  <Check aria-hidden="true" size={18} strokeWidth={2.2} className="mt-px shrink-0 text-accent" />
+                ) : (
+                  <Circle aria-hidden="true" size={18} strokeWidth={1.75} className="mt-px shrink-0 text-muted" />
+                )}
+                <span className={cn(done && "text-muted line-through")}>
+                  {steps[step]}
+                  <span className="sr-only">
+                    {" · "}
+                    {done ? copy.onboarding.done : copy.onboarding.todo}
+                  </span>
+                </span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </Block>
+  );
+}
+
 function EmptyLine({ text, action }: { text: string; action?: ReactNode }) {
   return (
     <div className="flex flex-col items-start gap-3">
@@ -536,17 +591,19 @@ async function Content() {
   const supabase = await createClient();
   // O dia de hoje em Lisboa começa no máximo 26 h antes de agora.
   const since = new Date(new Date().getTime() - 26 * 3_600_000).toISOString();
-  const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow] =
+  const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow, templateRow, portfolioRow] =
     await Promise.all([
       supabase.rpc("my_dashboard"),
       supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle(),
-      supabase.from("contacts").select("status, deal_value, do_not_contact"),
+      supabase.from("contacts").select("status, deal_value, do_not_contact, last_contacted_at"),
       supabase
         .from("contact_events")
         .select("contact_id, kind, status, created_at")
         .eq("kind", "status")
         .gte("created_at", since),
       supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
+      supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
+      supabase.from("portfolios").select("published").eq("user_id", user.id).maybeSingle(),
     ]);
 
   // Vai para o ecrã de erro do painel, com "Tentar outra vez".
@@ -569,6 +626,14 @@ async function Content() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <RefreshOnShow />
+      <OnboardingBlock
+        progress={onboardingProgress({
+          contacts: (dealRows.data ?? []) as Pick<Contact, "status" | "deal_value" | "last_contacted_at">[],
+          hasTemplate: Boolean(templateRow.data?.whatsapp_template),
+          demosMade: Math.max(dashboard.demos.active, dashboard.usage.demos_used),
+          portfolioPublished: Boolean(portfolioRow.data?.published),
+        })}
+      />
       <UsageBlock data={dashboard} />
       <NextStepBlock data={dashboard} now={now} billingOn={billingOn} />
       <LeadsBlock data={dashboard} />

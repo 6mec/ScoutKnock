@@ -27,6 +27,7 @@ export function PortfolioView({
   ];
   const Heading = preview ? "h3" : "h1";
   const Section = preview ? "h4" : "h2";
+  const Block = preview ? "div" : "section";
   const initials = name
     .split(/\s+/)
     .slice(0, 2)
@@ -93,7 +94,7 @@ export function PortfolioView({
         {about && <p className="max-w-2xl text-16 leading-relaxed whitespace-pre-line text-[#3d4754]">{about}</p>}
 
         {services.length > 0 && (
-          <section aria-labelledby={`${portfolio.slug}-services`} className="flex flex-col gap-5">
+          <Block aria-labelledby={preview ? undefined : `${portfolio.slug}-services`} className="flex flex-col gap-5">
             <Section id={`${portfolio.slug}-services`} className="text-24 font-bold tracking-tight">
               {copy.services}
             </Section>
@@ -110,11 +111,11 @@ export function PortfolioView({
                 </li>
               ))}
             </ul>
-          </section>
+          </Block>
         )}
 
         {work.length > 0 && (
-          <section aria-labelledby={`${portfolio.slug}-work`} className="flex flex-col gap-5">
+          <Block aria-labelledby={preview ? undefined : `${portfolio.slug}-work`} className="flex flex-col gap-5">
             <Section id={`${portfolio.slug}-work`} className="text-24 font-bold tracking-tight">
               {copy.projects}
             </Section>
@@ -143,7 +144,7 @@ export function PortfolioView({
                 </li>
               ))}
             </ul>
-          </section>
+          </Block>
         )}
 
         {!about && services.length === 0 && work.length === 0 && (
@@ -151,15 +152,15 @@ export function PortfolioView({
         )}
 
         {contactButtons && (
-          <section
-            aria-labelledby={`${portfolio.slug}-contact`}
+          <Block
+            aria-labelledby={preview ? undefined : `${portfolio.slug}-contact`}
             className="flex flex-col gap-4 rounded-2xl bg-[#0b0f14] p-8 text-white"
           >
             <Section id={`${portfolio.slug}-contact`} className="text-24 font-bold tracking-tight">
               {copy.contact}
             </Section>
             <div className="[&_a]:border-white/20">{contactButtons}</div>
-          </section>
+          </Block>
         )}
       </div>
     </div>

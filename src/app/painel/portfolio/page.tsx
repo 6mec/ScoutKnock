@@ -44,7 +44,8 @@ async function Content() {
     about: (row?.about as string | null) ?? "",
     city: (row?.city as string | null) ?? "",
     whatsapp: (row?.whatsapp as string | null) ?? "",
-    email: (row?.email as string | null) ?? user.email ?? "",
+    // O email da conta não entra sozinho numa página pública.
+    email: (row?.email as string | null) ?? "",
     services: ((row?.services as PortfolioService[] | undefined) ?? []).map((s) => ({
       title: s.title,
       description: s.description ?? "",

@@ -367,7 +367,7 @@ export function PortfolioEditor({
         </div>
 
         <div aria-live="polite">
-          {error && error !== "slug" && error !== "taken" && error !== "displayName" && (
+          {(error === "url" || error === "tooLong" || error === "generic") && (
             <Callout role="alert" tone="danger">
               {copy.errors[error]}
             </Callout>
