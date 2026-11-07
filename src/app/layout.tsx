@@ -15,6 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  // Endereço base: as imagens de partilha (WhatsApp, redes) precisam de endereços completos.
+  metadataBase: new URL(process.env.SITE_URL || "http://localhost:3000"),
   title: ptPT.brand.name,
   description: ptPT.brand.tagline,
   appleWebApp: { capable: true, title: ptPT.brand.name, statusBarStyle: "black-translucent" },

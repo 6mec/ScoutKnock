@@ -13,12 +13,9 @@ Fonte de verdade da fila de trabalho. Quem escreve as tarefas: o Daniel e o assi
 
 ## Em curso
 
-Nenhuma. A próxima é a T12b.
+Nenhuma. A próxima é a T11 (depende das respostas do barbeiro).
 
 ## Próximas (por ordem)
-
-### T12b. Portfólio: página pública e partilha
-Secções novas em `/p/nome` (topo com WhatsApp e email, serviços com uma linha, trabalhos com captura pelo otimizador do Next, como trabalho com os três valores, opiniões só se existirem, sobre uma vez, contacto). Imagem de partilha gerada (1200×630) com título e descrição; endereço base a partir do `SITE_URL`; noindex só quando "Aparecer no Google" está desligado (o cabeçalho fixo sai). Teste de velocidade no telemóvel.
 
 ### T11. Site-base reutilizável para clientes
 Um projeto-modelo fora deste repositório (por exemplo `../ScoutKnock-clientes/_base`), de onde se copia o site de cada cliente: páginas, identidade por nicho, secção de marcações por WhatsApp, SEO básico e instruções de publicação com domínio e alojamento em nome do cliente. O `/pedidos` passa a usá-lo para os pedidos de site. Plano curto antes, com a tecnologia e o que custa alojar.
@@ -42,6 +39,7 @@ Lista de licenças das dependências e fontes em `docs/licencas.md` (com o OpenS
 
 ## Feitas
 
+- T12b. Portfólio: página pública e partilha (07/11/2026). `/p/nome` com topo (nome, frase, WhatsApp e email), serviços com uma linha, trabalhos com captura servida pelo otimizador do Next (o browser nunca pede nada ao Supabase), como trabalho com os 4 passos e os três valores (e o "a partir de" só se escrito), opiniões só autorizadas (sem nenhuma, a secção não aparece), sobre uma vez e contacto. Imagem de partilha gerada (1200×630, 57 KB) com título e descrição; endereço base a partir do `SITE_URL`; noindex só com "Aparecer no Google" desligado (saiu o cabeçalho fixo). Lighthouse no telemóvel: velocidade 94, acessibilidade 100. Sem migração.
 - T12a. Portfólio: dados e edição (07/11/2026). Migração `20261125000000_portfolio_work.sql`: nos projetos, "pode mostrar", frase, ligação pública e captura (espaço `portfolio` no armazenamento do Supabase, leitura pública, 1 MiB, WebP/JPEG/PNG, cada um só escreve na sua pasta); no portfólio, os 4 passos, o "a partir de" opcional e o interruptor "Aparecer no Google" (desligado); tabela de opiniões (primeiro nome, empresa, texto, autorizada). Secção "Portfólio" no diálogo do projeto (só entregues, em manutenção ou terminados; até 8). Editor: endereço com avisos de escrita, se está livre e confirmação ao mudar um publicado; serviços com uma linha obrigatória; como trabalho e os três valores; opiniões. `get_portfolio` devolve trabalhos e opiniões autorizadas; a lista antiga e os sites das demos saem da página. Testado de ponta a ponta com duas contas temporárias (captura de 2,8 MB reduzida para 135 KB em WebP; pasta de outra pessoa, SVG e ficheiros acima de 1 MiB recusados). Depende da migração `20261125000000_portfolio_work.sql`.
 - T15. Início com dashboard e visual (07/11/2026). Cartões de números grandes (vendas do mês, entregues este mês, projetos em curso com atrasados, manutenção mensal, a receber), cada um com estado vazio em vez de zeros; gráfico do recebido nos últimos 6 meses em SVG com valor ao passar o rato e tabela para leitores de ecrã; funil de 90 dias e próximas tarefas; os primeiros passos passam para baixo e o bloco Projetos sai (os números estão nos cartões). "Nova busca" sempre na barra de cima (só o ícone no telemóvel) e tema claro/escuro no menu da conta. Sem migração.
 - T14. Pagamentos recebidos por projeto e números do Início (07/11/2026). Secção "Pagamentos recebidos" no diálogo do projeto (valor, data, criação ou manutenção, nota; apagar e registar de novo) com "Recebido X de Y da criação · faltam Z", e o mesmo resumo no cartão; recusa valor zero, datas futuras e segredos nas notas. Regras testadas para o Início: vendas do mês, entregues este mês, a receber (só criação; sem pagamentos diz isso), recebido por mês, funil de 90 dias e próximas tarefas. Depende da migração `20261124000000_project_payments.sql`.
