@@ -27,6 +27,7 @@ import {
   LIMITS,
   MAX_SERVICES,
   parsePortfolio,
+  portfolioUrl,
   type PortfolioError,
   type PublicPortfolio,
 } from "@/lib/portfolio/rules";
@@ -76,6 +77,7 @@ export function PortfolioEditor({
   savedSlug,
   savedPublished,
   siteUrl,
+  homeSlug = null,
   worksCount,
   testimonials,
   projects,
@@ -84,6 +86,8 @@ export function PortfolioEditor({
   savedSlug: string | null;
   savedPublished: boolean;
   siteUrl: string;
+  // O endereço que abre na raiz do domínio (HOME_PORTFOLIO_SLUG), se houver.
+  homeSlug?: string | null;
   worksCount: number;
   testimonials: TestimonialRow[];
   projects: { id: string; company_name: string }[];
@@ -94,7 +98,7 @@ export function PortfolioEditor({
   const [confirmSlug, setConfirmSlug] = useState(false);
   const [availability, setAvailability] = useState<{ slug: string; available: boolean | null } | null>(null);
   const [saving, startSaving] = useTransition();
-  const publicUrl = (slug: string) => new URL(`/p/${slug}`, siteUrl).toString();
+  const publicUrl = (slug: string) => portfolioUrl(slug, siteUrl, homeSlug);
   const slugState = checkSlug(form.slug, form.displayName);
   const slugChanged = Boolean(saved.slug) && slugState.slug !== saved.slug;
 
@@ -194,7 +198,7 @@ export function PortfolioEditor({
             {saved.slug && saved.published && (
               <div className="flex flex-wrap gap-2 pt-1">
                 <Button asChild variant="secondary" size="sm">
-                  <a href={`/p/${saved.slug}`} target="_blank" rel="noreferrer noopener">
+                  <a href={saved.slug === homeSlug ? "/" : `/p/${saved.slug}`} target="_blank" rel="noreferrer noopener">
                     <ExternalLink aria-hidden="true" size={14} strokeWidth={1.75} />
                     {copy.open}
                   </a>
@@ -261,7 +265,7 @@ export function PortfolioEditor({
             <Field label={copy.whatsapp} help={copy.whatsappHelp} error={error === "whatsapp" ? copy.errors.whatsapp : undefined}>
               <Input type="tel" value={form.whatsapp} maxLength={LIMITS.whatsapp} onChange={(event) => update({ whatsapp: event.target.value })} />
             </Field>
-            <Field label={copy.email} error={error === "email" ? copy.errors.email : undefined}>
+            <Field label={copy.email} help={copy.emailHelp} error={error === "email" ? copy.errors.email : undefined}>
               <Input type="email" value={form.email} maxLength={LIMITS.email} onChange={(event) => update({ email: event.target.value })} />
             </Field>
           </section>

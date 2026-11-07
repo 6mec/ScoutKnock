@@ -50,4 +50,59 @@ O `netlify.toml` diz à Netlify o comando de build (`npm run build`) e a versão
 
 ## Fase B: domínio scoutkncok.com
 
-Fica para depois de testada a Fase A. Plano aprovado: domínio sem www (o www reencaminha), a raiz `/` abre o portfólio, `/p/daniel` leva a `/`, o `.netlify.app` reencaminha para o domínio, e o `SITE_URL` só muda depois de o certificado HTTPS estar ativo. O `.netlify.app` fica nos Redirect URLs do Supabase até o Daniel confirmar.
+O nome do domínio está escrito assim de propósito. No código não aparece: vem de `SITE_URL`. A app já faz, com `SITE_URL` num domínio próprio em https:
+- **`www` reencaminha para o domínio sem www**, com o mesmo caminho.
+- **O endereço `.netlify.app` de produção reencaminha para o domínio.** As pré-visualizações da Netlify (endereços com `--`, como `deploy-preview-3--site.netlify.app`) e o localhost não.
+- **Com `HOME_PORTFOLIO_SLUG`:**
+  - a raiz `/` mostra esse portfólio;
+  - `/p/<slug>` leva a `/`;
+  - o endereço oficial (canonical) e o da partilha passam a ser `/`.
+- **O "Aparecer no Google" continua desligado.** Sem ele, a página leva noindex.
+
+### 1. Netlify: acrescentar o domínio
+1. No site, "Domain management" → "Add a domain" → `scoutkncok.com`. A Netlify junta também o `www`.
+2. Pôr `scoutkncok.com` (sem www) como domínio principal ("Set as primary domain").
+3. A Netlify mostra "Pending DNS verification" com os valores certos para o site. Se forem diferentes dos de baixo, valem os dela.
+
+### 2. Cloudflare: DNS
+Em DNS → Records, apagar registos A, AAAA ou CNAME antigos de `@` e `www` e criar:
+
+| Tipo | Nome | Destino | Proxy |
+|---|---|---|---|
+| CNAME | `@` | `apex-loadbalancer.netlify.com` | **DNS only** (nuvem cinzenta) |
+| CNAME | `www` | o endereço `….netlify.app` do site | **DNS only** (nuvem cinzenta) |
+
+Na raiz, a Cloudflare "achata" o CNAME (é o que a Netlify recomenda). A alternativa é um registo A `@` → `75.2.60.5`. Com a nuvem laranja (proxy) a Netlify não consegue criar o certificado.
+
+### 3. HTTPS
+1. Netlify → "Domain management" → "HTTPS" → "Verify DNS configuration". Pode levar de minutos a algumas horas.
+2. Quando estiver verificado, o certificado (Let's Encrypt, grátis) é criado sozinho ou com "Provision certificate".
+3. Confirmar que `https://scoutkncok.com` e `https://www.scoutkncok.com` abrem com cadeado. **Só depois** passar ao passo 4.
+
+### 4. Variáveis na Netlify (depois do certificado)
+1. `SITE_URL` = `https://scoutkncok.com`, sem barra no fim.
+2. Nova: `HOME_PORTFOLIO_SLUG` = `daniel`.
+3. "Trigger deploy". A partir daqui, o `.netlify.app` reencaminha para o domínio.
+
+Antes disto, no painel: o portfólio `daniel` tem de estar **publicado**. Sem isso, a raiz dá "não encontrado".
+
+### 5. Supabase
+Authentication → URL Configuration:
+- **Site URL:** `https://scoutkncok.com`.
+- **Redirect URLs:** acrescentar `https://scoutkncok.com/**`. Manter `https://….netlify.app/**` e `http://localhost:3000/**` até confirmares que está tudo bem.
+
+### 6. Email do portfólio (opcional)
+- No painel → Portfólio → Email, escreve `contacto@scoutkncok.com`.
+- **Para receber:** Cloudflare → Email → "Email Routing" (grátis) → criar `contacto@` a reencaminhar para o teu email pessoal. A Cloudflare junta sozinha os registos MX e TXT.
+- **Para responder como `contacto@`:** é preciso um servidor de envio (SMTP). Fica fora desta fase.
+
+### 7. Teste no domínio
+- [ ] `https://scoutkncok.com` mostra o portfólio e o endereço fica `/`.
+- [ ] `https://www.scoutkncok.com/entrar` leva a `https://scoutkncok.com/entrar`.
+- [ ] `https://….netlify.app/painel` leva a `https://scoutkncok.com/painel`.
+- [ ] `https://scoutkncok.com/p/daniel` leva a `https://scoutkncok.com/`.
+- [ ] No código da página (Ctrl+U): `canonical` = `https://scoutkncok.com/` e `noindex`.
+- [ ] Partilhado no WhatsApp: título, descrição e imagem, com o link do domínio.
+- [ ] Entrar, Radar e Contactos funcionam; o `{portfolio}` das mensagens dá `https://scoutkncok.com/`.
+- [ ] "Esqueci-me da palavra-passe": o link do email aponta para o domínio.
+- [ ] Uma pré-visualização da Netlify (pull request) continua no seu endereço próprio.

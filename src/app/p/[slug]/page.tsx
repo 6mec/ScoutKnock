@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { PortfolioView } from "@/components/portfolio/portfolio-view";
 import { ptPT } from "@/i18n/pt-PT";
 import { findPortfolio } from "@/lib/portfolio/public";
+import { portfolioPath } from "@/lib/site";
 
 export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Promise<Metadata> {
   await connection();
@@ -16,14 +17,16 @@ export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Prom
   // A imagem vem do opengraph-image ao lado. Fora do Google, a não ser que ele ligue.
   const description = portfolio.headline ?? ptPT.portfolio.page.description(portfolio.display_name);
   const indexable = portfolio.indexable === true;
+  // O portfólio de HOME_PORTFOLIO_SLUG vive na raiz do domínio: o endereço oficial é "/".
+  const path = portfolioPath(portfolio.slug);
   return {
     title: { absolute: portfolio.display_name },
     description,
-    alternates: { canonical: `/p/${portfolio.slug}` },
+    alternates: { canonical: path },
     openGraph: {
       type: "profile",
       locale: "pt_PT",
-      url: `/p/${portfolio.slug}`,
+      url: path,
       title: portfolio.display_name,
       description,
     },

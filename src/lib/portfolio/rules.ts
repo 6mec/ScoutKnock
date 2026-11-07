@@ -260,6 +260,7 @@ export function parseTestimonial(value: unknown): { ok: true; testimonial: Testi
   return { ok: true, testimonial: { firstName, company, quote, authorized: raw.authorized === true, projectId } };
 }
 
-export function portfolioUrl(slug: string, siteUrl: string) {
-  return new URL(`/p/${slug}`, siteUrl).toString();
+// O link público: a raiz do domínio para o portfólio de HOME_PORTFOLIO_SLUG (homeSlug).
+export function portfolioUrl(slug: string, siteUrl: string, homeSlug: string | null = null) {
+  return new URL(slug === homeSlug ? "/" : `/p/${slug}`, siteUrl).toString();
 }

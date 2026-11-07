@@ -144,6 +144,11 @@ describe("endereços", () => {
   it("monta o endereço público", () => {
     expect(portfolioUrl("daniel", "https://scoutknock.pt")).toBe("https://scoutknock.pt/p/daniel");
   });
+
+  it("o portfólio da raiz (HOME_PORTFOLIO_SLUG) tem o link do domínio", () => {
+    expect(portfolioUrl("daniel", "https://exemplo.pt", "daniel")).toBe("https://exemplo.pt/");
+    expect(portfolioUrl("ana", "https://exemplo.pt", "daniel")).toBe("https://exemplo.pt/p/ana");
+  });
 });
 
 describe("limites de texto", () => {
