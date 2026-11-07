@@ -44,7 +44,10 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  /* config options here */
+  // As capturas do portfólio chegam já reduzidas (até 1 MiB); a margem é para o envio.
+  experimental: {
+    serverActions: { bodySizeLimit: "2mb" },
+  },
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {

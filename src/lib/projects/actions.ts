@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 import { todayIn } from "@/lib/demos/booking";
+import { PORTFOLIO_BUCKET } from "@/lib/portfolio/images";
 import { parsePaymentInput, type PaymentError } from "./payments";
 import { parseProjectFields, parseProjectInput, toRow, type ProjectError } from "./rules";
 
@@ -66,8 +67,11 @@ export async function updateProject(id: string, value: unknown): Promise<Result>
 
 export async function deleteProject(id: string): Promise<{ ok: boolean }> {
   const { supabase, user } = await currentUser();
-  const { data, error } = await supabase.from("client_projects").delete().eq("id", id).select("id");
+  const { data, error } = await supabase.from("client_projects").delete().eq("id", id).select("id, portfolio_image");
   if (error) await reportError("projetos apagar", error.code, user.id);
+  // A captura do portfólio sai com o projeto.
+  const image = (data?.[0] as { portfolio_image: string | null } | undefined)?.portfolio_image;
+  if (image) await supabase.storage.from(PORTFOLIO_BUCKET).remove([image]);
   revalidatePath(PROJECTS_PATH);
   return { ok: !error && Boolean(data?.length) };
 }

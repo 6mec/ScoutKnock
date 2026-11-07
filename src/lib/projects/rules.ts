@@ -34,6 +34,10 @@ export type ClientProject = {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  portfolio_show?: boolean;
+  portfolio_summary?: string | null;
+  portfolio_url?: string | null;
+  portfolio_image?: string | null;
 };
 
 export type ProjectEvent = {
@@ -44,7 +48,7 @@ export type ProjectEvent = {
 };
 
 export const PROJECT_COLUMNS =
-  "id, contact_id, work_request_id, company_name, name, kind, status, build_value, third_party_value, third_party_note, maintenance_monthly, start_date, due_date, delivered_on, maintenance_since, link, notes, created_at, updated_at";
+  "id, contact_id, work_request_id, company_name, name, kind, status, build_value, third_party_value, third_party_note, maintenance_monthly, start_date, due_date, delivered_on, maintenance_since, link, notes, created_at, updated_at, portfolio_show, portfolio_summary, portfolio_url, portfolio_image";
 
 export type ProjectFields = {
   companyName: string;
