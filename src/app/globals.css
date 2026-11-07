@@ -593,3 +593,116 @@ body {
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 30%, transparent 80%);
 }
+
+/* ---- Portfólio público: efeitos de assinatura (só CSS; com "reduzir movimento", parados). ---- */
+
+/* Foco de luz que segue o rato nos cartões (as coordenadas vêm de spotlight.tsx). */
+.pf-spot {
+  position: relative;
+  isolation: isolate;
+}
+.pf-spot::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(420px circle at var(--pf-x, 50%) var(--pf-y, 0%), rgb(45 226 166 / 0.16), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.pf-spot:hover::before {
+  opacity: 1;
+}
+
+/* Borda de luz a girar à volta do trabalho em destaque. */
+@property --pf-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes pf-spin {
+  to {
+    --pf-angle: 360deg;
+  }
+}
+.pf-ring {
+  padding: 1.5px;
+  background:
+    conic-gradient(from var(--pf-angle), transparent 0deg, rgb(45 226 166 / 0.95) 50deg, rgb(10 127 91 / 0.6) 90deg, transparent 140deg, transparent 360deg),
+    linear-gradient(#dfe6ec, #dfe6ec);
+}
+
+/* Linha dos passos que enche ao descer. */
+@keyframes pf-fill {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Brilhos do topo a mexer devagar e aparelhos a flutuar. */
+@keyframes pf-drift {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    transform: translate(-60px, 40px) scale(1.15);
+  }
+}
+@keyframes pf-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pf-ring {
+    animation: pf-spin 7s linear infinite;
+  }
+  .pf-drift {
+    animation: pf-drift 18s ease-in-out infinite alternate;
+  }
+  .pf-drift-slow {
+    animation: pf-drift 26s ease-in-out infinite alternate-reverse;
+  }
+  .pf-float {
+    animation: pf-float 7s ease-in-out infinite;
+  }
+  .pf-float-late {
+    animation: pf-float 7s ease-in-out 1.2s infinite;
+  }
+  @supports (animation-timeline: view()) {
+    .pf-fill {
+      transform-origin: top;
+      animation: pf-fill linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 65%;
+    }
+  }
+}
+
+/* Grão subtil nas zonas escuras (SVG em data:, sem pedidos). */
+.pf-grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Nome gigante no rodapé, só em contorno. */
+.pf-outline {
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(255 255 255 / 0.14);
+}
