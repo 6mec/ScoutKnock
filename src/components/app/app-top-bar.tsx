@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { Suspense } from "react";
+import { Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { requestNewSearch } from "@/lib/radar/new-search";
 import { CommandPalette } from "@/components/app/command-palette";
 import { Logo } from "@/components/ui/logo";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -47,7 +50,16 @@ export function AppTopBar() {
           <PageTitle />
         </Suspense>
       </div>
-      <CommandPalette />
+      <div className="flex shrink-0 items-center gap-2">
+        {/* A ação principal, sempre à mão: no telemóvel só com o ícone. */}
+        <Button asChild size="sm" className="h-10 px-3" data-testid="top-new-search">
+          <Link href="/painel/radar" onClick={requestNewSearch} aria-label={ptPT.dashboard.newSearch}>
+            <Search aria-hidden="true" size={16} />
+            <span className="hidden sm:inline">{ptPT.dashboard.newSearch}</span>
+          </Link>
+        </Button>
+        <CommandPalette />
+      </div>
     </header>
   );
 }

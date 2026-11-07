@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, Globe, LogOut, UserRound } from "lucide-react";
+import { CreditCard, Globe, LogOut, Moon, Sun, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useTransition } from "react";
 import { Avatar } from "@/components/ui/avatar";
@@ -15,11 +15,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
 import { signOut } from "@/lib/auth/actions";
+import { toggleTheme, useTheme } from "@/lib/theme";
 
 const copy = ptPT.app.account;
 
 export function AccountMenu({ email }: { email: string }) {
   const [pending, startTransition] = useTransition();
+  const theme = useTheme();
 
   return (
     <DropdownMenu>
@@ -58,6 +60,11 @@ export function AccountMenu({ email }: { email: string }) {
             <Globe aria-hidden="true" size={16} strokeWidth={1.75} />
             {copy.viewSite}
           </Link>
+        </DropdownMenuItem>
+        {/* O menu fica aberto: vê-se logo o tema novo. */}
+        <DropdownMenuItem onSelect={(event) => { event.preventDefault(); toggleTheme(); }} data-testid="theme-toggle">
+          {theme === "dark" ? <Sun aria-hidden="true" size={16} strokeWidth={1.75} /> : <Moon aria-hidden="true" size={16} strokeWidth={1.75} />}
+          {theme === "dark" ? copy.toLight : copy.toDark}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem

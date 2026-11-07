@@ -7,7 +7,13 @@ import {
   CreditCard,
   Euro,
   FolderKanban,
-  AlertTriangle,
+  CalendarClock,
+  ChartColumn,
+  Filter,
+  PackageCheck,
+  Repeat,
+  TrendingUp,
+  Wallet,
   Gauge,
   Globe,
   Search,
@@ -20,6 +26,10 @@ import { NewSearchLink } from "@/components/app/new-search-link";
 import { StatusDot } from "@/components/contacts/status-dot";
 import { RefreshOnShow } from "@/components/dashboard/refresh-on-show";
 import { RepeatSearchButton } from "@/components/dashboard/repeat-search-button";
+import { Funnel } from "@/components/dashboard/funnel";
+import { MonthChart } from "@/components/dashboard/month-chart";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { UpcomingList } from "@/components/dashboard/upcoming-list";
 import { PlanSubmitButton } from "@/components/plans/plan-submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,7 +72,16 @@ import {
 import { reportError } from "@/lib/events/log";
 import { signupsOpen } from "@/lib/personal-mode";
 import { todayIn } from "@/lib/demos/booking";
-import { projectsSummary, type ProjectSummaryRow } from "@/lib/projects/rules";
+import { projectsSummary, type ClientProject, type ProjectSummaryRow } from "@/lib/projects/rules";
+import { PAYMENT_COLUMNS, receivedByMonth, toReceive, type ProjectPayment } from "@/lib/projects/payments";
+import {
+  deliveredThisMonth,
+  funnel,
+  FUNNEL_DAYS,
+  salesOfMonth,
+  upcomingTasks,
+  type UpcomingTask,
+} from "@/lib/dashboard/metrics";
 import { enabledMarkets } from "@/lib/markets";
 import { getCompanyProvider } from "@/lib/radar/provider";
 import { createClient } from "@/lib/supabase/server";
@@ -334,75 +353,105 @@ function DealsBlock({ deals, now }: { deals: Deals; now: number }) {
   );
 }
 
-const dayFormat = new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeZone: "UTC" });
-const day = (date: string) => dayFormat.format(new Date(`${date}T00:00:00Z`));
 
-// O trabalho combinado com as empresas: só o que o Daniel escreveu nos projetos.
-function ProjectsBlock({ summary }: { summary: ReturnType<typeof projectsSummary> }) {
-  const p = copy.projects;
-  const stat = (id: string, label: string, value: string, tone?: "danger") => (
-    <div key={id} data-testid={`projects-${id}`} className="panel-row flex flex-col gap-1 p-3">
-      <span className="text-13 text-muted">{label}</span>
-      <span className={cn("type-number text-24 font-semibold", tone === "danger" && "text-danger")}>{value}</span>
-    </div>
-  );
+type Metrics = {
+  sales: ReturnType<typeof salesOfMonth>;
+  delivered: ReturnType<typeof deliveredThisMonth>;
+  summary: ReturnType<typeof projectsSummary>;
+  receive: ReturnType<typeof toReceive>;
+};
+
+// Os números grandes do mês. Só valores escritos nos projetos; sem dados, cada cartão diz
+// o que falta em vez de mostrar um zero.
+function KpiRow({ metrics }: { metrics: Metrics }) {
+  const k = copy.kpis;
+  const { sales, delivered, summary, receive } = metrics;
+  const euros = (value: number) => money.format(value);
 
   return (
-    <Block id="projetos" title={p.title} icon={FolderKanban}>
-      {summary.total === 0 ? (
-        <EmptyLine text={p.empty} />
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-2">
-            {stat("abertos", p.open, String(summary.open))}
-            {stat("atrasados", p.late, String(summary.late.length), summary.late.length > 0 ? "danger" : undefined)}
-          </div>
-          {summary.late.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <h4 className="text-14 font-semibold">{p.lateList}</h4>
-              <ul className="flex flex-col gap-1.5" data-testid="projects-late-list">
-                {summary.late.slice(0, 3).map((project) => (
-                  <li key={project.id} className="flex flex-wrap items-center gap-x-2 text-14">
-                    <AlertTriangle aria-hidden="true" size={15} className="shrink-0 text-danger" />
-                    <span className="font-medium">{project.company_name}</span>
-                    <span className="text-muted">· {p.due(day(project.due_date as string))}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <div className="flex flex-col gap-2">
-            <h4 className="text-14 font-semibold">{p.upcoming}</h4>
-            {summary.upcoming.length === 0 ? (
-              <p className="text-14 text-muted">{p.noUpcoming}</p>
-            ) : (
-              <ul className="flex flex-col gap-1.5" data-testid="projects-upcoming">
-                {summary.upcoming.map((project) => (
-                  <li key={project.id} className="flex flex-wrap gap-x-2 text-14">
-                    <span className="font-medium">{project.company_name}</span>
-                    <span className="text-muted">· {p.due(day(project.due_date as string))}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-          <div className="panel-row flex flex-col gap-1 p-3" data-testid="projects-maintenance">
-            <span className="text-13 text-muted">{p.maintenance}</span>
-            <span className="type-number text-20 font-semibold">
-              {money.format(summary.maintenance)} <span className="text-14 font-normal text-muted">{p.perMonth}</span>
-            </span>
-            <span className="text-13 text-muted">{p.maintenanceNote}</span>
-          </div>
-        </>
-      )}
-      <div className="mt-auto flex flex-wrap gap-2">
-        <Button asChild variant="secondary">
-          <Link href="/painel/projetos">{p.openAll}</Link>
-        </Button>
-        <Button asChild variant="ghost">
-          <Link href="/painel/projetos?novo=1">{p.create}</Link>
-        </Button>
+    <section aria-labelledby="numeros" className="flex flex-col gap-2 lg:col-span-2" data-testid="block-numeros">
+      <h3 id="numeros" className="sr-only">
+        {k.label}
+      </h3>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+        <StatCard
+          id="vendas"
+          label={k.sales}
+          icon={TrendingUp}
+          value={sales.count > 0 ? euros(sales.amount) : null}
+          detail={k.salesDetail(sales.count)}
+          empty={k.salesEmpty}
+          href="/painel/projetos"
+        />
+        <StatCard
+          id="entregues"
+          label={k.delivered}
+          icon={PackageCheck}
+          value={delivered.count > 0 ? String(delivered.count) : null}
+          detail={k.deliveredDetail(euros(delivered.amount))}
+          empty={k.deliveredEmpty}
+          href="/painel/projetos"
+        />
+        <StatCard
+          id="em-curso"
+          label={k.open}
+          icon={FolderKanban}
+          value={String(summary.open)}
+          detail={summary.late.length > 0 ? k.openLate(summary.late.length) : k.openOnTime}
+          tone={summary.late.length > 0 ? "danger" : undefined}
+          href="/painel/projetos"
+        />
+        <StatCard
+          id="mrr"
+          label={k.mrr}
+          icon={Repeat}
+          value={summary.maintenanceCount > 0 ? `${euros(summary.maintenance)}` : null}
+          detail={k.mrrDetail(summary.maintenanceCount)}
+          empty={k.mrrEmpty}
+          href="/painel/projetos"
+        />
+        <StatCard
+          id="a-receber"
+          label={k.toReceive}
+          icon={Wallet}
+          value={receive.hasPayments ? euros(receive.amount) : null}
+          detail={receive.count > 0 ? k.toReceiveDetail(receive.count) : k.toReceiveDone}
+          empty={
+            <>
+              {k.toReceiveNone}. {k.toReceiveNoneHelp}
+            </>
+          }
+          href="/painel/projetos"
+        />
       </div>
+      <p className="text-13 text-muted">{k.note}</p>
+    </section>
+  );
+}
+
+function ChartBlock({ data }: { data: { month: string; total: number }[] }) {
+  const empty = data.every((item) => item.total === 0);
+  return (
+    <Block id="recebido" title={copy.chart.title} icon={ChartColumn}>
+      <p className="-mt-2 text-13 text-muted">{copy.chart.note}</p>
+      {empty ? <EmptyLine text={copy.chart.empty} /> : <MonthChart data={data} />}
+    </Block>
+  );
+}
+
+function TasksBlock({ tasks, today }: { tasks: UpcomingTask[]; today: string }) {
+  return (
+    <Block id="tarefas" title={copy.tasks.title} icon={CalendarClock}>
+      <UpcomingList tasks={tasks} today={today} />
+    </Block>
+  );
+}
+
+function FunnelBlock({ data }: { data: ReturnType<typeof funnel> }) {
+  return (
+    <Block id="funil" title={copy.funnel.title} icon={Filter}>
+      <p className="-mt-2 text-13 text-muted">{copy.funnel.note}</p>
+      <Funnel data={data} />
     </Block>
   );
 }
@@ -664,17 +713,16 @@ function SubscriptionBlock({
 
 function DashboardSkeleton() {
   return (
-    <div
-      role="status"
-      aria-label={copy.loading}
-      className="grid gap-4 lg:grid-cols-2"
-    >
+    <div role="status" aria-label={copy.loading} className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3 lg:col-span-2 lg:grid-cols-5">
+        {Array.from({ length: 5 }, (_, index) => (
+          <Skeleton key={index} className="h-30 rounded-lg" />
+        ))}
+      </div>
       <Skeleton className="h-72 rounded-lg" />
       <Skeleton className="h-72 rounded-lg" />
-      <Skeleton className="h-32 rounded-lg lg:col-span-2" />
       <Skeleton className="h-64 rounded-lg" />
       <Skeleton className="h-64 rounded-lg" />
-      <Skeleton className="h-32 rounded-lg lg:col-span-2" />
     </div>
   );
 }
@@ -697,13 +745,18 @@ export default function DashboardPage() {
 async function Content() {
   const user = await requireUser();
   const supabase = await createClient();
+  const today = todayIn();
   // O dia de hoje em Lisboa começa no máximo 26 h antes de agora.
   const since = new Date(new Date().getTime() - 26 * 3_600_000).toISOString();
+  // O funil olha 90 dias para trás (mais um de folga para o fuso).
+  const funnelSince = new Date(new Date().getTime() - (FUNNEL_DAYS + 1) * 86_400_000).toISOString();
   const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow, templateRow, portfolioRow, isAdmin] =
     await Promise.all([
       supabase.rpc("my_dashboard"),
       supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle(),
-      supabase.from("contacts").select("status, deal_value, do_not_contact, last_contacted_at"),
+      supabase
+        .from("contacts")
+        .select("id, label, status, deal_value, do_not_contact, last_contacted_at, next_action, next_action_at"),
       supabase
         .from("contact_events")
         .select("contact_id, kind, status, created_at")
@@ -715,14 +768,23 @@ async function Content() {
       isCurrentUserAdmin(supabase),
     ]);
   // Lidos à parte: sem estas tabelas, o painel continua (o bloco fica vazio).
-  const [projectRows, requestRows] = await Promise.all([
+  const [projectRows, requestRows, paymentRows, funnelRows] = await Promise.all([
     supabase
       .from("client_projects")
-      .select("id, company_name, name, status, due_date, delivered_on, maintenance_monthly, build_value, created_at")
+      .select("id, company_name, name, status, start_date, due_date, delivered_on, maintenance_monthly, build_value, created_at")
       .limit(500),
     supabase.from("work_requests").select("id", { count: "exact", head: true }),
+    supabase.from("client_project_payments").select(PAYMENT_COLUMNS).limit(5000),
+    supabase
+      .from("contact_events")
+      .select("contact_id, status, created_at")
+      .eq("kind", "status")
+      .gte("created_at", funnelSince)
+      .limit(5000),
   ]);
   if (projectRows.error) await reportError("painel projetos", projectRows.error.code, user.id);
+  if (paymentRows.error) await reportError("painel pagamentos", paymentRows.error.code, user.id);
+  if (funnelRows.error) await reportError("painel funil", funnelRows.error.code, user.id);
 
   // Vai para o ecrã de erro do painel, com "Tentar outra vez".
   if (error || !data) {
@@ -737,11 +799,19 @@ async function Content() {
   // Modo pessoal: sem packs, subscrição nem demos no Início. Esses blocos voltam
   // quando os registos abrirem (SIGNUPS_ENABLED=true).
   const selling = signupsOpen();
-  const projects = (projectRows.data ?? []) as ProjectSummaryRow[];
-  const summary = projectsSummary(projects, todayIn());
+  const projects = (projectRows.data ?? []) as (ProjectSummaryRow & Pick<ClientProject, "start_date">)[];
+  const payments = (paymentRows.data ?? []) as ProjectPayment[];
+  const contacts = (dealRows.data ?? []) as (Contact & { label: string })[];
+  const summary = projectsSummary(projects, today);
+  const metrics: Metrics = {
+    sales: salesOfMonth(projects, today),
+    delivered: deliveredThisMonth(projects, today),
+    summary,
+    receive: toReceive(projects, payments),
+  };
   // Se estas leituras falharem, o bloco mostra zeros em vez de partir o painel.
   const deals: Deals = {
-    contacts: (dealRows.data ?? []) as Deals["contacts"],
+    contacts,
     events: (todayEvents.data ?? []) as ContactEvent[],
     goal: (goalRow.data?.daily_goal as number | undefined) ?? DEFAULT_DAILY_GOAL,
   };
@@ -749,16 +819,9 @@ async function Content() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <RefreshOnShow />
-      <OnboardingBlock
-        progress={onboardingProgress({
-          contacts: (dealRows.data ?? []) as Pick<Contact, "status" | "last_contacted_at">[],
-          hasTemplate: Boolean(templateRow.data?.whatsapp_template),
-          requestsMade: requestRows.count ?? 0,
-          projectsMade: projects.length,
-          portfolioPublished: Boolean(portfolioRow.data?.published),
-        })}
-      />
-      {selling && <UsageBlock data={dashboard} isAdmin={isAdmin} />}
+      <KpiRow metrics={metrics} />
+      <ChartBlock data={receivedByMonth(payments, today)} />
+      <TasksBlock tasks={upcomingTasks(contacts, projects, today)} today={today} />
       <NextStepBlock
         data={dashboard}
         now={now}
@@ -766,7 +829,17 @@ async function Content() {
         selling={selling}
         lateProjects={summary.late}
       />
-      {!selling && <ProjectsBlock summary={summary} />}
+      <FunnelBlock data={funnel((funnelRows.data ?? []) as { contact_id: string; status: string; created_at: string }[], today)} />
+      <OnboardingBlock
+        progress={onboardingProgress({
+          contacts,
+          hasTemplate: Boolean(templateRow.data?.whatsapp_template),
+          requestsMade: requestRows.count ?? 0,
+          projectsMade: projects.length,
+          portfolioPublished: Boolean(portfolioRow.data?.published),
+        })}
+      />
+      {selling && <UsageBlock data={dashboard} isAdmin={isAdmin} />}
       <LeadsBlock data={dashboard} />
       <DealsBlock deals={deals} now={now} />
       <SearchesBlock data={dashboard} isSample={isSample} className={selling ? undefined : "lg:col-span-2"} />

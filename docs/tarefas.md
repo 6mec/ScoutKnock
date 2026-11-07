@@ -13,12 +13,9 @@ Fonte de verdade da fila de trabalho. Quem escreve as tarefas: o Daniel e o assi
 
 ## Em curso
 
-Nenhuma. A próxima é a T15.
+Nenhuma. A próxima é a T11 (depende das respostas do barbeiro).
 
 ## Próximas (por ordem)
-
-### T15. Início com dashboard e visual
-Cartões de números grandes (vendas do mês, entregues este mês, projetos em curso, MRR, a receber), gráfico do recebido nos últimos 6 meses em SVG, funil e próximas tarefas, com estado vazio sem dados. "Nova pesquisa" sempre visível na barra de cima; botão de tema no menu da conta; passagem de consistência nos cartões. Fora: contratos, financeiro completo e metas.
 
 ### T11. Site-base reutilizável para clientes
 Um projeto-modelo fora deste repositório (por exemplo `../ScoutKnock-clientes/_base`), de onde se copia o site de cada cliente: páginas, identidade por nicho, secção de marcações por WhatsApp, SEO básico e instruções de publicação com domínio e alojamento em nome do cliente. O `/pedidos` passa a usá-lo para os pedidos de site. Plano curto antes, com a tecnologia e o que custa alojar.
@@ -45,6 +42,7 @@ Lista de licenças das dependências e fontes em `docs/licencas.md` (com o OpenS
 
 ## Feitas
 
+- T15. Início com dashboard e visual (07/11/2026). Cartões de números grandes (vendas do mês, entregues este mês, projetos em curso com atrasados, manutenção mensal, a receber), cada um com estado vazio em vez de zeros; gráfico do recebido nos últimos 6 meses em SVG com valor ao passar o rato e tabela para leitores de ecrã; funil de 90 dias e próximas tarefas; os primeiros passos passam para baixo e o bloco Projetos sai (os números estão nos cartões). "Nova busca" sempre na barra de cima (só o ícone no telemóvel) e tema claro/escuro no menu da conta. Sem migração.
 - T14. Pagamentos recebidos por projeto e números do Início (07/11/2026). Secção "Pagamentos recebidos" no diálogo do projeto (valor, data, criação ou manutenção, nota; apagar e registar de novo) com "Recebido X de Y da criação · faltam Z", e o mesmo resumo no cartão; recusa valor zero, datas futuras e segredos nas notas. Regras testadas para o Início: vendas do mês, entregues este mês, a receber (só criação; sem pagamentos diz isso), recebido por mês, funil de 90 dias e próximas tarefas. Depende da migração `20261124000000_project_payments.sql`.
 - T13. Início e Radar ao novo rumo (04/11/2026). No Início saem Consumo, Sites demo e Subscrição (voltam só com `SIGNUPS_ENABLED=true`) e entra o bloco Projetos (por entregar, atrasados, próximas entregas, manutenção mensal como "valores que escreveste"); um projeto atrasado passa a ser o próximo passo; os primeiros passos trocam o site demo e o valor da proposta por "Pede um trabalho" e "Cria o primeiro projeto". Empresas do OpenStreetMap guardam-se com o nome preenchido e, na ficha, a morada e o telefone editáveis, com "Dados do OpenStreetMap de [data]" e a atribuição; a ficha deixou de dizer "Dados do Google Maps" nelas. Do Google continua só o place_id e o que o Daniel escreve. Depende da migração `20261123000000_osm_contact_data.sql`.
 - T10. Projetos por cliente (04/11/2026). Ecrã `/painel/projetos` com estado (pedido, em curso, entregue, em manutenção, terminado), os três valores em euros escritos pelo Daniel (criação, custos de terceiros com nota, manutenção mensal), quatro datas, ligação, notas e histórico de estados; somas "Valores que escreveste" (não são faturação nem rendimento); aviso de entrega atrasada; recusa palavras-passe e chaves nas notas e na ligação. "Criar projeto" na ficha, "Passar a projeto" nos pedidos; "Projetos" no menu no lugar de "Sites demo", que passa para "Mais". Depende da migração `20261122000000_client_projects.sql`.
