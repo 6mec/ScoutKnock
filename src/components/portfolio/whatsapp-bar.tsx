@@ -41,7 +41,7 @@ export function WhatsAppBar({ href, heroId, contactId }: { href: string; heroId:
       data-testid="pf-whatsapp-bar"
       data-shown={shown || undefined}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e8ee] bg-white/95 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur sm:hidden print:hidden",
+        "fixed inset-x-0 bottom-0 z-30 border-t border-[#e3e8ee] bg-white/95 px-4 pt-3 pb-[calc(12px+env(safe-area-inset-bottom)+var(--badge-space))] backdrop-blur sm:hidden print:hidden",
         "motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out",
         shown ? "translate-y-0" : "translate-y-full",
       )}

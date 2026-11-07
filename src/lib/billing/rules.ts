@@ -1,3 +1,4 @@
+import { parseSiteUrl } from "@/lib/site";
 import type Stripe from "stripe";
 import { ADMIN_LIMITS, PLANS, YEARLY_PRICES_EUR } from "@/lib/account/rules";
 import {
@@ -62,7 +63,7 @@ export function parseBillingConfig(
 ): BillingConfig | null {
   const secretKey = env.STRIPE_SECRET_KEY;
   const webhookSecret = env.STRIPE_WEBHOOK_SECRET;
-  const siteUrl = env.SITE_URL;
+  const siteUrl = parseSiteUrl(env.SITE_URL);
 
   if (
     !secretKey?.startsWith("sk_test_") ||
@@ -161,7 +162,7 @@ export function missingBillingEnv(env: Record<string, string | undefined>) {
   if (!env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY?.startsWith("pk_test_")) {
     missing.push("NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY");
   }
-  if (!env.SITE_URL) missing.push("SITE_URL");
+  if (!parseSiteUrl(env.SITE_URL)) missing.push("SITE_URL");
   for (const { id } of PLANS) {
     const name = `STRIPE_PRICE_${id.toUpperCase()}_EUR`;
     if (!env[name]?.startsWith("price_")) missing.push(name);

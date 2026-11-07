@@ -33,7 +33,7 @@ Cada ferramenta tem nome, nível e permissões mínimas. O agente só pode usar 
 | Ferramenta | Nível | Notas |
 | --- | --- | --- |
 | `ler_metricas` (inscrições, buscas, demos, assinaturas, receita) | 1 | Só leitura da base de dados |
-| `ler_custos` (Google, Claude, Resend, Vercel, Supabase) | 1 | Custo por dia e por utilizador; compara com a receita |
+| `ler_custos` (Google, Claude, Resend, Netlify, Supabase) | 1 | Custo por dia e por utilizador; compara com a receita |
 | `ler_erros` | 1 | Erros do site e falhas de pagamento |
 | `resumo_diario` | 1 | Mensagem de manhã |
 | `alertar` | 1 | Notificação ao Daniel quando passa um limite |

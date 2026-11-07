@@ -4,7 +4,7 @@ Guia para o Daniel. Objetivo: ligar a Google Places API (nova) ao ScoutKnock com
 
 **Duas verdades a ter sempre presentes**
 1. Um **orçamento** (budget) do Google Cloud **só avisa**, não corta o gasto. Quem corta são as **quotas** (limites diários da API) e o **travão de custo no código** (passo 7).
-2. A chave da API **nunca** aparece no chat nem no código. Vive só no `.env.local` (e nas variáveis da Vercel).
+2. A chave da API **nunca** aparece no chat nem no código. Vive só no `.env.local` (e nas variáveis da Netlify).
 
 Preços: confirmar sempre na página oficial antes de decidir limites (https://developers.google.com/maps/billing-and-pricing/pricing). Valores vistos a 28/10/2026 (podem ter mudado): Text Search Pro 5000 pedidos grátis/mês e 32 $ por 1000 depois; Text Search Enterprise 1000 grátis/mês e 35 $ por 1000 depois. Campos como site, telefone, avaliações e horário contam provavelmente no escalão Enterprise, que é o que o radar precisa.
 
@@ -26,8 +26,8 @@ Preços: confirmar sempre na página oficial antes de decidir limites (https://d
 1. **APIs e serviços → Credenciais → Criar credenciais → Chave de API**.
 2. Abre a chave criada → nome `scoutknock-places-servidor`.
 3. **Restrições de API → Restringir chave → Places API (New)** (e mais nenhuma).
-4. **Restrições de aplicação:** a Vercel não tem IP fixo nos planos normais, por isso não dá para limitar por IP de forma fiável. Deixa "Nenhuma" e compensa com: restrição de API, quotas (passo 6) e chave só no servidor (nunca `NEXT_PUBLIC_`, nunca no browser).
-5. Guarda. Copia a chave **diretamente** para o `.env.local` (`GOOGLE_PLACES_API_KEY=...`) e, mais tarde, para a Vercel. Não a coles no chat.
+4. **Restrições de aplicação:** a Netlify não tem IP fixo no plano grátis, por isso não dá para limitar por IP de forma fiável. Deixa "Nenhuma" e compensa com: restrição de API, quotas (passo 6) e chave só no servidor (nunca `NEXT_PUBLIC_`, nunca no browser).
+5. Guarda. Copia a chave **diretamente** para o `.env.local` (`GOOGLE_PLACES_API_KEY=...`) e, mais tarde, para a Netlify. Não a coles no chat.
 
 ## 5. Orçamento com alertas
 1. **Faturação → Orçamentos e alertas → Criar orçamento**.
@@ -62,4 +62,4 @@ Como o orçamento não corta nada, o código tem de o fazer. Os passos exatos pa
 
 ## Se algo correr mal
 - Gasto estranho: **APIs e serviços → Credenciais → desativar a chave** (corta tudo de imediato), depois investiga.
-- Suspeita de fuga da chave: apagar, criar outra com as mesmas restrições, atualizar `.env.local` e Vercel.
+- Suspeita de fuga da chave: apagar, criar outra com as mesmas restrições, atualizar `.env.local` e Netlify.

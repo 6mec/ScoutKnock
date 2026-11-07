@@ -9,6 +9,7 @@ import { DEFAULT_DAILY_GOAL, PACE_DAYS, type ContactEvent } from "@/lib/contacts
 import type { Contact } from "@/lib/contacts/rules";
 import { parseStatusFilter } from "@/lib/dashboard/rules";
 import { portfolioUrl } from "@/lib/portfolio/rules";
+import { siteUrl } from "@/lib/site";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 
@@ -75,7 +76,7 @@ async function Content({
       dailyGoal={(profile.data?.daily_goal as number | undefined) ?? DEFAULT_DAILY_GOAL}
       whatsappTemplate={(template.data?.whatsapp_template as string | null | undefined) ?? null}
       portfolioUrl={
-        published ? portfolioUrl(published, process.env.SITE_URL ?? "http://localhost:3000") : null
+        published ? portfolioUrl(published, siteUrl()) : null
       }
       statusFilter={parseStatusFilter(estado)}
       openContactId={typeof contacto === "string" && /^[0-9a-f-]{36}$/i.test(contacto) ? contacto : null}

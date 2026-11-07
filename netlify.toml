@@ -1,0 +1,8 @@
+# Publicação do ScoutKnock na Netlify (plano grátis). A Netlify deteta o Next.js sozinha
+# e usa o adaptador dela. As chaves ficam nas variáveis de ambiente da Netlify, nunca aqui.
+[build]
+  command = "npm run build"
+
+[build.environment]
+  # Versão estável do Node. Os testes, o lint e o build também correm com ela.
+  NODE_VERSION = "22"

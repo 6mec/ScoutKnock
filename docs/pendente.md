@@ -1,6 +1,6 @@
 # Pendente: o que precisa de chave ou de dinheiro
 
-Lista do que já está construído mas desligado. Cada ponto diz o passo exato para o ligar. Nunca colar chaves no código nem em conversas: só no `.env.local` e nas variáveis de ambiente da Vercel.
+Lista do que já está construído mas desligado. Cada ponto diz o passo exato para o ligar. Nunca colar chaves no código nem em conversas: só no `.env.local` e nas variáveis de ambiente da Netlify.
 
 ## Bloqueios do lançamento
 
@@ -77,7 +77,7 @@ Quem está em `public.user_roles` com `admin` fica sem limites de pack (10 000 b
 
 1. Em console.anthropic.com, carregar créditos e definir um limite de gastos mensal.
 2. Criar uma chave de API.
-3. Colocar a chave em `ANTHROPIC_API_KEY`, no `.env.local` e na Vercel.
+3. Colocar a chave em `ANTHROPIC_API_KEY`, no `.env.local` e na Netlify.
 4. Reiniciar a aplicação. Não é preciso alterar código.
 
 **Verificar na primeira utilização:**
@@ -158,8 +158,8 @@ Quem está em `public.user_roles` com `admin` fica sem limites de pack (10 000 b
 
 **Confirmar antes de produção:**
 
-- [ ] Tempo máximo na Vercel. Documentação de 24/08/2026: com Fluid compute, 300 s por omissão e no máximo no plano Hobby, incluindo respostas em streaming. A busca mais os 25 s de verificação cabem nisso. Confirmar no projeto real que o Fluid compute está ativo.
-- [ ] Região das funções. A Vercel usa `iad1` (Estados Unidos) por omissão, o que torna sites portugueses e brasileiros mais lentos na medição. Escolher a região antes de confiar em "Site lento".
+- [ ] Tempo máximo na Netlify. A documentação dá 60 s por pedido, sem poder mudar; no fórum há relatos de cortes aos 10, 26 ou 30 s. Uma busca do OpenStreetMap demorou 46 a 78 s no teste real: confirmar online e, se falhar, passar a busca para o browser (tarefa à parte).
+- [ ] Região das funções na Netlify (por omissão nos Estados Unidos), o que torna sites portugueses mais lentos na medição. Confirmar antes de confiar em "Site lento".
 
 **Rever na primeira utilização:**
 
@@ -237,7 +237,7 @@ Quem está em `public.user_roles` com `admin` fica sem limites de pack (10 000 b
 - [ ] Cancelar e anular o cancelamento, nos dois sítios: ecrã da demo e portal.
 - [ ] Apagar a conta cancela as subscrições de site no Stripe.
 
-**Para ligar o subdomínio (precisa de domínio):** configurar um DNS curinga e os domínios na Vercel, e colocar `OFFICIAL_SITES_BASE_DOMAIN`. O encaminhamento de `nome.dominio` para `/s/nome` já está em `src/proxy.ts`.
+**Para ligar o subdomínio (precisa de domínio):** configurar um DNS curinga e os domínios na Netlify, e colocar `OFFICIAL_SITES_BASE_DOMAIN`. O encaminhamento de `nome.dominio` para `/s/nome` já está em `src/proxy.ts`.
 
 **Bloqueia o lançamento dos sites oficiais:** antes de lançar, ao ligar `OFFICIAL_SITES_BASE_DOMAIN`, servir os sites num domínio separado da aplicação, ou garantir que os cookies de sessão não passam para os subdomínios. Hoje os sites partilham o domínio com a aplicação, o que continua a ser assim em `/s/nome`.
 
@@ -270,7 +270,7 @@ Registo, confirmação de conta e recuperação de palavra-passe saem pelo Supab
 3. No Resend, criar uma chave de API própria para o SMTP.
 4. No Supabase, em Authentication, ativar o SMTP próprio com os dados do Resend e um remetente do domínio.
 5. No Supabase, rever os limites de envio. Depois de ligar o SMTP, o limite por omissão é de 30 mensagens por hora.
-6. Na Vercel e no `.env.local`, colocar `WAITLIST_EMAIL_FROM` com um endereço do domínio, `SITE_URL` com o endereço público e `EMAIL_REAL_SENDING=true`.
+6. Na Netlify e no `.env.local`, colocar `WAITLIST_EMAIL_FROM` com um endereço do domínio, `SITE_URL` com o endereço público e `EMAIL_REAL_SENDING=true`.
 7. Rever o limite do plano do Resend em relação ao `DAILY_EMAIL_LIMIT`.
 
 **Verificar antes de abrir:**

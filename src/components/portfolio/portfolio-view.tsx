@@ -207,7 +207,7 @@ export function PortfolioView({ portfolio, preview = false }: { portfolio: Publi
   return (
     <div
       data-testid="portfolio-view"
-      className={cn("bg-white text-[#0b0f14] antialiased", preview ? "overflow-hidden rounded-lg" : "min-h-dvh", !preview && whatsappHref && "pb-24 sm:pb-0")}
+      className={cn("bg-white text-[#0b0f14] antialiased", preview ? "overflow-hidden rounded-lg" : "min-h-dvh", !preview && (whatsappHref ? "pb-[calc(6rem+var(--badge-space))] sm:pb-[var(--badge-space)]" : "pb-[var(--badge-space)]"))}
     >
       {/* ================= Topo ================= */}
       <header id={heroId} className="pf-grain relative isolate overflow-hidden text-white" style={{ background: INK }}>

@@ -1,3 +1,4 @@
+import { parseSiteUrl } from "@/lib/site";
 import "server-only";
 import { reportError } from "@/lib/events/log";
 import { canPromiseEmail, sendEmail } from "@/lib/email/send";
@@ -8,7 +9,7 @@ export function getWaitlistEmailConfig() {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.WAITLIST_EMAIL_FROM;
   const tokenSecret = process.env.WAITLIST_TOKEN_SECRET;
-  const siteUrl = process.env.SITE_URL;
+  const siteUrl = parseSiteUrl(process.env.SITE_URL);
 
   if (!apiKey || !from || !tokenSecret || !siteUrl || !canPromiseEmail()) {
     return null;

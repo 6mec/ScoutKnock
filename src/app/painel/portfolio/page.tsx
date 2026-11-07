@@ -8,6 +8,7 @@ import { requireUser } from "@/lib/auth/current-user";
 import { reportError } from "@/lib/events/log";
 import { suggestSlug, type PortfolioService, type PortfolioStep } from "@/lib/portfolio/rules";
 import type { TestimonialRow } from "@/components/portfolio/testimonials-editor";
+import { siteUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
@@ -74,7 +75,7 @@ async function Content() {
       initial={initial}
       savedSlug={(row?.slug as string | undefined) ?? null}
       savedPublished={(row?.published as boolean | undefined) ?? false}
-      siteUrl={process.env.SITE_URL ?? "http://localhost:3000"}
+      siteUrl={siteUrl()}
       worksCount={projects.filter((project) => project.portfolio_show).length}
       testimonials={(testimonialRows.data ?? []) as TestimonialRow[]}
       projects={projects.map(({ id, company_name }) => ({ id, company_name }))}

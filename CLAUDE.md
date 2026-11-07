@@ -8,7 +8,7 @@ Dono do projeto: Daniel. Responde-lhe em português de Portugal. Plano antigo (v
 
 ## Stack
 
-- Next.js (App Router) + TypeScript + Tailwind, na Vercel
+- Next.js (App Router) + TypeScript + Tailwind, na Netlify (plano grátis; ver docs/publicar.md)
 - Supabase: Postgres + autenticação
 - Fontes de empresas: modo manual, OpenStreetMap (Overpass, `COMPANY_SOURCE=osm`) e Google Places (desligado)
 - API do Claude para mensagens e textos das demos (desligada sem chave)

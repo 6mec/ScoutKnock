@@ -1,3 +1,4 @@
+import { parseSiteUrl } from "@/lib/site";
 import { enabledMarkets } from "@/lib/markets";
 import { resolveLocality } from "./localities";
 import { buildOverpassQuery, elementToCompany, parseOsmId, type OsmElement } from "./osm";
@@ -83,7 +84,7 @@ async function overpass(query: string, { fetchImpl, siteUrl, signal }: { fetchIm
 
 export function createOsmProvider({
   fetchImpl = fetch,
-  siteUrl = process.env.SITE_URL,
+  siteUrl = parseSiteUrl(process.env.SITE_URL) ?? undefined,
 }: { fetchImpl?: FetchLike; siteUrl?: string } = {}): CompanyProvider {
   async function search({ niche, locality }: { niche: string; locality: string }, signal?: AbortSignal) {
     const place = resolveLocality(locality, enabledMarkets());

@@ -1,3 +1,4 @@
+import { parseSiteUrl } from "@/lib/site";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { startOfLisbonDay } from "@/lib/lisbon-time";
 
@@ -34,7 +35,7 @@ export function parseSiteCheckConfig(
 
   let site: URL;
   try {
-    site = new URL(env.SITE_URL ?? "");
+    site = new URL(parseSiteUrl(env.SITE_URL) ?? "");
   } catch {
     return null;
   }

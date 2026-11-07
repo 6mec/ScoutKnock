@@ -706,3 +706,12 @@ body {
   color: transparent;
   -webkit-text-stroke: 1px rgb(255 255 255 / 0.14);
 }
+
+/* No plano grátis da Netlify, a própria Netlify põe o selo "Powered by Netlify" no fundo do
+   ecrã e não deixa escondê-lo. A app deixa espaço por baixo, para não tapar botões. */
+:root {
+  --badge-space: 0px;
+}
+html:has(script[data-account-tier="free"]) {
+  --badge-space: 64px;
+}

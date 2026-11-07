@@ -1,3 +1,4 @@
+import { parseSiteUrl } from "@/lib/site";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -54,7 +55,7 @@ async function Content({
   const isAdmin = await isCurrentUserAdmin(supabase);
   const billing = parseBillingConfig(process.env);
   const site = demo.official_sites;
-  const siteUrl = process.env.SITE_URL;
+  const siteUrl = parseSiteUrl(process.env.SITE_URL) ?? undefined;
 
   return (
     <DemoEditor

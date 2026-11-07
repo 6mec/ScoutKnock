@@ -5,6 +5,7 @@ dist/
 build/
 coverage/
 .vercel/
+.netlify/
 *.tsbuildinfo
 next-env.d.ts
 
@@ -22,3 +23,6 @@ npm-debug.log*
 
 # Claude Code (preferências só tuas)
 CLAUDE.local.md
+
+# Notas pessoais do Daniel: não vão para o GitHub.
+INSTRUCOES-PARA-CLAUDE.md

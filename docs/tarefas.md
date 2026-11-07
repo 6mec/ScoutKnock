@@ -13,7 +13,8 @@ Fonte de verdade da fila de trabalho. Quem escreve as tarefas: o Daniel e o assi
 
 ## Em curso
 
-Nenhuma. A próxima é a T11 (depende das respostas do barbeiro).
+### Publicar o ScoutKnock na Netlify e ligar scoutkncok.com
+Fase A (código feito a 07/11/2026): `netlify.toml` (Node 22), `.gitignore` com `INSTRUCOES-PARA-CLAUDE.md` e `.netlify/`, `SITE_URL` lido de forma tolerante (`src/lib/site.ts`), espaço para o selo da Netlify no painel e no portfólio, `docs/publicar.md` com as variáveis e os passos. Falta: o Daniel criar o repositório privado, fazer o push, publicar e testar no `.netlify.app`. Fase B (domínio) só depois do teste.
 
 ## Próximas (por ordem)
 

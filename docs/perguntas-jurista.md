@@ -22,7 +22,7 @@ Levar também: `legal-rascunhos.md`, `termos-google.md`, `reembolso-rascunho.md`
 ## Privacidade (RGPD)
 11. Base legal para cada tratamento (consentimento, contrato, interesse legítimo).
 12. Prazos de conservação (lista de espera, conta, eventos, erros, faturas).
-13. Transferências de dados fora da UE (Vercel, Anthropic, Stripe, Google, Supabase): que garantias e que texto.
+13. Transferências de dados fora da UE (Netlify, Anthropic, Stripe, Google, Supabase): que garantias e que texto.
 14. Preciso de registo das atividades de tratamento e de avaliação de impacto?
 15. Se abrir o Brasil: obrigações da LGPD (encarregado, representante, transferência).
 

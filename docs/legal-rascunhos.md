@@ -20,7 +20,7 @@
 
 **Dados de empresas.** Mostramos dados públicos de empresas obtidos pela API oficial do Google Places. Não os guardamos além do que os termos do Google permitem [CONFIRMAR]. Guardamos o que tu escreves (notas, estados).
 
-**Com quem partilhamos (subcontratantes):** Supabase (base de dados e autenticação), Vercel (alojamento), Stripe (pagamentos), Resend (emails do sistema), Google (dados de empresas), Anthropic (geração de mensagens) [CONFIRMAR LOCALIZAÇÃO DOS DADOS E TRANSFERÊNCIAS FORA DA UE].
+**Com quem partilhamos (subcontratantes):** Supabase (base de dados e autenticação), Netlify (alojamento), Stripe (pagamentos), Resend (emails do sistema), Google (dados de empresas), Anthropic (geração de mensagens) [CONFIRMAR LOCALIZAÇÃO DOS DADOS E TRANSFERÊNCIAS FORA DA UE].
 
 **Quanto tempo guardamos:** lista de espera até pedires para sair ou até [PRAZO]; conta enquanto existir e [PRAZO] depois de a apagares; eventos e registos [PRAZO A DEFINIR, sugestão 12 meses; erros 30 dias]; faturas o prazo exigido por lei.
 
