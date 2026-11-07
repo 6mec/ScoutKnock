@@ -565,3 +565,31 @@ body {
   background-size: 22px 22px;
   mask-image: linear-gradient(to bottom, black 0%, transparent 85%);
 }
+
+/* Entrada do topo do portfólio: sobe e aparece uma vez, por ordem. */
+@keyframes pf-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .pf-rise {
+    animation: pf-rise 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(var(--pf-i, 0) * 90ms);
+  }
+}
+
+/* Grelha fina no fundo escuro, a desvanecer nas margens. */
+.pf-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 30%, transparent 80%);
+}
