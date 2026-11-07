@@ -15,6 +15,8 @@ import { Field, Input, Select, Textarea } from "@/components/ui/field";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
 import { createProject, deleteProject, updateProject } from "@/lib/projects/actions";
+import type { ProjectPayment } from "@/lib/projects/payments";
+import { ProjectPayments } from "./project-payments";
 import {
   MAX_PROJECT_COMPANY,
   MAX_PROJECT_LINK,
@@ -102,6 +104,8 @@ export function ProjectDialog({
   project = null,
   draft = {},
   events = [],
+  payments = [],
+  today,
   contacts,
   trigger,
   defaultOpen = false,
@@ -109,6 +113,9 @@ export function ProjectDialog({
   project?: ClientProject | null;
   draft?: ProjectDraft;
   events?: ProjectEvent[];
+  // Pagamentos recebidos (de todos os projetos) e o dia de hoje, para a secção de pagamentos.
+  payments?: ProjectPayment[];
+  today?: string;
   contacts?: { id: string; label: string }[];
   trigger: ReactNode;
   defaultOpen?: boolean;
@@ -367,6 +374,8 @@ export function ProjectDialog({
             </div>
           )}
         </form>
+
+        {project && today && <ProjectPayments project={project} payments={payments} today={today} />}
 
         {project && history.length > 0 && (
           <section aria-labelledby="project-history" className="flex flex-col gap-2 border-t border-border pt-4">

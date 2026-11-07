@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
+import { todayIn } from "@/lib/demos/booking";
+import { parsePaymentInput, type PaymentError } from "./payments";
 import { parseProjectFields, parseProjectInput, toRow, type ProjectError } from "./rules";
 
 const PROJECTS_PATH = "/painel/projetos";
@@ -66,6 +68,35 @@ export async function deleteProject(id: string): Promise<{ ok: boolean }> {
   const { supabase, user } = await currentUser();
   const { data, error } = await supabase.from("client_projects").delete().eq("id", id).select("id");
   if (error) await reportError("projetos apagar", error.code, user.id);
+  revalidatePath(PROJECTS_PATH);
+  return { ok: !error && Boolean(data?.length) };
+}
+
+// Pagamentos recebidos: registo manual. A base de dados confirma que o projeto é de quem regista.
+export async function addPayment(value: unknown): Promise<{ ok: true } | { ok: false; error: PaymentError | "generic" }> {
+  const parsed = parsePaymentInput(value, todayIn());
+  if (!parsed.ok) return parsed;
+
+  const { supabase, user } = await currentUser();
+  const { error } = await supabase.from("client_project_payments").insert({
+    project_id: parsed.input.projectId,
+    kind: parsed.input.kind,
+    amount: parsed.input.amount,
+    paid_on: parsed.input.paidOn,
+    note: parsed.input.note,
+  });
+  if (error) {
+    await reportError("projetos pagamento", error.code, user.id);
+    return { ok: false, error: "generic" };
+  }
+  revalidatePath(PROJECTS_PATH);
+  return { ok: true };
+}
+
+export async function deletePayment(id: string): Promise<{ ok: boolean }> {
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase.from("client_project_payments").delete().eq("id", id).select("id");
+  if (error) await reportError("projetos apagar pagamento", error.code, user.id);
   revalidatePath(PROJECTS_PATH);
   return { ok: !error && Boolean(data?.length) };
 }

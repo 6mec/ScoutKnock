@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useState } from "react";
 import { ProjectDialog } from "@/components/projects/project-dialog";
+import { projectBalance, type ProjectPayment } from "@/lib/projects/payments";
 import { RequestWorkButton } from "@/components/requests/request-work-button";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -60,12 +61,14 @@ function day(date: string) {
 export function ProjectsScreen({
   projects,
   events,
+  payments,
   contacts,
   today,
   openNew = false,
 }: {
   projects: ClientProject[];
   events: ProjectEvent[];
+  payments: ProjectPayment[];
   contacts: { id: string; label: string }[];
   today: string;
   // Vindo do Início ("Novo projeto"): abre logo o diálogo.
@@ -155,7 +158,7 @@ export function ProjectsScreen({
       ) : (
         <ul data-testid="project-list" className="grid gap-3 lg:grid-cols-2">
           {visible.map((project) => (
-            <ProjectCard key={project.id} project={project} events={events} today={today} />
+            <ProjectCard key={project.id} project={project} events={events} payments={payments} today={today} />
           ))}
         </ul>
       )}
@@ -175,7 +178,18 @@ function Value({ label, value, suffix }: { label: string; value: number | string
   );
 }
 
-function ProjectCard({ project, events, today }: { project: ClientProject; events: ProjectEvent[]; today: string }) {
+function ProjectCard({
+  project,
+  events,
+  payments,
+  today,
+}: {
+  project: ClientProject;
+  events: ProjectEvent[];
+  payments: ProjectPayment[];
+  today: string;
+}) {
+  const balance = projectBalance(project, payments);
   const Icon = ICONS[project.kind];
   const late = isLate(project, today);
   const next = nextDate(project);
@@ -209,6 +223,11 @@ function ProjectCard({ project, events, today }: { project: ClientProject; event
         <Value label={copy.card.maintenance} value={project.maintenance_monthly} suffix={copy.card.perMonth} />
       </dl>
       {project.third_party_note && <p className="-mt-2 text-13 text-muted">{project.third_party_note}</p>}
+      {balance.paid > 0 && (
+        <p className="-mt-2 text-13 font-medium" data-testid="project-paid">
+          {copy.payments.cardPaid(money.format(balance.paid), money.format(balance.remaining))}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2 text-14">
         {late ? (
@@ -233,6 +252,8 @@ function ProjectCard({ project, events, today }: { project: ClientProject; event
         <ProjectDialog
           project={project}
           events={events}
+          payments={payments}
+          today={today}
           trigger={
             <Button size="sm" data-testid="project-edit">
               {copy.edit}
