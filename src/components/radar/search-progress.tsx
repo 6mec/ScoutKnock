@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DrawnCheck } from "@/components/ui/drawn-check";
 import { ScoreChip } from "@/components/ui/score-chip";
@@ -14,16 +15,33 @@ const PLACEHOLDER_ROWS = 3;
 
 export type StepStatus = "waiting" | "active" | "done";
 
+// Os segundos desde o início, para uma espera longa não parecer parada.
+function useElapsed(startedAt: number | null) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (startedAt === null) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [startedAt]);
+  return startedAt === null ? null : Math.max(0, Math.floor((now - startedAt) / 1000));
+}
+
 export function SearchProgress({
   steps,
   companies,
   onCancel,
+  status = null,
+  startedAt = null,
 }: {
   steps: Record<SearchStep, StepStatus>;
   companies: ScoredCompany[];
   onCancel: () => void;
+  // O que está a acontecer agora (servidor, parte, espera), na busca do OpenStreetMap.
+  status?: string | null;
+  startedAt?: number | null;
 }) {
   const active = STEPS.filter((step) => steps[step] === "active").at(-1);
+  const elapsed = useElapsed(startedAt);
 
   return (
     <div className="relative flex flex-col gap-4 overflow-hidden panel panel-glow p-6">
@@ -33,7 +51,7 @@ export function SearchProgress({
       />
       <p className="type-mono text-12 tracking-wide text-muted uppercase">{copy.progressLog}</p>
       <p aria-live="polite" className="sr-only">
-        {active ? copy.steps[active] : ""}
+        {status ?? (active ? copy.steps[active] : "")}
         {companies.length > 0 && `. ${countLabel(companies.length)}`}
       </p>
       <ol className="flex flex-col gap-3">
@@ -54,6 +72,16 @@ export function SearchProgress({
           </li>
         ))}
       </ol>
+      {status && (
+        <p data-testid="radar-osm-status" className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 text-14">
+          <span>{status}</span>
+          {elapsed !== null && (
+            <span aria-hidden="true" className="type-number text-12 text-muted">
+              {copy.osm.elapsed(elapsed)}
+            </span>
+          )}
+        </p>
+      )}
       <p className="type-number text-14 text-muted">
         {countLabel(companies.length)}
       </p>

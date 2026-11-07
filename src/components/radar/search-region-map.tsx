@@ -89,6 +89,8 @@ export default function SearchRegionMap({
         touchZoom: false,
         zoomSnap: 0,
       }).setView(target, reduced ? CITY_ZOOM : COUNTRY_ZOOM);
+      // O mapa é decorativo (aria-hidden): o crédito fica em texto, sem link que receba foco.
+      map.attributionControl?.setPrefix("Leaflet");
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: "© OpenStreetMap",

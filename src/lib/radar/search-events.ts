@@ -19,8 +19,10 @@ export type SearchErrorCode =
   | "offline"
   | "unavailable"
   | "locality"
-  // O servidor público do OpenStreetMap estava cheio.
-  | "busy";
+  // Os servidores públicos do OpenStreetMap estavam cheios.
+  | "busy"
+  // O OpenStreetMap demorou demasiado a responder.
+  | "timeout";
 
 export type SearchEvent =
   | { type: "step"; step: SearchStep; status: "active" | "done" }

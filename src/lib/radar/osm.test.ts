@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 import { scoreCompany } from "./score";
-import { buildOverpassQuery, elementToCompany, nicheSelectors, parseOsmId } from "./osm";
-import { cachedOsmCompany, createOsmProvider, OVERPASS_ENDPOINTS, rememberOsmCompany } from "./osm-provider";
+import { buildOverpassQueries, buildOverpassQuery, elementToCompany, nicheSelectors, osmAreaName, parseOsmId } from "./osm";
+import { cachedOsmCompany, createOsmProvider, osmCompanies, rememberOsmCompany } from "./osm-provider";
+import { OVERPASS_ENDPOINTS } from "./overpass-client";
 
 const porto = { name: "Porto", group: "Porto", market: "PT" as const, location: [41.15, -8.61] as [number, number] };
 const acores = { name: "Açores", group: "Açores", market: "PT" as const, location: [37.74, -25.67] as [number, number] };
-const lagoaAcores = { name: "Lagoa", group: "Açores", market: "PT" as const, location: [37.74, -25.67] as [number, number] };
+const madeira = { name: "Madeira", group: "Madeira", market: "PT" as const, location: [32.65, -16.91] as [number, number] };
+const lagoaAcores = { name: "Lagoa (Açores)", group: "Açores", market: "PT" as const, location: [37.74, -25.67] as [number, number] };
 
 describe("consulta ao OpenStreetMap", () => {
   it("o Porto é o concelho, dentro do distrito certo", () => {
@@ -21,14 +23,47 @@ describe("consulta ao OpenStreetMap", () => {
     expect(buildOverpassQuery("Cafés", lagoaAcores)).toContain('area["ISO3166-2"="PT-20"]->.d');
   });
 
+  it("procura o concelho pelo nome do OSM, sem a região entre parênteses", () => {
+    expect(osmAreaName("Lagoa (Açores)")).toBe("Lagoa");
+    expect(osmAreaName("Vila Nova de Gaia")).toBe("Vila Nova de Gaia");
+    expect(buildOverpassQuery("Cafés", lagoaAcores)).toContain('["name"="Lagoa"](area.d)');
+  });
+
+  it("consultas pequenas: 25 s declarados, só elementos com nome, até 60", () => {
+    const query = buildOverpassQuery("Cafés", porto)!;
+    expect(query.startsWith("[out:json][timeout:25];")).toBe(true);
+    expect(query).toContain('nwr["amenity"="cafe"]["name"](area.a);');
+    expect(query.endsWith("out center tags 60;")).toBe(true);
+  });
+
+  it("um concelho é uma consulta; uma região inteira vai em partes de concelhos", () => {
+    expect(buildOverpassQueries("Cafés", porto)).toEqual([buildOverpassQuery("Cafés", porto)]);
+    const acoresParts = buildOverpassQueries("Cafés", acores);
+    expect(acoresParts).toHaveLength(5);
+    expect(acoresParts[0]).toContain('["name"="Angra do Heroísmo"](area.d);');
+    expect(acoresParts[0]).toContain('["name"="Calheta"](area.d);');
+    expect(acoresParts[0]).toContain("map_to_area->.a;");
+    expect(acoresParts.join("")).toContain('["name"="Vila Franca do Campo"]');
+    expect(buildOverpassQueries("Cafés", madeira)).toHaveLength(3);
+    expect(buildOverpassQueries("", porto)).toEqual([]);
+  });
+
   it("conhece os nichos das sugestões e, sem etiqueta, procura pelo nome", () => {
     expect(nicheSelectors("Clínicas dentárias")[0]).toContain('"amenity"="dentist"');
     expect(nicheSelectors("Lavandarias")[0]).toContain('"shop"="laundry"');
-    expect(nicheSelectors("Tatuadores")).toEqual(['["name"~"tatuadore",i]']);
+    // Pelo nome, mas sempre dentro de uma categoria de negócio, para a consulta ser leve.
+    expect(nicheSelectors("Tatuadores")).toEqual([
+      '["shop"]["name"~"tatuadore",i]',
+      '["amenity"]["name"~"tatuadore",i]',
+      '["craft"]["name"~"tatuadore",i]',
+      '["office"]["name"~"tatuadore",i]',
+      '["healthcare"]["name"~"tatuadore",i]',
+      '["leisure"]["name"~"tatuadore",i]',
+    ]);
   });
 
   it("não deixa o texto do nicho mudar a consulta", () => {
-    expect(nicheSelectors('x"];out;')[0]).toBe('["name"~"x\\"];out;",i]');
+    expect(nicheSelectors('x"];out;')[0]).toBe('["shop"]["name"~"x\\"];out;",i]');
   });
 
   it("lê os ids das empresas", () => {
@@ -73,6 +108,11 @@ describe("empresas do OpenStreetMap", () => {
     expect(codes).toEqual(["noOwnWebsite", "noOpeningHours"]);
   });
 
+  it("o site só pode ser um endereço web", () => {
+    const company = elementToCompany({ type: "node", id: 3, tags: { name: "X", website: "javascript:alert(1)" } }, "x", "Porto")!;
+    expect(company.website).toBeNull();
+  });
+
   it("deixa de fora as que não têm nome ou estão fechadas", () => {
     expect(elementToCompany({ type: "node", id: 1, tags: {} }, "x", "Porto")).toBeNull();
     expect(elementToCompany({ type: "node", id: 2, tags: { name: "X", opening_hours: "closed" } }, "x", "Porto")).toBeNull();
@@ -101,10 +141,24 @@ describe("fornecedor OpenStreetMap", () => {
     expect(provider.source).toBe("osm");
   });
 
-  it("com todos os servidores cheios, dá erro", async () => {
+  it("com todos os servidores cheios, dá erro, sem segunda volta no servidor", async () => {
     const fetchImpl = vi.fn().mockImplementation(async () => new Response("cheio", { status: 504 }));
     const provider = createOsmProvider({ fetchImpl });
-    await expect(provider.search({ service: "website_creation", niche: "Cafés", locality: "Porto" })).rejects.toThrow("osm: 504");
+    await expect(provider.search({ service: "website_creation", niche: "Cafés", locality: "Porto" })).rejects.toMatchObject({ code: "busy" });
+    expect(fetchImpl).toHaveBeenCalledTimes(OVERPASS_ENDPOINTS.length);
+  });
+
+  it("converte os elementos em empresas sem repetidas", () => {
+    const companies = osmCompanies(
+      [
+        { type: "node", id: 5, tags: { name: "A" } },
+        { type: "node", id: 5, tags: { name: "A" } },
+        { type: "node", id: 6, tags: {} },
+      ],
+      "Cafés",
+      "Porto",
+    );
+    expect(companies.map((company) => company.id)).toEqual(["osm-node-5"]);
   });
 
   it("localidade fora da lista não chama o servidor", async () => {

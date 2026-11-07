@@ -75,36 +75,80 @@ const NICHE_TAGS: [RegExp, Selector[]][] = [
 ];
 
 export const MAX_OSM_RESULTS = 60;
+// Segundos que cada consulta declara ao Overpass. Os servidores atendem primeiro as
+// consultas pequenas, e assim cada pedido cabe no tempo do browser e do servidor.
+export const OVERPASS_TIMEOUT_S = 25;
+// Uma região inteira (Açores, Madeira) vai em partes de alguns concelhos de cada vez.
+const MAX_PARTS = 5;
+const CONCELHOS_PER_PART = 4;
+// As categorias de negócio do OSM. A busca pelo nome começa sempre por uma delas, para o
+// servidor não ter de ler todos os elementos da zona.
+const BUSINESS_KEYS = ["shop", "amenity", "craft", "office", "healthcare", "leisure"];
 
 const escape = (text: string) => text.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
+// Só elementos com nome: os sem nome eram deitados fora e gastavam lugares dos 60.
 // Sem etiqueta conhecida, procura pelo nome, com a raiz da palavra (sem o plural).
 export function nicheSelectors(niche: string): Selector[] {
   const wanted = normalizeText(niche);
   const found = NICHE_TAGS.find(([pattern]) => pattern.test(wanted));
-  if (found) return found[1];
+  if (found) {
+    return found[1].map((selector) => (selector.includes('["name"') ? selector : `${selector}["name"]`));
+  }
   const stem = wanted.replace(/(oes|aes|s)$/, "").trim();
-  return stem ? [`["name"~"${escape(stem)}",i]`] : [];
+  return stem ? BUSINESS_KEYS.map((key) => `["${key}"]["name"~"${escape(stem)}",i]`) : [];
+}
+
+// Na lista, os concelhos com nome repetido levam a região entre parênteses ("Lagoa
+// (Açores)"). No OSM o nome é só "Lagoa", e o código da região distingue-os.
+export function osmAreaName(name: string) {
+  return name.replace(/\s*\([^)]*\)$/, "");
+}
+
+const concelhoArea = (name: string) =>
+  `rel["boundary"="administrative"]["admin_level"="7"]["name"="${escape(osmAreaName(name))}"](area.d);`;
+
+// Quando o distrito tem um concelho com o mesmo nome (Porto, Braga…), a lista só tem o
+// concelho. Ficam como região inteira só as que não têm (Açores, Madeira).
+function isWholeArea(locality: Locality) {
+  const area = PORTUGAL_AREAS.find(({ name }) => name === locality.group);
+  return locality.name === locality.group && !area?.concelhos.includes(locality.name);
 }
 
 export function areaStatement(locality: Locality): string | null {
   const code = AREA_CODES[locality.group];
   if (!code) return null;
-  // O próprio distrito (ou região), ou um concelho dentro dele. Quando o distrito tem
-  // um concelho com o mesmo nome (Porto, Braga…), a lista só tem o concelho.
-  const area = PORTUGAL_AREAS.find(({ name }) => name === locality.group);
-  const isDistrict = locality.name === locality.group && !area?.concelhos.includes(locality.name);
-  if (isDistrict) {
-    return `area["ISO3166-2"="${code}"]->.a;`;
-  }
-  return `area["ISO3166-2"="${code}"]->.d;rel["boundary"="administrative"]["admin_level"="7"]["name"="${escape(locality.name)}"](area.d);map_to_area->.a;`;
+  if (isWholeArea(locality)) return `area["ISO3166-2"="${code}"]->.a;`;
+  return `area["ISO3166-2"="${code}"]->.d;${concelhoArea(locality.name)}map_to_area->.a;`;
+}
+
+function wrap(area: string, selectors: Selector[]) {
+  return `[out:json][timeout:${OVERPASS_TIMEOUT_S}];${area}(${selectors.map((s) => `nwr${s}(area.a);`).join("")});out center tags ${MAX_OSM_RESULTS};`;
 }
 
 export function buildOverpassQuery(niche: string, locality: Locality): string | null {
   const area = areaStatement(locality);
   const selectors = nicheSelectors(niche);
   if (!area || selectors.length === 0) return null;
-  return `[out:json][timeout:80];${area}(${selectors.map((s) => `nwr${s}(area.a);`).join("")});out center tags ${MAX_OSM_RESULTS};`;
+  return wrap(area, selectors);
+}
+
+// As consultas da busca, por ordem. Um concelho é uma consulta só; uma região inteira
+// divide-se em partes, para cada pedido ser pequeno e os resultados irem aparecendo.
+export function buildOverpassQueries(niche: string, locality: Locality): string[] {
+  const code = AREA_CODES[locality.group];
+  const selectors = nicheSelectors(niche);
+  if (!code || selectors.length === 0) return [];
+  const concelhos = PORTUGAL_AREAS.find(({ name }) => name === locality.group)?.concelhos ?? [];
+  if (!isWholeArea(locality) || concelhos.length === 0) return [wrap(areaStatement(locality)!, selectors)];
+
+  const size = Math.max(CONCELHOS_PER_PART, Math.ceil(concelhos.length / MAX_PARTS));
+  const parts: string[] = [];
+  for (let start = 0; start < concelhos.length; start += size) {
+    const group = concelhos.slice(start, start + size).map(concelhoArea).join("");
+    parts.push(wrap(`area["ISO3166-2"="${code}"]->.d;(${group});map_to_area->.a;`, selectors));
+  }
+  return parts;
 }
 
 export type OsmElement = {
@@ -131,7 +175,9 @@ function firstUrl(...values: (string | undefined)[]) {
     if (!url) continue;
     const withScheme = /^https?:\/\//i.test(url) ? url : `https://${url}`;
     try {
-      return new URL(withScheme).toString();
+      // Só endereços web: nada de javascript:, ftp: ou outros esquemas.
+      const parsed = new URL(withScheme);
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") return parsed.toString();
     } catch {
       // Endereço inválido: tenta o seguinte.
     }

@@ -158,7 +158,8 @@ Quem está em `public.user_roles` com `admin` fica sem limites de pack (10 000 b
 
 **Confirmar antes de produção:**
 
-- [ ] Tempo máximo na Netlify. A documentação dá 60 s por pedido, sem poder mudar; no fórum há relatos de cortes aos 10, 26 ou 30 s. Uma busca do OpenStreetMap demorou 46 a 78 s no teste real: confirmar online e, se falhar, passar a busca para o browser (tarefa à parte).
+- [x] Tempo máximo na Netlify para o Radar: a busca do OpenStreetMap passou para o browser (07/11/2026). No servidor ficam só pedidos curtos: validar e contar, nota e verificação dos sites (no máximo 15 s), e a ficha de uma empresa pelo id (7 s por servidor do Overpass).
+- [ ] Os servidores públicos do Overpass estão muitas vezes cheios, sobretudo à noite. Se as buscas falharem com frequência, a alternativa grátis é esperar e repetir; um servidor Overpass próprio já tem custos.
 - [ ] Região das funções na Netlify (por omissão nos Estados Unidos), o que torna sites portugueses mais lentos na medição. Confirmar antes de confiar em "Site lento".
 
 **Rever na primeira utilização:**

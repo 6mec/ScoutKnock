@@ -488,7 +488,26 @@ export const ptPT = {
       offline: "Sem ligação à internet. Verifica a rede e tenta outra vez.",
       unavailable: "A busca ainda não está disponível.",
       locality: "Escolhe um distrito ou um concelho da lista de sugestões. Esta busca não foi contada.",
-      busy: "O servidor público do OpenStreetMap está cheio neste momento. Tenta outra vez daqui a um minuto.",
+      busy: "Os servidores públicos do OpenStreetMap estão cheios neste momento. Tenta outra vez daqui a um minuto.",
+      timeout:
+        "O OpenStreetMap demorou demasiado a responder. Tenta outra vez ou, numa região inteira, procura num concelho.",
+    },
+    // A busca no OpenStreetMap corre no browser, servidor a servidor.
+    osm: {
+      asking: "A perguntar ao OpenStreetMap…",
+      otherServer: (server: number, servers: number) =>
+        `Servidor cheio. A tentar outro (${server} de ${servers})…`,
+      waiting: (seconds: number) =>
+        `Todos os servidores estão cheios. Nova tentativa daqui a ${seconds} s…`,
+      part: (part: number, parts: number) => `Parte ${part} de ${parts}`,
+      elapsed: (seconds: number) => `${seconds} s`,
+      partial:
+        "Resultados incompletos: parte da zona não respondeu a tempo. Podes procurar outra vez daqui a pouco.",
+      cached: (minutes: number) =>
+        minutes < 1
+          ? "Resultados de há menos de um minuto, guardados neste browser. Esta repetição não contou no limite."
+          : `Resultados de há ${minutes} min, guardados neste browser. Esta repetição não contou no limite.`,
+      refresh: "Procurar de novo",
     },
     sampleOnlyIn:
       "Em modo de exemplo, só há empresas no Porto, em Lisboa, em Braga e em Coimbra.",

@@ -1,5 +1,5 @@
 import { GoogleBudgetError } from "./google-provider";
-import { OsmApiError } from "./osm-provider";
+import { OverpassError } from "./overpass-client";
 import type { CompanyProvider } from "./provider";
 import { scoreCompany } from "./score";
 import type { SearchEvent } from "./search-events";
@@ -8,7 +8,8 @@ import { thirdPartyKind } from "./site-rules";
 import type { Company, SearchQuery } from "./types";
 
 const SITE_CONCURRENCY = 3;
-const SITES_TOTAL_MS = 25_000;
+// Tem de caber, com a busca, no tempo de uma função da Netlify.
+export const SITES_TOTAL_MS = 15_000;
 
 // Definido aqui sem importar o servidor, para os testes poderem usar sites simulados.
 export type SearchSiteChecker = {
@@ -22,6 +23,7 @@ async function* checkSites(
   companies: Company[],
   query: SearchQuery,
   signal?: AbortSignal,
+  totalMs = SITES_TOTAL_MS,
 ): AsyncGenerator<SearchEvent> {
   const candidates = companies.filter(
     (company) => company.website && !thirdPartyKind(company.website),
@@ -42,7 +44,7 @@ async function* checkSites(
     skipped,
   };
 
-  const deadline = AbortSignal.timeout(SITES_TOTAL_MS);
+  const deadline = AbortSignal.timeout(totalMs);
   const stop = signal ? AbortSignal.any([signal, deadline]) : deadline;
   const finished: { company: Company; result: SiteCheckResult }[] = [];
   let wake = () => {};
@@ -104,12 +106,26 @@ export async function* runSearch(
   signal?: AbortSignal,
   sites?: SearchSiteChecker | null,
 ): AsyncGenerator<SearchEvent> {
+  // Os dados de exemplo são fictícios: não há nada para visitar.
+  yield* scoreCompanies(provider.stream(query, signal), query, {
+    signal,
+    sites: provider.usesSampleData ? null : sites,
+  });
+}
+
+// A nota e a verificação dos sites, para empresas vindas do fornecedor ou, no caso do
+// OpenStreetMap, da busca feita no browser e já validada pelo servidor.
+export async function* scoreCompanies(
+  source: AsyncIterable<Company> | Iterable<Company>,
+  query: SearchQuery,
+  { signal, sites }: { signal?: AbortSignal; sites?: SearchSiteChecker | null } = {},
+): AsyncGenerator<SearchEvent> {
   const companies: Company[] = [];
 
   yield { type: "step", step: "reading", status: "active" };
 
   try {
-    for await (const company of provider.stream(query, signal)) {
+    for await (const company of source) {
       if (signal?.aborted) return;
       if (companies.length === 0) {
         yield { type: "step", step: "scoring", status: "active" };
@@ -130,7 +146,9 @@ export async function* runSearch(
       code:
         error instanceof GoogleBudgetError
           ? "budget"
-          : error instanceof OsmApiError || (error instanceof Error && error.name === "TimeoutError")
+          : error instanceof OverpassError && error.code === "timeout"
+            ? "timeout"
+            : error instanceof OverpassError || (error instanceof Error && error.name === "TimeoutError")
             ? "busy"
             : "provider",
     };
@@ -141,8 +159,7 @@ export async function* runSearch(
   yield { type: "step", step: "scoring", status: "done" };
   yield { type: "done", count: companies.length };
 
-  // Os dados de exemplo são fictícios: não há nada para visitar.
-  if (sites && !provider.usesSampleData) {
+  if (sites) {
     yield* checkSites(sites, companies, query, signal);
   }
 }

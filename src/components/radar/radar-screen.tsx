@@ -18,6 +18,9 @@ import type { Market } from "@/lib/markets";
 import { findLocation, resolveLocality } from "@/lib/radar/localities";
 import { filtersFromPre, type PreFilter } from "@/lib/radar/results";
 import { hasSampleCompanies } from "@/lib/radar/sample-companies";
+import type { OsmElement } from "@/lib/radar/osm";
+import { osmSearchKey, readCachedSearch, writeCachedSearch } from "@/lib/radar/osm-search-cache";
+import { searchOverpass, type OverpassFailure, type OverpassProgress } from "@/lib/radar/overpass-client";
 import { newSearchRequests, subscribeToNewSearch,
   takePendingSearch,
 } from "@/lib/radar/new-search";
@@ -38,18 +41,29 @@ import { SearchProgress, type StepStatus } from "./search-progress";
 
 const { radar: copy } = ptPT;
 
+type OsmStatus = { part: number; parts: number; server: number; servers: number; waiting: number | null };
+
 type State = {
   phase: "idle" | "searching" | "results" | "error";
   steps: Record<SearchStep, StepStatus>;
   companies: ScoredCompany[];
   error?: SearchErrorCode;
   returning: boolean;
+  // Só na busca do OpenStreetMap feita no browser.
+  osm: OsmStatus | null;
+  startedAt: number | null;
+  partial: boolean;
+  // Há quantos minutos o Overpass deu estes dados, quando vêm da memória do browser.
+  cachedMinutes: number | null;
 };
 
 type Action =
-  | { type: "start" }
+  | { type: "start"; at: number }
   | { type: "reset" }
   | { type: "sitesInterrupted" }
+  | { type: "osm"; progress: OverpassProgress | null }
+  | { type: "partial" }
+  | { type: "cached"; minutes: number }
   | { type: "event"; event: SearchEvent };
 
 const byScore = (a: ScoredCompany, b: ScoredCompany) =>
@@ -60,12 +74,48 @@ const initialState: State = {
   steps: { reading: "waiting", scoring: "waiting" },
   companies: [],
   returning: false,
+  osm: null,
+  startedAt: null,
+  partial: false,
+  cachedMinutes: null,
+};
+
+const NEW_OSM: OsmStatus = { part: 1, parts: 1, server: 1, servers: 1, waiting: null };
+
+function osmStatus(current: OsmStatus | null, progress: OverpassProgress): OsmStatus {
+  const base = current ?? NEW_OSM;
+  if (progress.type === "part") return { ...base, part: progress.part, parts: progress.parts, waiting: null };
+  if (progress.type === "server") return { ...base, server: progress.server, servers: progress.servers, waiting: null };
+  return { ...base, waiting: progress.seconds };
+}
+
+function osmLabel(status: OsmStatus | null) {
+  if (!status) return null;
+  const now =
+    status.waiting !== null
+      ? copy.osm.waiting(status.waiting)
+      : status.server > 1
+        ? copy.osm.otherServer(status.server, status.servers)
+        : copy.osm.asking;
+  return status.parts > 1 ? `${copy.osm.part(status.part, status.parts)} · ${now}` : now;
+}
+
+const FAILURE_CODES: Record<OverpassFailure, SearchErrorCode> = {
+  busy: "busy",
+  timeout: "timeout",
+  offline: "offline",
+  rejected: "provider",
 };
 
 function reducer(state: State, action: Action): State {
   if (action.type === "start") {
-    return { ...initialState, phase: "searching" };
+    return { ...initialState, phase: "searching", startedAt: action.at };
   }
+  if (action.type === "osm") {
+    return { ...state, osm: action.progress && osmStatus(state.osm, action.progress) };
+  }
+  if (action.type === "partial") return { ...state, partial: true };
+  if (action.type === "cached") return { ...state, cachedMinutes: action.minutes };
   if (action.type === "reset") return { ...initialState, returning: true };
   if (action.type === "sitesInterrupted") {
     return {
@@ -239,34 +289,80 @@ function RadarSearch({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function search(query: SearchQuery = values) {
+  async function search(query: SearchQuery = values, { refresh = false } = {}) {
     const controller = new AbortController();
     controllerRef.current = controller;
     setMapDone(false);
-    dispatch({ type: "start" });
+    dispatch({ type: "start", at: Date.now() });
 
     const fail = (code: SearchErrorCode) =>
       dispatch({ type: "event", event: { type: "error", code } });
-    let finished = false;
-
-    try {
-      const response = await fetch("/api/radar/search", {
+    // Recusas do servidor; devolve true se a busca acabou aqui.
+    const refused = (response: Response) => {
+      if (response.status === 401) {
+        router.push("/entrar");
+        return true;
+      }
+      if (response.status === 503) fail("unavailable");
+      else if (response.status === 429) fail("limit");
+      else if (response.status === 422) fail("locality");
+      else if (!response.ok) fail("provider");
+      return !response.ok;
+    };
+    const post = (url: string, body: unknown) =>
+      fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(query),
+        body: JSON.stringify(body),
         signal: controller.signal,
       });
 
-      if (response.status === 401) {
-        router.push("/entrar");
-        return;
+    // OpenStreetMap: os pedidos ao Overpass saem do browser (podem passar o tempo de uma
+    // função do servidor). O servidor conta a busca antes e valida os dados depois.
+    async function osmSearch(): Promise<Response | null> {
+      const key = osmSearchKey(query.niche, query.locality);
+      const cached = refresh ? null : readCachedSearch(key);
+      let elements: OsmElement[];
+      if (cached) {
+        elements = cached.elements;
+        dispatch({ type: "cached", minutes: Math.floor((Date.now() - cached.at) / 60_000) });
+      } else {
+        const start = await post("/api/radar/osm/start", query);
+        if (refused(start)) return null;
+        const { parts, counted } = (await start.json()) as { parts: string[]; counted: boolean };
+        if (counted) onSearchCounted();
+        dispatch({ type: "event", event: { type: "step", step: "reading", status: "active" } });
+        const result = await searchOverpass(parts, {
+          signal: controller.signal,
+          onProgress: (progress) => dispatch({ type: "osm", progress }),
+        });
+        dispatch({ type: "osm", progress: null });
+        if (result.failure && result.elements.length === 0) {
+          fail(FAILURE_CODES[result.failure]);
+          return null;
+        }
+        elements = result.elements;
+        if (result.failure) dispatch({ type: "partial" });
+        else if (counted) writeCachedSearch(key, elements);
       }
-      if (response.status === 503) return fail("unavailable");
-      if (response.status === 429) return fail("limit");
-      if (response.status === 422) return fail("locality");
-      if (!response.ok || !response.body) return fail("provider");
-      // Só uma resposta aceite gasta uma busca do limite.
-      onSearchCounted();
+      return post("/api/radar/osm/results", { ...query, elements, cached: Boolean(cached) });
+    }
+
+    let finished = false;
+
+    try {
+      let response: Response;
+      if (source === "osm") {
+        const posted = await osmSearch();
+        if (!posted || refused(posted)) return;
+        response = posted;
+      } else {
+        response = await post("/api/radar/search", query);
+        if (refused(response)) return;
+        // Só uma resposta aceite gasta uma busca do limite.
+        onSearchCounted();
+      }
+      if (!response.body) return fail("provider");
 
       await readSearchEvents(response.body, (event) => {
         finished ||= event.type === "done" || event.type === "error";
@@ -311,10 +407,35 @@ function RadarSearch({
     />
   );
 
+  // Avisos sobre os resultados da busca no OpenStreetMap: incompletos ou da memória.
+  const osmNotes = (state.partial || state.cachedMinutes !== null) && (
+    <div className="flex flex-col gap-3">
+      {state.partial && (
+        <Callout role="status" tone="amber">
+          {copy.osm.partial}
+        </Callout>
+      )}
+      {state.cachedMinutes !== null && (
+        <div
+          data-testid="radar-osm-cached"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface px-4 py-3"
+        >
+          <p className="text-14 text-muted">
+            {copy.osm.cached(state.cachedMinutes)}
+          </p>
+          <Button variant="secondary" size="sm" onClick={() => search(values, { refresh: true })}>
+            {copy.osm.refresh}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+
   if (found && (mapDone || !target)) {
     return (
       <div className="flex flex-1 flex-col">
         <div className="border-b border-border px-4 py-3 lg:px-8">{consoleBar}</div>
+        {osmNotes && <div className="px-4 pt-4 lg:px-8">{osmNotes}</div>}
         <RadarResults
           results={state.companies}
           isSample={isSample}
@@ -358,6 +479,8 @@ function RadarSearch({
           <SearchProgress
             steps={state.steps}
             companies={state.companies}
+            status={osmLabel(state.osm)}
+            startedAt={state.osm ? state.startedAt : null}
             // Com os resultados já chegados, cancelar só salta o resto da animação.
             onCancel={() => (found ? setMapDone(true) : controllerRef.current?.abort())}
           />
@@ -370,6 +493,7 @@ function RadarSearch({
               {copy.sampleOnlyIn}
             </Callout>
           )}
+        {state.phase === "results" && !found && osmNotes}
         {state.phase === "results" && !found && (
           <EmptyState
             title={copy.noResults}

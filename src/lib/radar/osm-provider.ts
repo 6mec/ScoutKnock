@@ -1,16 +1,14 @@
 import { parseSiteUrl } from "@/lib/site";
 import { enabledMarkets } from "@/lib/markets";
 import { resolveLocality } from "./localities";
-import { buildOverpassQuery, elementToCompany, parseOsmId, type OsmElement } from "./osm";
+import { buildOverpassQueries, elementToCompany, parseOsmId, type OsmElement } from "./osm";
+import { OverpassError, runOverpassQuery, searchOverpass } from "./overpass-client";
 import type { CompanyProvider } from "./provider";
 import type { Company } from "./types";
 
-// Servidores públicos do Overpass. Estão muitas vezes cheios: tenta o seguinte.
-export const OVERPASS_ENDPOINTS = [
-  "https://overpass-api.de/api/interpreter",
-  "https://overpass.private.coffee/api/interpreter",
-];
-const TIMEOUT_MS = 90_000;
+// No servidor, a ficha de uma empresa é um pedido pequeno, mas tem de caber no tempo de
+// uma função da Netlify: cada servidor tem pouco tempo e há uma volta só.
+const LOOKUP_TIMEOUT_MS = 7_000;
 
 // Dados abertos (ODbL): podem ficar em memória. Assim, depois de uma busca, a mensagem e
 // a ficha não voltam a esperar pelo Overpass. Uma hora, e no máximo 2000 empresas.
@@ -39,69 +37,44 @@ export function cachedOsmCompany(id: string, now = Date.now()) {
   return hit.company;
 }
 
-export class OsmApiError extends Error {
-  constructor(readonly status: number) {
-    super(`osm: ${status}`);
-  }
-}
-
 type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
 
 // A regra de uso do Overpass pede uma identificação da app, sem dados de quem procura.
+// (No browser não se pode mudar: lá, o Overpass vê a origem do pedido.)
 function userAgent(siteUrl?: string) {
   return `ScoutKnock/1.0${siteUrl ? ` (+${siteUrl}/bot)` : ""}`;
 }
 
-async function overpass(query: string, { fetchImpl, siteUrl, signal }: { fetchImpl: FetchLike; siteUrl?: string; signal?: AbortSignal }) {
-  let lastError: unknown = null;
-  for (const endpoint of OVERPASS_ENDPOINTS) {
-    const timeout = AbortSignal.timeout(TIMEOUT_MS);
-    try {
-      const response = await fetchImpl(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": userAgent(siteUrl),
-        },
-        body: new URLSearchParams({ data: query }).toString(),
-        signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
-      });
-      // Cheio ou com limite: o seguinte pode responder.
-      if (response.status === 429 || response.status >= 500) {
-        lastError = new OsmApiError(response.status);
-        continue;
-      }
-      if (!response.ok) throw new OsmApiError(response.status);
-      const body = (await response.json()) as { elements?: OsmElement[] };
-      return body.elements ?? [];
-    } catch (error) {
-      if (signal?.aborted) throw error;
-      lastError = error;
-    }
+// Converte os elementos numa lista de empresas sem repetidas, e guarda-as na memória.
+export function osmCompanies(elements: OsmElement[], niche: string, localityName: string) {
+  const seen = new Set<string>();
+  const companies: Company[] = [];
+  for (const element of elements) {
+    const company = elementToCompany(element, niche, localityName);
+    if (!company || seen.has(company.id)) continue;
+    seen.add(company.id);
+    rememberOsmCompany(company);
+    companies.push(company);
   }
-  throw lastError ?? new OsmApiError(0);
+  return companies;
 }
 
 export function createOsmProvider({
   fetchImpl = fetch,
   siteUrl = parseSiteUrl(process.env.SITE_URL) ?? undefined,
 }: { fetchImpl?: FetchLike; siteUrl?: string } = {}): CompanyProvider {
+  const headers = { "User-Agent": userAgent(siteUrl) };
+
+  // A busca do Radar corre no browser (src/lib/radar/overpass-client.ts). Esta fica para
+  // o desenvolvimento e para os testes, com as mesmas consultas.
   async function search({ niche, locality }: { niche: string; locality: string }, signal?: AbortSignal) {
     const place = resolveLocality(locality, enabledMarkets());
     if (!place) return [];
-    const query = buildOverpassQuery(niche, place);
-    if (!query) return [];
-    const elements = await overpass(query, { fetchImpl, siteUrl, signal });
-    const seen = new Set<string>();
-    const companies: Company[] = [];
-    for (const element of elements) {
-      const company = elementToCompany(element, niche, place.name);
-      if (!company || seen.has(company.id)) continue;
-      seen.add(company.id);
-      rememberOsmCompany(company);
-      companies.push(company);
-    }
-    return companies;
+    const parts = buildOverpassQueries(niche, place);
+    if (parts.length === 0) return [];
+    const { elements, failure } = await searchOverpass(parts, { fetchImpl, headers, signal, rounds: 1 });
+    if (failure && elements.length === 0) throw new OverpassError(failure);
+    return osmCompanies(elements, niche, place.name);
   }
 
   return {
@@ -119,9 +92,11 @@ export function createOsmProvider({
       if (!parsed) return null;
       const cached = cachedOsmCompany(id);
       if (cached) return cached;
-      const elements = await overpass(`[out:json][timeout:25];${parsed.type}(${parsed.id});out center tags;`, {
+      const elements = await runOverpassQuery(`[out:json][timeout:5];${parsed.type}(${parsed.id});out center tags;`, {
         fetchImpl,
-        siteUrl,
+        headers,
+        rounds: 1,
+        requestTimeoutMs: LOOKUP_TIMEOUT_MS,
       });
       const element = elements[0];
       if (!element) return null;

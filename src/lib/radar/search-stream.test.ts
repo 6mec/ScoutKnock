@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { CompanyProvider } from "./provider";
-import { runSearch } from "./run-search";
+import { OverpassError } from "./overpass-client";
+import { runSearch, scoreCompanies } from "./run-search";
 import {
   parseSearchQuery,
   readSearchEvents,
@@ -81,6 +82,28 @@ describe("runSearch", () => {
 
     expect(seen.filter((event) => event.type === "company")).toHaveLength(1);
     expect(seen.some((event) => event.type === "done")).toBe(false);
+  });
+});
+
+describe("scoreCompanies", () => {
+  it("dá a nota a uma lista já pronta (a busca do OpenStreetMap feita no browser)", async () => {
+    const companies = SAMPLE_COMPANIES.slice(0, 3);
+    const events: SearchEvent[] = [];
+    for await (const event of scoreCompanies(companies, query)) events.push(event);
+    expect(events.filter((event) => event.type === "company")).toHaveLength(3);
+    expect(events.at(-1)).toEqual({ type: "done", count: 3 });
+  });
+
+  it("o OpenStreetMap lento dá o erro de tempo; cheio, o de servidores cheios", async () => {
+    const codes = [];
+    for (const failure of [new OverpassError("timeout"), new OverpassError("busy", 504)]) {
+      const events = await collect(fakeProvider([], failure));
+      codes.push(events.at(-1));
+    }
+    expect(codes).toEqual([
+      { type: "error", code: "timeout" },
+      { type: "error", code: "busy" },
+    ]);
   });
 });
 

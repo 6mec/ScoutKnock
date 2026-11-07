@@ -41,7 +41,7 @@ O `netlify.toml` diz à Netlify o comando de build (`npm run build`) e a versão
 ### 4. Teste no .netlify.app
 - [ ] `/painel` sem sessão leva a `/entrar`; `/registar` leva a `/entrar`.
 - [ ] Entrar no painel; Início, Projetos e Contactos abrem.
-- [ ] Uma busca no Radar (OpenStreetMap). Se for cortada por tempo, anotar quanto demorou: passa a tarefa à parte (busca feita no browser).
+- [ ] Uma busca no Radar (OpenStreetMap), feita no browser: aparecem o servidor, os segundos e os resultados. Repetir a mesma busca: aviso "guardados neste browser" e o número de buscas não sobe.
 - [ ] O portfólio em `/p/<endereço>` abre; partilhado no WhatsApp mostra título, descrição e imagem.
 - [ ] "Esqueci-me da palavra-passe": o link do email aponta para o `.netlify.app`.
 - [ ] No telemóvel, o selo "Powered by Netlify" não tapa a barra de baixo do painel nem o botão do WhatsApp do portfólio (a app reserva espaço por baixo).
