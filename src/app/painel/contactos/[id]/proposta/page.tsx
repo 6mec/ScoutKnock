@@ -44,9 +44,10 @@ async function Content({ params }: Pick<PageProps<"/painel/contactos/[id]/propos
   const user = await requireUser();
   const { id } = await params;
   const supabase = await createClient();
-  const [{ data: contact }, { data: profile }] = await Promise.all([
+  const [{ data: contact }, { data: profile }, { data: portfolio }] = await Promise.all([
     supabase.from("contacts").select("id, label, deal_value").eq("id", id).maybeSingle(),
     supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+    supabase.from("portfolios").select("display_name").eq("user_id", user.id).maybeSingle(),
   ]);
   if (!contact) notFound();
 
@@ -55,7 +56,7 @@ async function Content({ params }: Pick<PageProps<"/painel/contactos/[id]/propos
       contactId={contact.id as string}
       clientName={contact.label as string}
       dealValue={(contact.deal_value as number | null) ?? null}
-      yourName={(profile?.display_name as string | null) ?? ""}
+      yourName={((profile?.display_name as string | null) || (portfolio?.display_name as string | null) || "").trim()}
       yourContact={user.email ?? ""}
     />
   );

@@ -12,6 +12,7 @@ import {
   type ManualCompany,
 } from "@/lib/contacts/manual";
 import { MAX_LABEL } from "@/lib/contacts/rules";
+import { useFeatures } from "@/components/app/features";
 
 const copy = ptPT.contacts.manual;
 
@@ -76,6 +77,7 @@ export function ManualCompanyFields({
   autoFocus?: boolean;
 }) {
   const set = (change: Partial<ManualForm>) => onChange({ ...form, ...change });
+  const { googleReviews } = useFeatures();
 
   return (
     <div className="grid gap-4 sm:grid-cols-2">
@@ -114,15 +116,18 @@ export function ManualCompanyFields({
           onChange={(event) => set({ phone: event.target.value })}
         />
       </Field>
-      <Field label={copy.reviews} help={copy.reviewsHelp}>
-        <Input
-          inputMode="numeric"
-          value={form.reviews}
-          maxLength={7}
-          autoComplete="off"
-          onChange={(event) => set({ reviews: event.target.value })}
-        />
-      </Field>
+      {/* Só com o Google ligado. Escondido, o valor já escrito fica guardado como estava. */}
+      {googleReviews && (
+        <Field label={copy.reviews} help={copy.reviewsHelp}>
+          <Input
+            inputMode="numeric"
+            value={form.reviews}
+            maxLength={7}
+            autoComplete="off"
+            onChange={(event) => set({ reviews: event.target.value })}
+          />
+        </Field>
+      )}
       <Field label={copy.website} help={copy.websiteHelp} className="sm:col-span-2">
         <Input
           // Texto e não url: aceita "exemplo.pt" sem https://, que o servidor completa.

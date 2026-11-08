@@ -10,7 +10,6 @@ import {
   House,
   Radar,
   Search,
-  SunMoon,
   UserRound,
   Users,
   type LucideIcon,
@@ -18,9 +17,9 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Kbd } from "@/components/ui/kbd";
+import { useFeatures } from "@/components/app/features";
 import { ptPT } from "@/i18n/pt-PT";
 import { requestNewSearch } from "@/lib/radar/new-search";
-import { toggleTheme } from "@/lib/theme";
 
 const copy = ptPT.app.commands;
 const COMMANDS: {
@@ -32,14 +31,13 @@ const COMMANDS: {
   { label: copy.newSearch, href: "/painel/radar", icon: Search, onSelect: requestNewSearch },
   { label: copy.goHome, href: "/painel", icon: House },
   { label: copy.goRadar, href: "/painel/radar", icon: Radar },
-  { label: copy.goProjects, href: "/painel/projetos", icon: FolderKanban },
-  { label: copy.goDemos, href: "/painel/demos", icon: Globe },
   { label: copy.goContacts, href: "/painel/contactos", icon: Users },
+  { label: copy.goProjects, href: "/painel/projetos", icon: FolderKanban },
   { label: copy.goPortfolio, href: "/painel/portfolio", icon: BriefcaseBusiness },
-  { label: copy.goRequests, href: "/painel/pedidos", icon: ClipboardList },
+  { label: copy.goRequests, href: "/painel/projetos?separador=pedidos", icon: ClipboardList },
+  { label: copy.goDemos, href: "/painel/demos", icon: Globe },
   { label: copy.goPlans, href: "/painel/planos", icon: CreditCard },
   { label: copy.goAccount, href: "/painel/conta", icon: UserRound },
-  { label: copy.toggleTheme, icon: SunMoon, onSelect: toggleTheme },
 ];
 
 const subscribeToNothing = () => () => {};
@@ -52,6 +50,8 @@ export function CommandPalette() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const mac = useSyncExternalStore(subscribeToNothing, isMac, () => false);
+  const { plans } = useFeatures();
+  const commands = COMMANDS.filter((command) => plans || command.href !== "/painel/planos");
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -71,7 +71,7 @@ export function CommandPalette() {
         type="button"
         aria-keyshortcuts="Control+K Meta+K"
         onClick={() => setOpen(true)}
-        className="focus-ring inline-flex min-h-11 min-w-11 items-center justify-center gap-3 rounded-md border border-border bg-surface px-3 text-14 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground"
+        className="focus-ring hidden min-h-11 min-w-11 items-center justify-center gap-3 rounded-md border border-border bg-surface px-3 text-14 text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground md:inline-flex"
       >
         <Search aria-hidden="true" size={16} strokeWidth={1.75} />
         <span className="sr-only sm:not-sr-only">{copy.trigger}</span>
@@ -94,7 +94,7 @@ export function CommandPalette() {
           <Command.Empty className="px-3 py-6 text-center text-muted">
             {copy.empty}
           </Command.Empty>
-          {COMMANDS.map(({ label, href, icon: Icon, onSelect }) => (
+          {commands.map(({ label, href, icon: Icon, onSelect }) => (
             <Command.Item
               key={label}
               value={label}

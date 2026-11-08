@@ -6,19 +6,16 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field, Input } from "@/components/ui/field";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
-import { setContactStatus } from "@/lib/contacts/actions";
 import {
   CONTACT_FILTERS,
-  dayOf,
   filterContacts,
   type ContactEvent,
   type ContactFilter,
 } from "@/lib/contacts/crm";
 import { manualColumns, type ManualCompany } from "@/lib/contacts/manual";
+import type { FunnelStage } from "@/lib/dashboard/metrics";
 import {
-  marksLastContact,
   searchContacts,
   type Contact,
   type ContactDetails,
@@ -28,10 +25,9 @@ import { AddCompanyButton } from "./add-company-button";
 import { ContactDialog } from "./contact-dialog";
 import { ContactsBoard } from "./contacts-board";
 import { ContactsTable } from "./contacts-table";
-import { CrmToday } from "./crm-today";
-import { PlannerPanel } from "./planner-panel";
+import { ContactNumbers } from "./crm-today";
+import { useStatusChange } from "./use-status-change";
 import { ExportCsvButton } from "./export-csv-button";
-import { WhatsappTemplateButton } from "./whatsapp-template-button";
 import { ImportListButton } from "./import-list-button";
 import { PortfolioLinkContext } from "./whatsapp-call-button";
 
@@ -45,7 +41,10 @@ export function ContactsScreen({
   portfolioUrl = null,
   statusFilter,
   openContactId = null,
+  funnel = [],
 }: {
+  // Funil dos últimos 90 dias, calculado no servidor, para "Números dos contactos".
+  funnel?: { stage: FunnelStage; count: number }[];
   portfolioUrl?: string | null;
   initial: Contact[];
   events: ContactEvent[];
@@ -58,6 +57,7 @@ export function ContactsScreen({
   const [contacts, setContacts] = useState(initial);
   const [events, setEvents] = useState(initialEvents);
   const [dailyGoal, setDailyGoal] = useState(initialGoal);
+  const changeStatus = useStatusChange(contacts, setContacts, events, setEvents);
   const [lastInitial, setLastInitial] = useState(initial);
   const [openId, setOpenId] = useState<string | null>(openContactId);
   const [search, setSearch] = useState("");
@@ -79,37 +79,6 @@ export function ContactsScreen({
     ? contacts.filter(({ status }) => status === statusFilter)
     : contacts;
   const visible = searchContacts(filterContacts(filtered, quickFilter, now), search);
-
-  function changeStatus(id: string, status: ContactStatus) {
-    const previous = contacts;
-    const previousEvents = events;
-    const current = contacts.find((contact) => contact.id === id);
-    if (!current || current.status === status) return;
-    const at = new Date().toISOString();
-
-    // Muda logo no ecrã; se o servidor recusar, volta atrás.
-    setContacts((list) =>
-      list.map((contact) =>
-        contact.id === id
-          ? {
-              ...contact,
-              status,
-              last_contacted_at: marksLastContact(status) ? at : contact.last_contacted_at,
-            }
-          : contact,
-      ),
-    );
-    // O mesmo que o gatilho da base de dados grava, para a meta e o ritmo mudarem já.
-    setEvents((list) => [...list, { contact_id: id, kind: "status", status, created_at: at }]);
-
-    setContactStatus(id, status).then(({ ok }) => {
-      if (!ok) {
-        setContacts(previous);
-        setEvents(previousEvents);
-        toast.error(copy.errors.generic);
-      }
-    });
-  }
 
   function handleSaved(id: string, details: ContactDetails) {
     setContacts((current) =>
@@ -189,18 +158,6 @@ export function ContactsScreen({
   return (
     <PortfolioLinkContext value={portfolioUrl}>
     <div className="flex w-full min-w-0 flex-col gap-4 px-4 pt-4 pb-6 lg:px-8">
-      <CrmToday
-        contacts={contacts}
-        events={events}
-        dailyGoal={dailyGoal}
-        now={now}
-        today={dayOf(now)}
-        whatsappTemplate={template}
-        onGoalChange={setDailyGoal}
-        onOpen={setOpenId}
-        onStatusChange={changeStatus}
-      />
-      <PlannerPanel contacts={contacts} />
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Field label={copy.table.search} className="w-full max-w-md">
           <Input
@@ -212,7 +169,6 @@ export function ContactsScreen({
         </Field>
         <div className="flex flex-wrap gap-2">
           {manualActions}
-          <WhatsappTemplateButton template={template} onSaved={setTemplate} />
           <ExportCsvButton contacts={visible} />
         </div>
       </div>
@@ -275,6 +231,7 @@ export function ContactsScreen({
           />
         </TabsContent>
       </Tabs>
+      <ContactNumbers contacts={contacts} events={events} dailyGoal={dailyGoal} now={now} funnel={funnel} />
       {open && (
         <ContactDialog
           key={open.id}
@@ -286,6 +243,7 @@ export function ContactsScreen({
           onManualSaved={handleManualSaved}
           onOsmSaved={handleOsmSaved}
           onRemoved={handleRemoved}
+          onTemplateSaved={setTemplate}
         />
       )}
     </div>

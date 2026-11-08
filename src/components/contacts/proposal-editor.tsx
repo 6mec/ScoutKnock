@@ -203,7 +203,7 @@ export function ProposalEditor({
 
         <section aria-labelledby="proposta-dados" className="panel flex flex-col gap-4 p-5">
           <h3 id="proposta-dados" className="text-14 font-semibold">{copy.you}</h3>
-          <Field label={copy.yourName}>
+          <Field label={copy.yourName} help={form.yourName.trim() ? undefined : copy.yourNameHelp}>
             <Input
               value={form.yourName}
               maxLength={80}

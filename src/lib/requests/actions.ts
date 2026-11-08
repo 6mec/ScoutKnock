@@ -6,7 +6,7 @@ import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
 import { parseRequestInput } from "./rules";
 
-const REQUESTS_PATH = "/painel/pedidos";
+const REQUESTS_PATH = "/painel/projetos";
 
 async function currentUser() {
   const supabase = await createClient();

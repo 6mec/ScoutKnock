@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, Palette, Trash2 } from "lucide-react";
+import { KeyRound, Trash2 } from "lucide-react";
 import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,12 +20,10 @@ import {
   sendPasswordEmail,
 } from "@/lib/account/actions";
 import { DELETE_CONFIRMATION, isDeleteConfirmed } from "@/lib/account/rules";
-import { setTheme, useTheme, type Theme } from "@/lib/theme";
 import { InstallApp } from "./install-app";
 import { MAX_AUTHOR_NAME, parseAuthorName } from "@/lib/demos/rules";
 
 const { account: copy } = ptPT;
-const THEMES: Theme[] = ["dark", "light"];
 const cardClasses = "panel flex flex-col gap-4 p-6";
 
 export function AccountScreen({
@@ -35,7 +33,6 @@ export function AccountScreen({
   email: string;
   displayName: string;
 }) {
-  const theme = useTheme();
   const [name, setName] = useState(displayName);
   const [confirmation, setConfirmation] = useState("");
   const [saving, startSaving] = useTransition();
@@ -92,22 +89,6 @@ export function AccountScreen({
           {copy.save}
         </Button>
       </form>
-
-      <section aria-labelledby="account-theme" className={cardClasses}>
-        <PanelHeader id="account-theme" icon={Palette} title={copy.theme} />
-        <div role="group" aria-labelledby="account-theme" className="flex gap-2">
-          {THEMES.map((id) => (
-            <Button
-              key={id}
-              variant={theme === id ? "primary" : "secondary"}
-              aria-pressed={theme === id}
-              onClick={() => setTheme(id)}
-            >
-              {copy.themes[id]}
-            </Button>
-          ))}
-        </div>
-      </section>
 
       <InstallApp className={cardClasses} />
       <section aria-labelledby="account-password" className={cardClasses}>

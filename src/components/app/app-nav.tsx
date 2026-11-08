@@ -2,47 +2,54 @@
 
 import {
   BriefcaseBusiness,
-  ClipboardList,
   Ellipsis,
   FolderKanban,
   Globe,
   House,
+  LogOut,
+  Moon,
   PanelLeftClose,
   PanelLeftOpen,
   Radar,
+  Sun,
+  UserRound,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
-import { Suspense, useSyncExternalStore, type ReactNode } from "react";
+import { Suspense, useSyncExternalStore, useTransition, type ReactNode } from "react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { ptPT } from "@/i18n/pt-PT";
+import { signOut } from "@/lib/auth/actions";
+import { toggleTheme, useTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
 const copy = ptPT.app;
 const COLLAPSED_KEY = "scoutknock-nav-collapsed";
+// Pela ordem do trabalho: encontrar, contactar e acompanhar, projetos, portfólio.
 const NAV_ITEMS = [
   { href: "/painel", segment: null, label: copy.nav.home, icon: House },
   { href: "/painel/radar", segment: "radar", label: copy.nav.radar, icon: Radar },
-  { href: "/painel/projetos", segment: "projetos", label: copy.nav.projects, icon: FolderKanban },
   { href: "/painel/contactos", segment: "contactos", label: copy.nav.contacts, icon: Users },
-  // No telemóvel, a barra não tem espaço: o portfólio e os pedidos passam para "Mais".
+  { href: "/painel/projetos", segment: "projetos", label: copy.nav.projects, icon: FolderKanban },
+  // No telemóvel, a barra não tem espaço: estes passam para "Mais".
   { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness, desktopOnly: true },
-  { href: "/painel/pedidos", segment: "pedidos", label: copy.nav.requests, icon: ClipboardList, desktopOnly: true },
+  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe, desktopOnly: true },
 ] as const;
 
-// "Mais": as demos (já não são o caminho principal) e, no telemóvel, o que não cabe na barra.
+// "Mais" só existe no telemóvel: o que não cabe na barra e a conta.
 const MORE_ITEMS = [
-  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness, mobileOnly: true },
-  { href: "/painel/pedidos", segment: "pedidos", label: copy.nav.requests, icon: ClipboardList, mobileOnly: true },
-  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe, mobileOnly: false },
+  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness },
+  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe },
+  { href: "/painel/conta", segment: "conta", label: copy.account.label, icon: UserRound },
 ] as const;
 
 const listeners = new Set<() => void>();
@@ -110,45 +117,56 @@ function NavLinks({
           </li>
         );
       })}
-      <li className="flex flex-1 md:flex-none">
-        <MoreMenu collapsed={collapsed} current={current} />
+      <li className="flex flex-1 md:hidden">
+        <MoreMenu current={current} />
       </li>
     </ul>
   );
 }
 
-function MoreMenu({ collapsed, current }: { collapsed: boolean; current?: string | null }) {
-  const onDesktop = MORE_ITEMS.some((item) => !item.mobileOnly && item.segment === current);
-  const onMobile = MORE_ITEMS.some((item) => item.segment === current);
-  const trigger = (
-    <DropdownMenuTrigger
-      aria-label={copy.nav.moreLabel}
-      data-testid="nav-more"
-      className={cn(
-        "focus-ring flex min-h-11 w-full flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-12 whitespace-nowrap text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
-        "md:flex-row md:justify-start md:gap-3 md:px-3 md:text-14",
-        collapsed && "md:justify-center md:px-0",
-        onMobile && "max-md:bg-accent-soft max-md:text-accent",
-        onDesktop && "md:bg-accent-soft md:text-accent",
-      )}
-    >
-      <Ellipsis aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />
-      <span className={cn(collapsed && "md:sr-only")}>{copy.nav.more}</span>
-    </DropdownMenuTrigger>
-  );
+// No telemóvel, "Mais" junta as outras páginas e o menu da conta (tema e sair).
+function MoreMenu({ current }: { current?: string | null }) {
+  const active = MORE_ITEMS.some((item) => item.segment === current);
+  const theme = useTheme();
+  const [pending, startTransition] = useTransition();
 
   return (
     <DropdownMenu>
-      {collapsed ? <Tooltip content={copy.nav.more}>{trigger}</Tooltip> : trigger}
+      <DropdownMenuTrigger
+        aria-label={copy.nav.moreLabel}
+        data-testid="nav-more"
+        className={cn(
+          "focus-ring flex min-h-11 w-full flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-12 whitespace-nowrap text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
+          active && "bg-accent-soft text-accent",
+        )}
+      >
+        <Ellipsis aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />
+        <span>{copy.nav.more}</span>
+      </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="end" className="max-w-[calc(100vw-16px)]">
-        {MORE_ITEMS.map(({ href, segment, label, icon: Icon, mobileOnly }) => (
-          <DropdownMenuItem key={href} asChild className={cn(mobileOnly && "md:hidden")}>
+        {MORE_ITEMS.map(({ href, segment, label, icon: Icon }) => (
+          <DropdownMenuItem key={href} asChild>
             <Link href={href} aria-current={current === segment ? "page" : undefined}>
               <Icon aria-hidden="true" size={16} strokeWidth={1.75} />
               {label}
             </Link>
           </DropdownMenuItem>
         ))}
+        <DropdownMenuSeparator />
+        {/* O menu fica aberto: vê-se logo o tema novo. */}
+        <DropdownMenuItem
+          onSelect={(event) => {
+            event.preventDefault();
+            toggleTheme();
+          }}
+        >
+          {theme === "dark" ? <Sun aria-hidden="true" size={16} strokeWidth={1.75} /> : <Moon aria-hidden="true" size={16} strokeWidth={1.75} />}
+          {theme === "dark" ? copy.account.toLight : copy.account.toDark}
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={pending} onSelect={() => startTransition(() => signOut())}>
+          <LogOut aria-hidden="true" size={16} strokeWidth={1.75} />
+          {copy.account.signOut}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -194,9 +212,10 @@ export function AppNav({ account }: { account: ReactNode }) {
         <ToggleIcon aria-hidden="true" size={20} strokeWidth={1.75} />
       </button>
 
+      {/* No telemóvel, a conta está dentro de "Mais". */}
       <div
         data-collapsed={collapsed || undefined}
-        className="group/account flex-1 md:flex-none"
+        className="group/account hidden md:block md:flex-none"
       >
         {account}
       </div>

@@ -39,6 +39,5 @@ Três valores separados: criação (uma vez), custos de terceiros (pagos pelo cl
 Um barbeiro pediu uma app. Antes de planear: o Daniel recolhe as respostas do cliente (marcações online? lembretes? pagamento? vários barbeiros? domínio e identidade visual) e decidimos entre web app instalável (PWA, recomendada para começar) e app nativa.
 
 ## Por decidir
-- O formato do site-base (T11).
 - Preços e conteúdo da manutenção mensal.
 - Línguas: a interface está em português; mensagens e sites noutras línguas ficam para quando o Daniel decidir.

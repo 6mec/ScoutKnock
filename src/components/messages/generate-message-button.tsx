@@ -39,12 +39,15 @@ export function GenerateMessageButton({
   phone,
   service = SERVICE_IDS[0],
   variant = "primary",
+  label,
 }: {
   source: MessageSource;
   companyName: string;
   phone?: string | null;
   service?: ServiceId;
   variant?: "primary" | "secondary";
+  // Texto do botão, quando o sítio pede outro (na ficha: "Escrever outra mensagem").
+  label?: string;
 }) {
   const router = useRouter();
   const controller = useRef<AbortController | null>(null);
@@ -162,7 +165,7 @@ export function GenerateMessageButton({
           generate("normal");
         }}
       >
-        {copy.generate}
+        {label ?? copy.generate}
       </Button>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <DialogContent

@@ -1,8 +1,9 @@
 "use client";
 
 import {
-  CalendarClock,
   ChartColumn,
+  ChevronDown,
+  Filter,
   ListOrdered,
   Target,
   type LucideIcon,
@@ -18,7 +19,6 @@ import { setDailyGoal } from "@/lib/contacts/actions";
 import {
   contactedToday,
   dailyPace,
-  dueReturns,
   MAX_DAILY_GOAL,
   nextInQueue,
   queueSize,
@@ -27,11 +27,13 @@ import {
 import type { Contact, ContactStatus } from "@/lib/contacts/rules";
 import { whatsappNumber } from "@/lib/messages/rules";
 import { cn } from "@/lib/utils";
+import { Funnel } from "@/components/dashboard/funnel";
+import type { FunnelStage } from "@/lib/dashboard/metrics";
 import { formatDay } from "./contacts-board";
+import { PlannerPanel } from "./planner-panel";
 import { WhatsappCallButton } from "./whatsapp-call-button";
 
 const { contacts: copy } = ptPT;
-const MAX_RETURNS_SHOWN = 4;
 const weekday = new Intl.DateTimeFormat("pt-PT", { weekday: "narrow", timeZone: "UTC" });
 
 function Panel({
@@ -154,14 +156,8 @@ function PacePanel({ pace, goal }: { pace: { day: string; count: number }[]; goa
   const total = pace.reduce((sum, { count }) => sum + count, 0);
 
   return (
-    // No telemóvel o gráfico fica de fora, para o quadro não ficar tão abaixo.
-    <Panel
-      id="ritmo"
-      title={copy.crm.paceTitle}
-      icon={ChartColumn}
-      tone="muted"
-      className="hidden md:flex"
-    >
+    // Fica dentro de "Números dos contactos", fechado, por isso também aparece no telemóvel.
+    <Panel id="ritmo" title={copy.crm.paceTitle} icon={ChartColumn} tone="muted">
       <p className="text-14 text-muted">{copy.crm.paceLine(total)}</p>
       <div aria-hidden="true" className="relative flex h-24 items-end gap-0.5 border-b border-border">
         <span
@@ -203,58 +199,6 @@ function PacePanel({ pace, goal }: { pace: { day: string; count: number }[]; goa
           ))}
         </tbody>
       </table>
-    </Panel>
-  );
-}
-
-function ReturnsPanel({
-  returns,
-  today,
-  onOpen,
-}: {
-  returns: Contact[];
-  today: string;
-  onOpen: (id: string) => void;
-}) {
-  return (
-    <Panel
-      id="retornos"
-      title={copy.crm.returnsTitle(returns.length)}
-      icon={CalendarClock}
-      tone={returns.length ? "amber" : "muted"}
-    >
-      {returns.length === 0 ? (
-        <p className="text-14 text-muted">{copy.crm.returnsEmpty}</p>
-      ) : (
-        <ul className="flex flex-col divide-y divide-border-subtle">
-          {returns.slice(0, MAX_RETURNS_SHOWN).map((contact) => (
-            <li key={contact.id}>
-              <button
-                type="button"
-                onClick={() => onOpen(contact.id)}
-                className="focus-ring flex min-h-11 w-full items-center justify-between gap-3 rounded-sm py-1 text-left hovered:underline"
-              >
-                <span className="min-w-0 truncate font-medium">{contact.label}</span>
-                <span
-                  className={cn(
-                    "type-number shrink-0 text-13",
-                    contact.next_action_at! < today ? "text-amber" : "text-muted",
-                  )}
-                >
-                  {contact.next_action_at! < today
-                    ? copy.crm.overdue(formatDay(contact.next_action_at!))
-                    : copy.crm.today}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      {returns.length > MAX_RETURNS_SHOWN && (
-        <p className="text-13 text-muted">
-          {copy.crm.returnsMore(returns.length - MAX_RETURNS_SHOWN)}
-        </p>
-      )}
     </Panel>
   );
 }
@@ -322,12 +266,12 @@ function QueuePanel({
   );
 }
 
-export function CrmToday({
+// O dia, no Dashboard: a meta e a próxima da fila. Os retornos estão nas "Próximas tarefas".
+export function TodayPanels({
   contacts,
   events,
   dailyGoal,
   now,
-  today,
   whatsappTemplate,
   onGoalChange,
   onOpen,
@@ -337,27 +281,72 @@ export function CrmToday({
   events: ContactEvent[];
   dailyGoal: number;
   now: number;
-  today: string;
   whatsappTemplate: string | null;
   onGoalChange: (goal: number) => void;
   onOpen: (id: string) => void;
   onStatusChange: (id: string, status: ContactStatus) => void;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      <GoalPanel
-        done={contactedToday(events, now)}
-        goal={dailyGoal}
-        onGoalChange={onGoalChange}
-      />
+    <>
+      <GoalPanel done={contactedToday(events, now)} goal={dailyGoal} onGoalChange={onGoalChange} />
       <QueuePanel
         contacts={contacts}
         whatsappTemplate={whatsappTemplate}
         onOpen={onOpen}
         onStatusChange={onStatusChange}
       />
-      <ReturnsPanel returns={dueReturns(contacts, now)} today={today} onOpen={onOpen} />
-      <PacePanel pace={dailyPace(events, now)} goal={dailyGoal} />
-    </div>
+    </>
+  );
+}
+
+// Nos Contactos, fechado por omissão: o ritmo, o funil e o planeador. A lista vem primeiro.
+export function ContactNumbers({
+  contacts,
+  events,
+  dailyGoal,
+  now,
+  funnel,
+}: {
+  contacts: Contact[];
+  events: ContactEvent[];
+  dailyGoal: number;
+  now: number;
+  funnel: { stage: FunnelStage; count: number }[];
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <section aria-labelledby="numeros-contactos" className="panel flex flex-col gap-3 p-4" data-testid="contact-numbers">
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls="numeros-contactos-conteudo"
+        onClick={() => setOpen((current) => !current)}
+        className="focus-ring -m-1 flex min-h-11 items-center justify-between gap-3 rounded-md p-1 text-left"
+      >
+        <span className="flex min-w-0 items-start gap-3">
+          <span aria-hidden="true" className="inline-flex size-8 shrink-0 items-center justify-center rounded-md border border-border bg-surface-raised text-muted">
+            <ChartColumn size={16} strokeWidth={1.9} />
+          </span>
+          <span className="flex min-w-0 flex-col gap-0.5 pt-0.5">
+            <span id="numeros-contactos" className="text-14 leading-tight font-semibold">{copy.crm.numbersTitle}</span>
+            <span className="text-13 text-muted">{copy.crm.numbersHint}</span>
+          </span>
+        </span>
+        <ChevronDown aria-hidden="true" size={18} className={cn("shrink-0 text-muted transition-transform", open && "rotate-180")} />
+      </button>
+      {open && (
+        <div id="numeros-contactos-conteudo" className="flex flex-col gap-3">
+          <div className="grid gap-3 md:grid-cols-2">
+            <PacePanel pace={dailyPace(events, now)} goal={dailyGoal} />
+            <Panel id="funil" title={ptPT.dashboard.funnel.title} icon={Filter}>
+              <p className="-mt-1 text-13 text-muted">{ptPT.dashboard.funnel.note}</p>
+              <Funnel data={funnel} />
+            </Panel>
+          </div>
+          <PlannerPanel contacts={contacts} />
+        </div>
+      )}
+    </section>
   );
 }

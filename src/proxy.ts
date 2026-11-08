@@ -48,6 +48,11 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/entrar", request.url));
   }
 
+  // Planos e packs ficam em pausa com os registos fechados: a página fica no código.
+  if ((pathname === "/painel/planos" || pathname.startsWith("/painel/planos/")) && !signupsOpen()) {
+    return NextResponse.redirect(new URL("/painel", request.url));
+  }
+
   // Só as páginas que dependem da sessão vão ao Supabase.
   if (!SESSION_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
     return NextResponse.next();

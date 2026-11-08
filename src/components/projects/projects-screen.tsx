@@ -13,7 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState, type MouseEvent } from "react";
 import { ProjectDialog } from "@/components/projects/project-dialog";
 import { projectBalance, type ProjectPayment } from "@/lib/projects/payments";
 import { RequestWorkButton } from "@/components/requests/request-work-button";
@@ -84,29 +84,6 @@ export function ProjectsScreen({
 
   return (
     <div className="mx-auto flex w-full max-w-300 flex-col gap-5 px-4 pt-6 pb-8 lg:px-8">
-      <section aria-labelledby="project-totals" className="panel flex flex-col gap-3 p-5" data-testid="project-totals">
-        <div className="flex flex-col gap-1">
-          <h2 id="project-totals" className="text-16 font-semibold">
-            {copy.totals.title}
-          </h2>
-          <p className="text-13 text-muted">{copy.totals.note}</p>
-        </div>
-        <dl className="grid gap-3 sm:grid-cols-2">
-          <div className="panel-row flex flex-col gap-1 p-3">
-            <dt className="text-13 text-muted">{copy.totals.build}</dt>
-            <dd className="text-20 font-semibold tabular-nums">{money.format(totals.build)}</dd>
-            <dd className="text-13 text-muted">{copy.totals.count(totals.buildCount)}</dd>
-          </div>
-          <div className="panel-row flex flex-col gap-1 p-3">
-            <dt className="text-13 text-muted">{copy.totals.maintenance}</dt>
-            <dd className="text-20 font-semibold tabular-nums">
-              {money.format(totals.maintenance)} <span className="text-14 font-normal text-muted">{copy.totals.perMonth}</span>
-            </dd>
-            <dd className="text-13 text-muted">{copy.totals.count(totals.maintenanceCount)}</dd>
-          </div>
-        </dl>
-      </section>
-
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div className="relative md:w-80">
           <Search aria-hidden="true" size={16} className="pointer-events-none absolute top-3.5 left-3 z-10 text-muted" />
@@ -153,6 +130,17 @@ export function ProjectsScreen({
         })}
       </div>
 
+      {projects.length > 0 && (
+        <p className="text-13 text-muted" data-testid="project-totals">
+          {copy.totals.line(
+            money.format(totals.build),
+            totals.buildCount,
+            money.format(totals.maintenance),
+            totals.maintenanceCount,
+          )}
+        </p>
+      )}
+
       {visible.length === 0 ? (
         <EmptyState title={projects.length === 0 ? copy.empty : copy.emptyFiltered} className="bg-surface" />
       ) : (
@@ -194,9 +182,27 @@ function ProjectCard({
   const late = isLate(project, today);
   const next = nextDate(project);
   const url = safeProjectUrl(project.link);
+  const editRef = useRef<HTMLButtonElement>(null);
+
+  // O cartão inteiro abre o projeto com o rato. Botões, links e o diálogo (que vem por
+  // portal) tratam dos seus cliques; texto selecionado não abre. No teclado: o "Editar".
+  function openFromCard(event: MouseEvent<HTMLLIElement>) {
+    const target = event.target as HTMLElement;
+    if (!event.currentTarget.contains(target)) return;
+    if (target.closest("a, button, input, textarea, select, label, [role=dialog]")) return;
+    if (window.getSelection()?.toString()) return;
+    editRef.current?.click();
+  }
 
   return (
-    <li data-testid="project-item" className={cn("panel flex flex-col gap-4 p-5", late && "border-danger/40")}>
+    <li
+      data-testid="project-item"
+      onClick={openFromCard}
+      className={cn(
+        "panel flex cursor-pointer flex-col gap-4 p-5 transition-colors hovered:border-accent/40",
+        late && "border-danger/40",
+      )}
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <span
@@ -255,7 +261,7 @@ function ProjectCard({
           payments={payments}
           today={today}
           trigger={
-            <Button size="sm" data-testid="project-edit">
+            <Button ref={editRef} size="sm" data-testid="project-edit">
               {copy.edit}
               <span className="sr-only"> {project.company_name}</span>
             </Button>
@@ -268,7 +274,7 @@ function ProjectCard({
         )}
         {project.work_request_id && (
           <Button asChild size="sm" variant="secondary">
-            <Link href={`/painel/pedidos#pedido-${project.work_request_id}`}>{copy.openRequest}</Link>
+            <Link href={`/painel/projetos?separador=pedidos#pedido-${project.work_request_id}`}>{copy.openRequest}</Link>
           </Button>
         )}
         {url ? (
@@ -289,11 +295,11 @@ function ProjectCard({
         )}
         {project.contact_id && (
           <RequestWorkButton
-              companyName={project.company_name}
-              contactId={project.contact_id}
-              defaultKind={project.kind === "other" ? "site" : project.kind}
-              size="sm"
-            />
+            companyName={project.company_name}
+            contactId={project.contact_id}
+            defaultKind={project.kind === "other" ? "site" : project.kind}
+            size="sm"
+          />
         )}
       </div>
     </li>

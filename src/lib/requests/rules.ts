@@ -5,6 +5,11 @@ export type RequestKind = (typeof REQUEST_KINDS)[number];
 export type RequestStatus = "pending" | "in_progress" | "done" | "cancelled";
 
 export const MAX_BRIEF = 4000;
+
+// O tipo de pedido de um projeto. "Outro" (manutenção, ajustes) não se pede ao /pedidos.
+export function requestKindOf(kind: string): RequestKind | null {
+  return REQUEST_KINDS.find((item) => item === kind) ?? null;
+}
 export const MAX_REQUEST_COMPANY = 120;
 
 export type WorkRequest = {

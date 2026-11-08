@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFeatures } from "@/components/app/features";
 import { ptPT } from "@/i18n/pt-PT";
 import { signOut } from "@/lib/auth/actions";
 import { toggleTheme, useTheme } from "@/lib/theme";
@@ -22,6 +23,7 @@ const copy = ptPT.app.account;
 export function AccountMenu({ email }: { email: string }) {
   const [pending, startTransition] = useTransition();
   const theme = useTheme();
+  const { plans } = useFeatures();
 
   return (
     <DropdownMenu>
@@ -49,12 +51,14 @@ export function AccountMenu({ email }: { email: string }) {
             {copy.label}
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/painel/planos">
-            <CreditCard aria-hidden="true" size={16} strokeWidth={1.75} />
-            {copy.plans}
-          </Link>
-        </DropdownMenuItem>
+        {plans && (
+          <DropdownMenuItem asChild>
+            <Link href="/painel/planos">
+              <CreditCard aria-hidden="true" size={16} strokeWidth={1.75} />
+              {copy.plans}
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/">
             <Globe aria-hidden="true" size={16} strokeWidth={1.75} />

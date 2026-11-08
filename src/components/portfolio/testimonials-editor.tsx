@@ -139,7 +139,7 @@ export function TestimonialsEditor({ initial, projects }: { initial: Testimonial
   const [rows, setRows] = useState(() => initial.map((row) => ({ key: row.id ?? `n${draftKey++}`, row })));
 
   return (
-    <section aria-labelledby="pf-testimonials" className="panel flex flex-col gap-4 p-5" data-testid="pf-testimonials">
+    <section aria-labelledby="pf-testimonials" id="sec-testimonials" className="panel flex scroll-mt-24 flex-col gap-4 p-5" data-testid="pf-testimonials">
       <PanelHeader id="pf-testimonials" icon={MessageSquareQuote} title={copy.title} as="h3" />
       <p className="text-13 text-muted">{copy.help}</p>
       {rows.map(({ key, row }, index) => (

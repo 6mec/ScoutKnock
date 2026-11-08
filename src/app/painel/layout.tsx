@@ -2,11 +2,17 @@ import { Suspense } from "react";
 import { AccountMenu, AccountMenuFallback } from "@/components/app/account-menu";
 import { AppNav } from "@/components/app/app-nav";
 import { AppTopBar } from "@/components/app/app-top-bar";
+import { FeaturesProvider } from "@/components/app/features";
 import { Toaster } from "@/components/ui/toaster";
 import { requireUser } from "@/lib/auth/current-user";
+import { signupsOpen } from "@/lib/personal-mode";
 
 export default function DashboardLayout({ children }: LayoutProps<"/painel">) {
+  // O que está em pausa fica no código, mas fora da interface.
+  const features = { plans: signupsOpen(), googleReviews: Boolean(process.env.GOOGLE_PLACES_API_KEY) };
+
   return (
+    <FeaturesProvider value={features}>
     <div className="flex min-h-dvh flex-1">
       <AppNav
         account={
@@ -21,6 +27,7 @@ export default function DashboardLayout({ children }: LayoutProps<"/painel">) {
       </div>
       <Toaster />
     </div>
+    </FeaturesProvider>
   );
 }
 

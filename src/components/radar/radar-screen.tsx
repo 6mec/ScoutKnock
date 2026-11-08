@@ -32,6 +32,7 @@ import {
   type SearchStep,
 } from "@/lib/radar/search-events";
 import { SERVICE_IDS, type SearchQuery } from "@/lib/radar/types";
+import { useFeatures } from "@/components/app/features";
 import { RadarConsole } from "./radar-console";
 import { RadarForm } from "./radar-form";
 import { ManualSearchActions } from "./manual-search";
@@ -255,6 +256,7 @@ function RadarSearch({
   senderName: string | null;
 }) {
   const router = useRouter();
+  const { plans } = useFeatures();
   const [state, dispatch] = useReducer(reducer, initialState);
   // Os resultados esperam que o último pino caia no mapa da busca.
   const [mapDone, setMapDone] = useState(false);
@@ -510,9 +512,11 @@ function RadarSearch({
             role="alert"
             className="flex flex-col items-start gap-4 panel p-6"
           >
-            <p className="type-body">{copy.errors[state.error]}</p>
+            <p className="type-body">
+              {state.error === "limit" && !plans ? copy.errors.limitPersonal : copy.errors[state.error]}
+            </p>
             <div className="flex flex-wrap gap-3">
-              {state.error === "limit" && (
+              {state.error === "limit" && plans && (
                 <Button asChild>
                   <Link href="/painel/planos">{copy.seePlans}</Link>
                 </Button>

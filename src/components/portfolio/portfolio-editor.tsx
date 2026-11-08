@@ -72,6 +72,16 @@ function Toggle({ id, title, help, checked, onChange }: { id: string; title: str
   );
 }
 
+const INDEX = [
+  ["sec-basics", copy.sections.basics],
+  ["sec-contact", copy.sections.contact],
+  ["sec-services", copy.sections.services],
+  ["sec-works", copy.worksTitle],
+  ["sec-process", copy.processTitle],
+  ["sec-publishing", copy.sections.publishing],
+  ["sec-testimonials", copy.testimonials.title],
+] as const;
+
 export function PortfolioEditor({
   initial,
   savedSlug,
@@ -94,6 +104,9 @@ export function PortfolioEditor({
 }) {
   const [form, setForm] = useState(initial);
   const [saved, setSaved] = useState({ slug: savedSlug, published: savedPublished });
+  // O que está gravado, para a barra de guardar dizer se há alterações por guardar.
+  const [savedForm, setSavedForm] = useState(initial);
+  const dirty = JSON.stringify(form) !== JSON.stringify(savedForm);
   const [error, setError] = useState<PortfolioError | "taken" | "generic" | null>(null);
   const [confirmSlug, setConfirmSlug] = useState(false);
   const [availability, setAvailability] = useState<{ slug: string; available: boolean | null } | null>(null);
@@ -147,6 +160,7 @@ export function PortfolioEditor({
       const result = await savePortfolio({ ...form, slug: slugState.slug });
       if (result.ok) {
         setSaved({ slug: slugState.slug, published: form.published });
+        setSavedForm({ ...form, slug: slugState.slug });
         setForm((current) => ({ ...current, slug: slugState.slug }));
         setConfirmSlug(false);
         toast.success(copy.saved);
@@ -211,7 +225,23 @@ export function PortfolioEditor({
             )}
           </div>
 
-          <section aria-labelledby="pf-basics" className="panel flex flex-col gap-4 p-5">
+          {/* Índice: a página é longa, salta-se direto à secção. */}
+          <nav aria-label={copy.sections.index} data-testid="pf-index">
+            <ul className="flex flex-wrap gap-2">
+              {INDEX.map(([id, label]) => (
+                <li key={id}>
+                  <a
+                    href={`#${id}`}
+                    className="focus-ring inline-flex min-h-9 items-center rounded-pill border border-border px-3 text-13 text-muted transition-colors hovered:text-foreground"
+                  >
+                    {label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <section aria-labelledby="pf-basics" id="sec-basics" className="panel flex scroll-mt-24 flex-col gap-4 p-5">
             <PanelHeader id="pf-basics" icon={UserRound} title={copy.sections.basics} as="h3" />
             <Field label={copy.displayName} error={error === "displayName" ? copy.errors.displayName : undefined}>
               <Input value={form.displayName} maxLength={LIMITS.displayName} onChange={(event) => update({ displayName: event.target.value })} />
@@ -260,7 +290,7 @@ export function PortfolioEditor({
             </Field>
           </section>
 
-          <section aria-labelledby="pf-contact" className="panel flex flex-col gap-4 p-5">
+          <section aria-labelledby="pf-contact" id="sec-contact" className="panel flex scroll-mt-24 flex-col gap-4 p-5">
             <PanelHeader id="pf-contact" icon={Phone} title={copy.sections.contact} as="h3" />
             <Field label={copy.whatsapp} help={copy.whatsappHelp} error={error === "whatsapp" ? copy.errors.whatsapp : undefined}>
               <Input type="tel" value={form.whatsapp} maxLength={LIMITS.whatsapp} onChange={(event) => update({ whatsapp: event.target.value })} />
@@ -270,7 +300,7 @@ export function PortfolioEditor({
             </Field>
           </section>
 
-          <section aria-labelledby="pf-services" className="panel flex flex-col gap-4 p-5">
+          <section aria-labelledby="pf-services" id="sec-services" className="panel flex scroll-mt-24 flex-col gap-4 p-5">
             <PanelHeader id="pf-services" icon={Wrench} title={copy.sections.services} as="h3" />
             {form.services.map((service, index) => (
               <div key={index} className="panel-row flex flex-col gap-3 p-3">
@@ -314,7 +344,7 @@ export function PortfolioEditor({
             </Button>
           </section>
 
-          <section aria-labelledby="pf-works" className="panel flex flex-col gap-3 p-5" data-testid="pf-works">
+          <section aria-labelledby="pf-works" id="sec-works" className="panel flex scroll-mt-24 flex-col gap-3 p-5" data-testid="pf-works">
             <PanelHeader id="pf-works" icon={BriefcaseBusiness} title={copy.worksTitle} as="h3" />
             <p className="text-14">{copy.worksCount(worksCount)}</p>
             <p className="text-13 text-muted">{copy.worksHelp}</p>
@@ -323,7 +353,7 @@ export function PortfolioEditor({
             </Button>
           </section>
 
-          <section aria-labelledby="pf-process" className="panel flex flex-col gap-4 p-5">
+          <section aria-label={copy.sections.processAndValues} id="sec-process" className="panel flex scroll-mt-24 flex-col gap-4 p-5">
             <PanelHeader id="pf-process" icon={Footprints} title={copy.processTitle} as="h3" />
             <p className="text-13 text-muted">{copy.processHelp}</p>
             {form.processSteps.map((step, index) => (
@@ -363,10 +393,10 @@ export function PortfolioEditor({
             </div>
           </section>
 
-          <div className="panel flex flex-col gap-5 p-5">
+          <section aria-label={copy.sections.publishing} id="sec-publishing" className="panel flex scroll-mt-24 flex-col gap-5 p-5">
             <Toggle id="pf-published" title={copy.publish} help={copy.publishHelp} checked={form.published} onChange={(published) => update({ published })} />
             <Toggle id="pf-google" title={copy.google} help={copy.googleHelp} checked={form.indexable} onChange={(indexable) => update({ indexable })} />
-          </div>
+          </section>
 
           <div aria-live="polite" className="flex flex-col gap-2">
             {confirmSlug && saved.slug && (
@@ -382,9 +412,26 @@ export function PortfolioEditor({
               </Callout>
             )}
           </div>
-          <Button type="submit" size="lg" loading={saving} loadingText={ptPT.contacts.saving}>
-            {copy.save}
-          </Button>
+          {/* Barra de guardar fixa em baixo enquanto se edita (no telemóvel, por cima do menu). */}
+          <div
+            data-testid="pf-save-bar"
+            className="sticky bottom-[calc(72px+env(safe-area-inset-bottom)+var(--badge-space))] z-20 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface p-3 shadow-float md:bottom-[calc(16px+var(--badge-space))]"
+          >
+            <Button type="submit" loading={saving} loadingText={ptPT.contacts.saving}>
+              {copy.save}
+            </Button>
+            {saved.slug && saved.published && (
+              <Button asChild variant="ghost" size="sm">
+                <a href={saved.slug === homeSlug ? "/" : `/p/${saved.slug}`} target="_blank" rel="noreferrer noopener">
+                  <ExternalLink aria-hidden="true" size={14} strokeWidth={1.75} />
+                  {copy.open}
+                </a>
+              </Button>
+            )}
+            <span role="status" className={dirty ? "text-13 font-medium text-amber" : "text-13 text-muted"}>
+              {dirty ? copy.unsaved : copy.allSaved}
+            </span>
+          </div>
           <p className="text-13 text-muted">{copy.templateTip}</p>
         </form>
 

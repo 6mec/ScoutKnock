@@ -42,6 +42,7 @@ import {
 } from "@/lib/radar/results";
 import { MAX_FILTER_LENGTH } from "@/lib/radar/search-events";
 import { SERVICE_IDS, type SearchQuery } from "@/lib/radar/types";
+import { useFeatures } from "@/components/app/features";
 import { cn } from "@/lib/utils";
 import type { SearchUsage } from "./radar-screen";
 
@@ -133,6 +134,7 @@ export function RadarForm({
   preFilters: PreFilter[];
   onPreFiltersChange: (filters: PreFilter[]) => void;
 }) {
+  const { plans } = useFeatures();
   const nicheRef = useRef<HTMLInputElement>(null);
   const [category, setCategory] = useState<string | null>(null);
   const recentRaw = useSyncExternalStore(subscribeRecent, readRecent, () => null);
@@ -476,7 +478,7 @@ export function RadarForm({
             className={cn("type-number text-13", reached ? "text-amber" : "text-muted")}
           >
             {usageText}{" "}
-            {!isAdmin && (
+            {!isAdmin && plans && (
               <Link href="/painel/planos" className="focus-ring rounded-sm text-accent underline">
                 {copy.seePlans}
               </Link>

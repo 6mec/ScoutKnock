@@ -49,7 +49,7 @@ export function WhatsappTemplateButton({
   return (
     <>
       <Button
-        variant="secondary"
+        variant="ghost"
         onClick={() => {
           setDraft(templateText(template));
           setOpen(true);

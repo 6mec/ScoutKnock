@@ -33,6 +33,10 @@ import { UpcomingList } from "@/components/dashboard/upcoming-list";
 import { PlanSubmitButton } from "@/components/plans/plan-submit-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DismissButton, DismissibleArea } from "@/components/dashboard/dismissible";
+import { DashboardToday } from "@/components/dashboard/today";
+import { portfolioUrl } from "@/lib/portfolio/rules";
+import { homePortfolioSlug, siteUrl } from "@/lib/site";
 import { PanelHeader } from "@/components/ui/panel-header";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -98,6 +102,8 @@ const shortDate = new Intl.DateTimeFormat("pt-PT", {
 });
 const formatDate = (date: string) => dateFormat.format(new Date(date));
 
+const ONBOARDING_HIDDEN_KEY = "scoutknock-onboarding-hidden";
+
 export const metadata: Metadata = {
   title: ptPT.app.nav.home,
   robots: { index: false },
@@ -108,12 +114,14 @@ function Block({
   title,
   icon,
   className,
+  action,
   children,
 }: {
   id: string;
   title: string;
   icon: LucideIcon;
   className?: string;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
@@ -122,7 +130,7 @@ function Block({
       data-testid={`block-${id}`}
       className={cn("panel flex min-w-0 flex-col gap-4 p-5", className)}
     >
-      <PanelHeader id={id} icon={icon} title={title} as="h3" />
+      <PanelHeader id={id} icon={icon} title={title} as="h3" action={action} />
       {children}
     </section>
   );
@@ -429,27 +437,27 @@ function KpiRow({ metrics }: { metrics: Metrics }) {
   );
 }
 
-function ChartBlock({ data }: { data: { month: string; total: number }[] }) {
+function ChartBlock({ data, className }: { data: { month: string; total: number }[]; className?: string }) {
   const empty = data.every((item) => item.total === 0);
   return (
-    <Block id="recebido" title={copy.chart.title} icon={ChartColumn}>
+    <Block id="recebido" title={copy.chart.title} icon={ChartColumn} className={className}>
       <p className="-mt-2 text-13 text-muted">{copy.chart.note}</p>
       {empty ? <EmptyLine text={copy.chart.empty} /> : <MonthChart data={data} />}
     </Block>
   );
 }
 
-function TasksBlock({ tasks, today }: { tasks: UpcomingTask[]; today: string }) {
+function TasksBlock({ tasks, today, className }: { tasks: UpcomingTask[]; today: string; className?: string }) {
   return (
-    <Block id="tarefas" title={copy.tasks.title} icon={CalendarClock}>
+    <Block id="tarefas" title={copy.tasks.title} icon={CalendarClock} className={className}>
       <UpcomingList tasks={tasks} today={today} />
     </Block>
   );
 }
 
-function FunnelBlock({ data }: { data: ReturnType<typeof funnel> }) {
+function FunnelBlock({ data, className }: { data: ReturnType<typeof funnel>; className?: string }) {
   return (
-    <Block id="funil" title={copy.funnel.title} icon={Filter}>
+    <Block id="funil" title={copy.funnel.title} icon={Filter} className={className}>
       <p className="-mt-2 text-13 text-muted">{copy.funnel.note}</p>
       <Funnel data={data} />
     </Block>
@@ -461,8 +469,16 @@ function OnboardingBlock({ progress }: { progress: ReturnType<typeof onboardingP
   if (progress.complete) return null;
   const steps = copy.onboarding.steps;
 
+  // Escondido com "Esconder", fica escondido só neste browser.
   return (
-    <Block id="primeiros-passos" title={copy.onboarding.title} icon={ListChecks} className="lg:col-span-2">
+    <DismissibleArea storageKey={ONBOARDING_HIDDEN_KEY} className="flex lg:col-span-2">
+    <Block
+      id="primeiros-passos"
+      title={copy.onboarding.title}
+      icon={ListChecks}
+      className="flex-1"
+      action={<DismissButton storageKey={ONBOARDING_HIDDEN_KEY} label={copy.onboarding.hide} />}
+    >
       <div className="flex flex-col gap-2">
         <p className="type-number text-14 text-muted">
           {copy.onboarding.progress(progress.count, progress.total)}
@@ -500,6 +516,7 @@ function OnboardingBlock({ progress }: { progress: ReturnType<typeof onboardingP
         })}
       </ul>
     </Block>
+    </DismissibleArea>
   );
 }
 
@@ -756,7 +773,7 @@ async function Content() {
       supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle(),
       supabase
         .from("contacts")
-        .select("id, label, status, deal_value, do_not_contact, last_contacted_at, next_action, next_action_at"),
+        .select("*"),
       supabase
         .from("contact_events")
         .select("contact_id, kind, status, created_at")
@@ -764,7 +781,7 @@ async function Content() {
         .gte("created_at", since),
       supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
       supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
-      supabase.from("portfolios").select("published").eq("user_id", user.id).maybeSingle(),
+      supabase.from("portfolios").select("slug, published").eq("user_id", user.id).maybeSingle(),
       isCurrentUserAdmin(supabase),
     ]);
   // Lidos à parte: sem estas tabelas, o painel continua (o bloco fica vazio).
@@ -810,6 +827,10 @@ async function Content() {
     receive: toReceive(projects, payments),
   };
   // Se estas leituras falharem, o bloco mostra zeros em vez de partir o painel.
+  // O {portfolio} da mensagem do WhatsApp só tem link com o portfólio publicado.
+  const portfolioLink = portfolioRow.data?.published
+    ? portfolioUrl(portfolioRow.data.slug as string, siteUrl(), homePortfolioSlug())
+    : null;
   const deals: Deals = {
     contacts,
     events: (todayEvents.data ?? []) as ContactEvent[],
@@ -819,17 +840,32 @@ async function Content() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <RefreshOnShow />
+      {/* O dia primeiro: a meta, a próxima da fila e as próximas tarefas (retornos e entregas). */}
+      <DashboardToday
+        contacts={contacts}
+        events={deals.events}
+        dailyGoal={deals.goal}
+        whatsappTemplate={(templateRow.data?.whatsapp_template as string | null | undefined) ?? null}
+        portfolioUrl={portfolioLink}
+      >
+        <TasksBlock tasks={upcomingTasks(contacts, projects, today)} today={today} className="flex-1" />
+      </DashboardToday>
       <KpiRow metrics={metrics} />
-      <ChartBlock data={receivedByMonth(payments, today)} />
-      <TasksBlock tasks={upcomingTasks(contacts, projects, today)} today={today} />
-      <NextStepBlock
-        data={dashboard}
-        now={now}
-        billingOn={billingOn}
-        selling={selling}
-        lateProjects={summary.late}
-      />
-      <FunnelBlock data={funnel((funnelRows.data ?? []) as { contact_id: string; status: string; created_at: string }[], today)} />
+      <ChartBlock data={receivedByMonth(payments, today)} className={selling ? undefined : "lg:col-span-2"} />
+      {/* Modo pessoal: "Próximo passo" repetia a fila dos Contactos e as tarefas. */}
+      {selling && (
+        <NextStepBlock
+          data={dashboard}
+          now={now}
+          billingOn={billingOn}
+          selling={selling}
+          lateProjects={summary.late}
+        />
+      )}
+      {/* Modo pessoal: o funil passou para os Contactos ("Números dos contactos"). */}
+      {selling && (
+        <FunnelBlock data={funnel((funnelRows.data ?? []) as { contact_id: string; status: string; created_at: string }[], today)} />
+      )}
       <OnboardingBlock
         progress={onboardingProgress({
           contacts,
@@ -840,9 +876,10 @@ async function Content() {
         })}
       />
       {selling && <UsageBlock data={dashboard} isAdmin={isAdmin} />}
-      <LeadsBlock data={dashboard} />
-      <DealsBlock deals={deals} now={now} />
-      <SearchesBlock data={dashboard} isSample={isSample} className={selling ? undefined : "lg:col-span-2"} />
+      {/* Modo pessoal: estes repetiam o funil, os números do mês e as buscas recentes do Radar. */}
+      {selling && <LeadsBlock data={dashboard} />}
+      {selling && <DealsBlock deals={deals} now={now} />}
+      {selling && <SearchesBlock data={dashboard} isSample={isSample} />}
       {selling && <DemosBlock data={dashboard} now={now} />}
       {selling && (
         <SubscriptionBlock

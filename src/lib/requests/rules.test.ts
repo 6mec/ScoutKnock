@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { parseRequestInput, safeResultUrl, sortRequests, type WorkRequest } from "./rules";
+import { parseRequestInput, requestKindOf, safeResultUrl, sortRequests, type WorkRequest } from "./rules";
 
 const id = "3f2a6c1e-8b4d-4c2a-9e1f-0a1b2c3d4e5f";
 
 describe("pedidos de trabalho", () => {
+  it("o tipo do projeto dá o tipo do pedido; Outro não tem pedido", () => {
+    expect(requestKindOf("site")).toBe("site");
+    expect(requestKindOf("site_booking")).toBe("site_booking");
+    expect(requestKindOf("app")).toBe("app");
+    expect(requestKindOf("other")).toBeNull();
+    expect(requestKindOf("")).toBeNull();
+  });
+
   it("aceita um pedido completo e limpa os espaços", () => {
     expect(parseRequestInput({ kind: "app", brief: "  Agenda  ", companyName: " Barbearia ", contactId: id, demoId: "" })).toEqual({
       kind: "app",

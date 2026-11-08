@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { CreateDemoButton } from "@/components/demos/create-demo-button";
 import { ProjectDialog } from "@/components/projects/project-dialog";
-import { RequestWorkButton } from "@/components/requests/request-work-button";
 import { GenerateMessageButton } from "@/components/messages/generate-message-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +62,7 @@ import {
 } from "./manual-company-fields";
 import { StatusMenu } from "./status-menu";
 import { WhatsappCallButton } from "./whatsapp-call-button";
+import { WhatsappTemplateButton } from "./whatsapp-template-button";
 
 const { contacts: copy } = ptPT;
 const osmDayFormat = new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeZone: "UTC" });
@@ -396,9 +396,12 @@ export function ContactDialog({
   onManualSaved,
   onOsmSaved,
   onRemoved,
+  onTemplateSaved,
 }: {
   contact: Contact;
   whatsappTemplate: string | null;
+  // Com isto, o modelo da mensagem do WhatsApp muda-se no grupo "Mensagem".
+  onTemplateSaved?: (template: string | null) => void;
   onClose: () => void;
   onStatusChange: (id: string, status: ContactStatus) => void;
   onSaved: (id: string, details: ContactDetails) => void;
@@ -536,17 +539,48 @@ export function ContactDialog({
           <StatusMenu contact={contact} onChange={onStatusChange} />
           {contact.do_not_contact && <Badge variant="outline">{copy.crm.doNotContactBadge}</Badge>}
         </div>
-        {/* Ações rápidas do CRM: chamar, registar a resposta e preparar a proposta. */}
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Nas do Google, espera pelos dados para não mostrar "sem telefone" antes do tempo. */}
-          {(isManual || company !== null || (isOsm && osmPhone)) && (
-            <WhatsappCallButton
-              contact={contact}
-              phone={(isManual ? savedManual.phone : livePhone) ?? contact.confirmed_contact}
-              template={whatsappTemplate}
-              onStatusChange={onStatusChange}
-            />
+        {/* Tudo o que é mensagem num só sítio: o WhatsApp primeiro, depois as outras. */}
+        <section
+          aria-labelledby={`mensagem-${contact.id}`}
+          data-testid="contact-message"
+          className="flex flex-col gap-2 rounded-lg border border-border-subtle p-3"
+        >
+          <h3 id={`mensagem-${contact.id}`} className="text-14 font-semibold">
+            {copy.crm.messageGroup}
+          </h3>
+          {blocked ? (
+            <p role="status" className="text-14 text-muted">
+              {copy.crm.doNotContactNote}
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Nas do Google, espera pelos dados para não mostrar "sem telefone" antes do tempo. */}
+              {(isManual || company !== null || (isOsm && osmPhone)) && (
+                <WhatsappCallButton
+                  contact={contact}
+                  phone={(isManual ? savedManual.phone : livePhone) ?? contact.confirmed_contact}
+                  template={whatsappTemplate}
+                  onStatusChange={onStatusChange}
+                />
+              )}
+              {(isManual || found) && (
+                <GenerateMessageButton
+                  source={{ kind: "contact", id: contact.id }}
+                  companyName={isManual ? savedManual.name : (found?.name ?? contact.label)}
+                  phone={isManual ? savedManual.phone : livePhone}
+                  variant="secondary"
+                  label={copy.crm.otherMessage}
+                />
+              )}
+              <FollowUpButton contact={contact} phone={isManual ? savedManual.phone : livePhone} />
+              {onTemplateSaved && (
+                <WhatsappTemplateButton template={whatsappTemplate} onSaved={onTemplateSaved} />
+              )}
+            </div>
           )}
+        </section>
+        {/* Seguimento: registar a resposta, preparar a proposta e passar a projeto. */}
+        <div className="flex flex-wrap items-center gap-2">
           {(contact.status === "to_contact" || contact.status === "contacted") && (
             <Button
               variant="secondary"
@@ -564,7 +598,6 @@ export function ContactDialog({
               {copy.crm.proposal}
             </Link>
           </Button>
-          <RequestWorkButton companyName={contact.label} contactId={contact.id} />
           <ProjectDialog
             draft={{ companyName: contact.label, contactId: contact.id }}
             trigger={
@@ -588,14 +621,6 @@ export function ContactDialog({
               onSaved={(saved) => onManualSaved(contact.id, saved)}
             />
             <div className="flex flex-wrap gap-3">
-              {!blocked && (
-                <GenerateMessageButton
-                  source={{ kind: "contact", id: contact.id }}
-                  companyName={savedManual.name}
-                  phone={savedManual.phone}
-                  variant="secondary"
-                />
-              )}
               <CreateDemoButton
                 company={companyFromManual(contact.company_id, savedManual)}
                 isSample={false}
@@ -618,25 +643,7 @@ export function ContactDialog({
                 }}
               />
             )}
-            {found && !blocked && (
-              <GenerateMessageButton
-                source={{ kind: "contact", id: contact.id }}
-                companyName={found.name}
-                phone={livePhone}
-                variant="secondary"
-              />
-            )}
           </>
-        )}
-        {blocked ? (
-          <p role="status" className="rounded-md border border-border p-3 text-14 text-muted">
-            {copy.crm.doNotContactNote}
-          </p>
-        ) : (
-          <FollowUpButton
-            contact={contact}
-            phone={isManual ? savedManual.phone : livePhone}
-          />
         )}
         </div>
         <div className="flex min-w-0 flex-col gap-4 lg:rounded-lg lg:border lg:border-border-subtle lg:bg-surface-raised/30 lg:p-4">

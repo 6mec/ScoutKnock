@@ -12,9 +12,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Field, Input, Select, Textarea } from "@/components/ui/field";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
-import { createProject, deleteProject, updateProject } from "@/lib/projects/actions";
+import { createProject, createProjectWithRequest, deleteProject, updateProject } from "@/lib/projects/actions";
+import { MAX_BRIEF, requestKindOf } from "@/lib/requests/rules";
 import type { ProjectPayment } from "@/lib/projects/payments";
 import { ProjectPayments } from "./project-payments";
 import { ProjectPortfolio } from "./project-portfolio";
@@ -126,8 +128,13 @@ export function ProjectDialog({
   const [form, setForm] = useState<Form>(() => formFrom(project, draft));
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
+  // Pedir também a demo ao /pedidos no mesmo passo (só ao criar, e se ainda não vem de um pedido).
+  const [withRequest, setWithRequest] = useState(false);
+  const [brief, setBrief] = useState("");
   const [pending, startTransition] = useTransition();
   const editing = Boolean(project);
+  const canRequest = !editing && !draft.workRequestId;
+  const requestKind = requestKindOf(form.kind);
   const pickContact = !editing && contacts && !draft.contactId;
 
   function openChange(next: boolean) {
@@ -135,6 +142,8 @@ export function ProjectDialog({
       setForm(formFrom(project, draft));
       setError(null);
       setConfirming(false);
+      setWithRequest(false);
+      setBrief("");
     }
     setOpen(next);
   }
@@ -156,15 +165,15 @@ export function ProjectDialog({
     event.preventDefault();
     setError(null);
     startTransition(async () => {
+      const asked = canRequest && withRequest;
+      const input = { ...form, contactId: form.contactId || null, workRequestId: draft.workRequestId ?? null };
       const result = project
         ? await updateProject(project.id, form)
-        : await createProject({
-            ...form,
-            contactId: form.contactId || null,
-            workRequestId: draft.workRequestId ?? null,
-          });
+        : asked
+          ? await createProjectWithRequest(input, brief)
+          : await createProject(input);
       if (result.ok) {
-        toast.success(project ? copy.saved : copy.created);
+        toast.success(project ? copy.saved : asked ? copy.createdWithRequest : copy.created);
         setOpen(false);
         router.refresh();
       } else {
@@ -254,6 +263,37 @@ export function ProjectDialog({
               </Select>
             </Field>
           </div>
+
+          {canRequest && (
+            <div className="flex flex-col gap-3 rounded-md border border-border p-3" data-testid="project-with-request">
+              <div className="flex items-start justify-between gap-4">
+                <label htmlFor="project-with-request" className="flex flex-col gap-0.5">
+                  <span className="text-14 font-medium">{copy.request.label}</span>
+                  <span className="text-13 text-muted">
+                    {requestKind ? copy.request.help : copy.request.notForOther}
+                  </span>
+                </label>
+                <Switch
+                  id="project-with-request"
+                  checked={withRequest && Boolean(requestKind)}
+                  disabled={!requestKind}
+                  onCheckedChange={setWithRequest}
+                />
+              </div>
+              {withRequest && requestKind && (
+                <Field label={ptPT.requests.brief} help={ptPT.requests.briefHelp}>
+                  <Textarea
+                    data-testid="project-request-brief"
+                    value={brief}
+                    maxLength={MAX_BRIEF}
+                    rows={4}
+                    placeholder={ptPT.requests.briefPlaceholder[requestKind]}
+                    onChange={(event) => setBrief(event.target.value)}
+                  />
+                </Field>
+              )}
+            </div>
+          )}
 
           <fieldset className="flex flex-col gap-3">
             <legend className="mb-1 text-15 font-semibold">{copy.fields.values}</legend>
