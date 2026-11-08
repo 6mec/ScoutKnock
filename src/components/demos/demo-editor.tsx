@@ -12,7 +12,7 @@ import { PanelHeader } from "@/components/ui/panel-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
-import { generateDemoCopy, saveDemo, setDemoSent } from "@/lib/demos/actions";
+import { generateDemoCopy, saveDemo, setDemoNicheExample, setDemoSent } from "@/lib/demos/actions";
 import { MAX_BOOKING_HOURS } from "@/lib/demos/booking";
 import { FONT_FAMILIES, FONT_LABELS } from "@/lib/demos/fonts";
 import { IDENTITIES, IDENTITY_KEYS, identityOf, type IdentityKey } from "@/lib/demos/identities";
@@ -143,6 +143,8 @@ export function DemoEditor({
   const [saving, startSaving] = useTransition();
   const [sending, startSending] = useTransition();
   const [writing, startWriting] = useTransition();
+  const [nicheExample, setNicheExample] = useState(Boolean(demo.niche_example));
+  const [markingExample, startMarkingExample] = useTransition();
   const [view, setView] = useState<"desktop" | "mobile">("desktop");
   const [aiLeft, setAiLeft] = useState(3 - (demo.ai_generations ?? 0));
   const startIdentity = identityOf(demo.niche_style, demo.niche);
@@ -552,6 +554,28 @@ export function DemoEditor({
         </form>
         {/* Fora do formulário: o envio do pedido não pode guardar a demo. */}
         <div className="flex flex-col gap-2 border-t border-border p-4 lg:px-8">
+          <div className="flex items-start justify-between gap-4 rounded-md border border-border p-3" data-testid="demo-niche-example">
+            <label htmlFor="demo-niche-example" className="flex flex-col gap-1">
+              <span className="text-14 font-semibold">{editor.nicheExample(demo.niche)}</span>
+              <span className="text-13 text-muted">{editor.nicheExampleHelp}</span>
+            </label>
+            <Switch
+              id="demo-niche-example"
+              checked={nicheExample}
+              disabled={markingExample}
+              onCheckedChange={(value) =>
+                startMarkingExample(async () => {
+                  const { ok } = await setDemoNicheExample(demo.id, value);
+                  if (ok) {
+                    setNicheExample(value);
+                    toast.success(value ? editor.nicheExampleOn : editor.nicheExampleOff);
+                  } else {
+                    toast.error(ptPT.demos.errors.generic);
+                  }
+                })
+              }
+            />
+          </div>
           <RequestWorkButton
             companyName={content.companyName}
             demoId={demo.id}

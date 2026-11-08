@@ -3,11 +3,12 @@
 import {
   ChartColumn,
   ChevronDown,
-  Filter,
+  Play,
   ListOrdered,
   Target,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/field";
@@ -27,8 +28,6 @@ import {
 import type { Contact, ContactStatus } from "@/lib/contacts/rules";
 import { whatsappNumber } from "@/lib/messages/rules";
 import { cn } from "@/lib/utils";
-import { Funnel } from "@/components/dashboard/funnel";
-import type { FunnelStage } from "@/lib/dashboard/metrics";
 import { formatDay } from "./contacts-board";
 import { PlannerPanel } from "./planner-panel";
 import { WhatsappCallButton } from "./whatsapp-call-button";
@@ -226,8 +225,14 @@ function QueuePanel({
             {next.label}
           </p>
           <p className="text-13 text-muted">{copy.crm.queueHint}</p>
+          <Button asChild size="sm" className="self-start" data-testid="start-session">
+            <Link href="/painel/contactos/sessao">
+              <Play aria-hidden="true" size={14} />
+              {copy.session.start}
+            </Link>
+          </Button>
           <div className="mt-auto flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => onOpen(next.id)}>
+            <Button size="sm" variant="secondary" onClick={() => onOpen(next.id)}>
               {copy.crm.queueOpen}
             </Button>
             {whatsappNumber(next.manual_phone ?? next.confirmed_contact) ? (
@@ -305,13 +310,11 @@ export function ContactNumbers({
   events,
   dailyGoal,
   now,
-  funnel,
 }: {
   contacts: Contact[];
   events: ContactEvent[];
   dailyGoal: number;
   now: number;
-  funnel: { stage: FunnelStage; count: number }[];
 }) {
   const [open, setOpen] = useState(false);
 
@@ -337,13 +340,7 @@ export function ContactNumbers({
       </button>
       {open && (
         <div id="numeros-contactos-conteudo" className="flex flex-col gap-3">
-          <div className="grid gap-3 md:grid-cols-2">
-            <PacePanel pace={dailyPace(events, now)} goal={dailyGoal} />
-            <Panel id="funil" title={ptPT.dashboard.funnel.title} icon={Filter}>
-              <p className="-mt-1 text-13 text-muted">{ptPT.dashboard.funnel.note}</p>
-              <Funnel data={funnel} />
-            </Panel>
-          </div>
+          <PacePanel pace={dailyPace(events, now)} goal={dailyGoal} />
           <PlannerPanel contacts={contacts} />
         </div>
       )}

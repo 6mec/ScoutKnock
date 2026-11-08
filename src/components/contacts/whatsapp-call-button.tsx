@@ -8,11 +8,14 @@ import { ptPT } from "@/i18n/pt-PT";
 import { fillTemplate } from "@/lib/contacts/crm";
 import type { Contact, ContactStatus } from "@/lib/contacts/rules";
 import { whatsappNumber, whatsappUrl } from "@/lib/messages/rules";
+import { EMPTY_DEMO_LINKS, demoLinkFor, missingVariables, type DemoLinks } from "@/lib/demos/links";
 
 const { contacts: copy } = ptPT;
 
-// Link do portfólio publicado, para o {portfolio} da mensagem.
+// Link do portfólio publicado, para o {link_portfolio} da mensagem.
 export const PortfolioLinkContext = createContext<string | null>(null);
+// Demos de cada empresa e "exemplos do nicho", para o {link_demo}.
+export const DemoLinksContext = createContext<DemoLinks>(EMPTY_DEMO_LINKS);
 
 export function templateText(template: string | null) {
   return template ?? copy.crm.templateDefault;
@@ -34,28 +37,37 @@ export function WhatsappCallButton({
   size?: ButtonSize;
 }) {
   const portfolio = use(PortfolioLinkContext);
+  const demo = demoLinkFor(use(DemoLinksContext), contact);
   if (contact.do_not_contact) return null;
   if (!whatsappNumber(phone)) {
     return <p className="text-13 text-muted">{copy.crm.whatsappNoPhone}</p>;
   }
 
+  const missing = missingVariables(templateText(template), { demo, portfolio });
   return (
-    <Button asChild size={size}>
-      <a
-        href={whatsappUrl(fillTemplate(templateText(template), contact.label, portfolio), phone)}
-        target="_blank"
-        rel="noreferrer noopener"
-        aria-label={copy.crm.whatsappLabel(contact.label)}
-        onClick={() => {
-          if (contact.status === "to_contact") {
-            onStatusChange(contact.id, "contacted");
-            toast.success(copy.crm.whatsappMarked);
-          }
-        }}
-      >
-        <MessageCircle aria-hidden="true" size={16} strokeWidth={1.9} />
-        {copy.crm.whatsapp}
-      </a>
-    </Button>
+    <span className="inline-flex flex-col gap-1">
+      <Button asChild size={size}>
+        <a
+          href={whatsappUrl(fillTemplate(templateText(template), contact.label, portfolio, demo), phone)}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label={copy.crm.whatsappLabel(contact.label)}
+          onClick={() => {
+            if (contact.status === "to_contact") {
+              onStatusChange(contact.id, "contacted");
+              toast.success(copy.crm.whatsappMarked);
+            }
+          }}
+        >
+          <MessageCircle aria-hidden="true" size={16} strokeWidth={1.9} />
+          {copy.crm.whatsapp}
+        </a>
+      </Button>
+      {missing.length > 0 && (
+        <span className="text-12 text-amber" data-testid="whatsapp-missing">
+          {copy.crm.missingVariables(missing.map((item) => copy.crm.variableNames[item]).join(" e "))}
+        </span>
+      )}
+    </span>
   );
 }

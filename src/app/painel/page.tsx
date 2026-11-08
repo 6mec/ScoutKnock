@@ -14,6 +14,9 @@ import {
   Repeat,
   TrendingUp,
   Wallet,
+  FileText,
+  History,
+  MessagesSquare,
   Gauge,
   Globe,
   Search,
@@ -36,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { DismissButton, DismissibleArea } from "@/components/dashboard/dismissible";
 import { DashboardToday } from "@/components/dashboard/today";
 import { portfolioUrl } from "@/lib/portfolio/rules";
+import { loadDemoLinks } from "@/lib/demos/load-links";
 import { homePortfolioSlug, siteUrl } from "@/lib/site";
 import { PanelHeader } from "@/components/ui/panel-header";
 import { Progress } from "@/components/ui/progress";
@@ -77,6 +81,8 @@ import { reportError } from "@/lib/events/log";
 import { signupsOpen } from "@/lib/personal-mode";
 import { todayIn } from "@/lib/demos/booking";
 import { projectsSummary, type ClientProject, type ProjectSummaryRow } from "@/lib/projects/rules";
+import { billingTasks } from "@/lib/projects/cycle";
+import { proposalNumbers } from "@/lib/proposals/rules";
 import { PAYMENT_COLUMNS, receivedByMonth, toReceive, type ProjectPayment } from "@/lib/projects/payments";
 import {
   deliveredThisMonth,
@@ -84,6 +90,9 @@ import {
   FUNNEL_DAYS,
   salesOfMonth,
   upcomingTasks,
+  recentActivity,
+  responseRate,
+  type ActivityItem,
   type UpcomingTask,
 } from "@/lib/dashboard/metrics";
 import { enabledMarkets } from "@/lib/markets";
@@ -367,13 +376,16 @@ type Metrics = {
   delivered: ReturnType<typeof deliveredThisMonth>;
   summary: ReturnType<typeof projectsSummary>;
   receive: ReturnType<typeof toReceive>;
+  response: ReturnType<typeof responseRate>;
+  // null quando as propostas ainda não se podem ler (migração por aplicar).
+  proposals: ReturnType<typeof proposalNumbers> | null;
 };
 
 // Os números grandes do mês. Só valores escritos nos projetos; sem dados, cada cartão diz
 // o que falta em vez de mostrar um zero.
 function KpiRow({ metrics }: { metrics: Metrics }) {
   const k = copy.kpis;
-  const { sales, delivered, summary, receive } = metrics;
+  const { sales, delivered, summary, receive, response, proposals } = metrics;
   const euros = (value: number) => money.format(value);
 
   return (
@@ -381,7 +393,7 @@ function KpiRow({ metrics }: { metrics: Metrics }) {
       <h3 id="numeros" className="sr-only">
         {k.label}
       </h3>
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
           id="vendas"
           label={k.sales}
@@ -389,15 +401,6 @@ function KpiRow({ metrics }: { metrics: Metrics }) {
           value={sales.count > 0 ? euros(sales.amount) : null}
           detail={k.salesDetail(sales.count)}
           empty={k.salesEmpty}
-          href="/painel/projetos"
-        />
-        <StatCard
-          id="entregues"
-          label={k.delivered}
-          icon={PackageCheck}
-          value={delivered.count > 0 ? String(delivered.count) : null}
-          detail={k.deliveredDetail(euros(delivered.amount))}
-          empty={k.deliveredEmpty}
           href="/painel/projetos"
         />
         <StatCard
@@ -431,6 +434,33 @@ function KpiRow({ metrics }: { metrics: Metrics }) {
           }
           href="/painel/projetos"
         />
+        <StatCard
+          id="resposta"
+          label={k.response}
+          icon={MessagesSquare}
+          value={response.percent === null ? null : `${response.percent} %`}
+          detail={k.responseDetail(response.replied, response.contacted)}
+          empty={k.responseEmpty}
+          href="/painel/contactos"
+        />
+        <StatCard
+          id="propostas"
+          label={k.proposals}
+          icon={FileText}
+          value={proposals && proposals.openCount > 0 ? String(proposals.openCount) : null}
+          detail={proposals ? k.proposalsDetail(euros(proposals.openValue)) : ""}
+          empty={k.proposalsEmpty}
+          href="/painel/contactos?estado=proposal"
+        />
+        <StatCard
+          id="entregues"
+          label={k.delivered}
+          icon={PackageCheck}
+          value={delivered.count > 0 ? String(delivered.count) : null}
+          detail={k.deliveredDetail(euros(delivered.amount))}
+          empty={k.deliveredEmpty}
+          href="/painel/projetos"
+        />
       </div>
       <p className="text-13 text-muted">{k.note}</p>
     </section>
@@ -460,6 +490,54 @@ function FunnelBlock({ data, className }: { data: ReturnType<typeof funnel>; cla
     <Block id="funil" title={copy.funnel.title} icon={Filter} className={className}>
       <p className="-mt-2 text-13 text-muted">{copy.funnel.note}</p>
       <Funnel data={data} />
+    </Block>
+  );
+}
+
+const relative = new Intl.RelativeTimeFormat("pt-PT", { numeric: "auto" });
+function ago(at: string, now: number) {
+  const minutes = Math.round((new Date(at).getTime() - now) / 60_000);
+  if (Math.abs(minutes) < 60) return relative.format(minutes, "minute");
+  const hours = Math.round(minutes / 60);
+  if (Math.abs(hours) < 24) return relative.format(hours, "hour");
+  return relative.format(Math.round(hours / 24), "day");
+}
+
+function ActivityBlock({ items, now, className }: { items: ActivityItem[]; now: number; className?: string }) {
+  const a = copy.activity;
+  return (
+    <Block id="atividade" title={a.title} icon={History} className={className}>
+      {items.length === 0 ? (
+        <EmptyLine text={a.empty} />
+      ) : (
+        <ul className="flex flex-col divide-y divide-border-subtle" data-testid="activity">
+          {items.map((item) => (
+            <li key={`${item.kind}-${item.id}-${item.at}`}>
+              <Link
+                href={item.kind === "contact" ? `/painel/contactos?contacto=${item.id}` : `/painel/projetos?projeto=${item.id}`}
+                className="focus-ring flex min-h-11 items-start gap-3 rounded-sm py-2.5 transition-colors hovered:text-accent"
+              >
+                {item.kind === "contact" ? (
+                  <Users aria-hidden="true" size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-muted" />
+                ) : (
+                  <FolderKanban aria-hidden="true" size={16} strokeWidth={1.75} className="mt-0.5 shrink-0 text-muted" />
+                )}
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-14 font-medium">{item.title}</span>
+                  <span className="truncate text-13 text-muted">
+                    {item.kind === "contact"
+                      ? a.contact(ptPT.contacts.statuses[item.status as keyof typeof ptPT.contacts.statuses] ?? item.status)
+                      : item.created
+                        ? a.projectCreated
+                        : a.project(ptPT.projects.statuses[item.status as keyof typeof ptPT.projects.statuses] ?? item.status)}
+                  </span>
+                </span>
+                <span className="shrink-0 text-13 text-muted">{ago(item.at, now)}</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </Block>
   );
 }
@@ -785,10 +863,10 @@ async function Content() {
       isCurrentUserAdmin(supabase),
     ]);
   // Lidos à parte: sem estas tabelas, o painel continua (o bloco fica vazio).
-  const [projectRows, requestRows, paymentRows, funnelRows] = await Promise.all([
+  const [projectRows, requestRows, paymentRows, funnelRows, proposalRows, recentContactEvents, recentProjectEvents] = await Promise.all([
     supabase
       .from("client_projects")
-      .select("id, company_name, name, status, start_date, due_date, delivered_on, maintenance_monthly, build_value, created_at")
+      .select("id, company_name, name, status, start_date, due_date, delivered_on, maintenance_monthly, maintenance_since, build_value, created_at")
       .limit(500),
     supabase.from("work_requests").select("id", { count: "exact", head: true }),
     supabase.from("client_project_payments").select(PAYMENT_COLUMNS).limit(5000),
@@ -798,7 +876,16 @@ async function Content() {
       .eq("kind", "status")
       .gte("created_at", funnelSince)
       .limit(5000),
+    supabase.from("proposals").select("status, value, decided_on").limit(2000),
+    supabase
+      .from("contact_events")
+      .select("contact_id, status, created_at")
+      .eq("kind", "status")
+      .order("created_at", { ascending: false })
+      .limit(20),
+    supabase.from("client_project_events").select("project_id, kind, status, created_at").order("created_at", { ascending: false }).limit(20),
   ]);
+  if (proposalRows.error) await reportError("painel propostas", proposalRows.error.code, user.id);
   if (projectRows.error) await reportError("painel projetos", projectRows.error.code, user.id);
   if (paymentRows.error) await reportError("painel pagamentos", paymentRows.error.code, user.id);
   if (funnelRows.error) await reportError("painel funil", funnelRows.error.code, user.id);
@@ -816,16 +903,25 @@ async function Content() {
   // Modo pessoal: sem packs, subscrição nem demos no Início. Esses blocos voltam
   // quando os registos abrirem (SIGNUPS_ENABLED=true).
   const selling = signupsOpen();
-  const projects = (projectRows.data ?? []) as (ProjectSummaryRow & Pick<ClientProject, "start_date">)[];
+  const projects = (projectRows.data ?? []) as (ProjectSummaryRow & Pick<ClientProject, "start_date" | "maintenance_since">)[];
   const payments = (paymentRows.data ?? []) as ProjectPayment[];
   const contacts = (dealRows.data ?? []) as (Contact & { label: string })[];
   const summary = projectsSummary(projects, today);
+  const funnelData = funnel((funnelRows.data ?? []) as { contact_id: string; status: string; created_at: string }[], today);
   const metrics: Metrics = {
     sales: salesOfMonth(projects, today),
     delivered: deliveredThisMonth(projects, today),
     summary,
     receive: toReceive(projects, payments),
+    response: responseRate(funnelData),
+    proposals: proposalRows.error ? null : proposalNumbers((proposalRows.data ?? []) as Parameters<typeof proposalNumbers>[0], today),
   };
+  const activity = recentActivity(
+    (recentContactEvents.data ?? []) as { contact_id: string; status: string; created_at: string }[],
+    (recentProjectEvents.data ?? []) as { project_id: string; kind: string; status: string; created_at: string }[],
+    new Map(contacts.map((contact) => [contact.id, contact.label])),
+    new Map(projects.map((project) => [project.id, project.company_name])),
+  );
   // Se estas leituras falharem, o bloco mostra zeros em vez de partir o painel.
   // O {portfolio} da mensagem do WhatsApp só tem link com o portfólio publicado.
   const portfolioLink = portfolioRow.data?.published
@@ -847,11 +943,30 @@ async function Content() {
         dailyGoal={deals.goal}
         whatsappTemplate={(templateRow.data?.whatsapp_template as string | null | undefined) ?? null}
         portfolioUrl={portfolioLink}
+        demoLinks={await loadDemoLinks(supabase, user.id)}
       >
-        <TasksBlock tasks={upcomingTasks(contacts, projects, today)} today={today} className="flex-1" />
+        <TasksBlock
+          tasks={upcomingTasks(
+            contacts,
+            projects,
+            today,
+            6,
+            billingTasks(projects, payments, today).map((task) => ({
+              projectId: task.projectId,
+              company: task.company,
+              detail: copy.tasks.billingDetail(ptPT.projects.payments.kinds[task.label], money.format(task.amount)),
+              date: task.date,
+              overdue: task.overdue,
+            })),
+          )}
+          today={today}
+          className="flex-1"
+        />
       </DashboardToday>
       <KpiRow metrics={metrics} />
-      <ChartBlock data={receivedByMonth(payments, today)} className={selling ? undefined : "lg:col-span-2"} />
+      <ChartBlock data={receivedByMonth(payments, today)} />
+      <FunnelBlock data={funnelData} />
+      <ActivityBlock items={activity} now={now} />
       {/* Modo pessoal: "Próximo passo" repetia a fila dos Contactos e as tarefas. */}
       {selling && (
         <NextStepBlock
@@ -861,10 +976,6 @@ async function Content() {
           selling={selling}
           lateProjects={summary.late}
         />
-      )}
-      {/* Modo pessoal: o funil passou para os Contactos ("Números dos contactos"). */}
-      {selling && (
-        <FunnelBlock data={funnel((funnelRows.data ?? []) as { contact_id: string; status: string; created_at: string }[], today)} />
       )}
       <OnboardingBlock
         progress={onboardingProgress({

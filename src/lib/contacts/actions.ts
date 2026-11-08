@@ -6,8 +6,9 @@ import { ptPT } from "@/i18n/pt-PT";
 import { reportError } from "@/lib/events/log";
 import { todayIn } from "@/lib/demos/booking";
 import { cachedOsmCompany } from "@/lib/radar/osm-provider";
+import { closeDealFor } from "@/lib/cycle/deal";
 import { createClient } from "@/lib/supabase/server";
-import { parseDailyGoal, parseWhatsappTemplate, type ContactEvent } from "./crm";
+import { isReturnDays, parseDailyGoal, parseWhatsappTemplate, returnDate, type ContactEvent } from "./crm";
 import {
   MANUAL_PREFIX,
   manualColumns,
@@ -59,7 +60,7 @@ export async function saveContact(
     user_id: user.id,
     company_id: companyId,
     label,
-    ...(osm ? osmColumns(osm, todayIn()) : {}),
+    ...(osm ? { ...osmColumns(osm, todayIn()), manual_niche: osm.niche?.slice(0, 80) || null, manual_locality: osm.locality?.slice(0, 80) || null } : {}),
   });
 
   // Já guardada antes: para quem usa, o resultado é o mesmo.
@@ -96,15 +97,44 @@ async function updateContact(
 export async function setContactStatus(
   id: string,
   status: unknown,
-): Promise<Result> {
+): Promise<Result & { projectCreated?: boolean }> {
   if (!isContactStatus(status)) return { ok: false };
 
-  return updateContact(id, "contactos estado", {
+  const result = await updateContact(id, "contactos estado", {
     status,
     ...(marksLastContact(status)
       ? { last_contacted_at: new Date().toISOString() }
       : {}),
   });
+  if (!result.ok || status !== "won") return result;
+  // Ganho: aceita a proposta e cria o projeto com as fases, a checklist e os pagamentos.
+  const { supabase, user } = await currentUser();
+  const deal = await closeDealFor(supabase, user.id, id);
+  revalidatePath("/painel/projetos");
+  revalidatePath("/painel");
+  return { ok: true, projectCreated: deal.ok && deal.created };
+}
+
+// Sessão de contactos: marca como contactada e agenda o retorno (hoje, amanhã, 3 dias, 1 semana).
+export async function markContactedWithReturn(id: string, days: unknown): Promise<Result> {
+  if (!isReturnDays(days)) return { ok: false };
+  return updateContact(id, "contactos sessão", {
+    status: "contacted",
+    last_contacted_at: new Date().toISOString(),
+    next_action: ptPT.contacts.session.returnAction,
+    next_action_at: returnDate(todayIn(), days),
+  });
+}
+
+// Atalho de retorno na ficha: só a data da próxima ação (o texto fica, ou "Retorno").
+export async function setContactReturn(id: string, days: unknown, action: unknown): Promise<Result> {
+  if (!isReturnDays(days)) return { ok: false };
+  const text = typeof action === "string" && action.trim() ? action.trim().slice(0, 200) : ptPT.contacts.session.returnAction;
+  return updateContact(id, "contactos retorno", { next_action: text, next_action_at: returnDate(todayIn(), days) });
+}
+
+export async function setDoNotContact(id: string, value: boolean): Promise<Result> {
+  return updateContact(id, "contactos não contactar", { do_not_contact: Boolean(value) });
 }
 
 export async function saveContactDetails(

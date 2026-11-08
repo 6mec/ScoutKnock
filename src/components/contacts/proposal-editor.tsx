@@ -138,12 +138,15 @@ export function ProposalEditor({
   dealValue,
   yourName,
   yourContact,
+  registered = null,
 }: {
   contactId: string;
   clientName: string;
   dealValue: number | null;
   yourName: string;
   yourContact: string;
+  // A proposta registada na ficha, para o documento não ser escrito outra vez.
+  registered?: { service: string; value: number; validDays: number | null } | null;
 }) {
   const [now] = useState(() => Date.now());
   const [form, setForm] = useState<ProposalForm>({
@@ -152,14 +155,14 @@ export function ProposalEditor({
     clientName,
     items: [
       {
-        description: copy.defaultItem,
-        price: dealValue === null ? "" : String(dealValue).replace(".", ","),
+        description: registered?.service ?? copy.defaultItem,
+        price: registered ? String(registered.value).replace(".", ",") : dealValue === null ? "" : String(dealValue).replace(".", ","),
       },
     ],
     monthlyValue: "",
     monthlyDescription: "",
     delivery: "",
-    validityDays: "15",
+    validityDays: registered?.validDays ? String(registered.validDays) : "15",
     notes: "",
   });
   const [saving, startSaving] = useTransition();

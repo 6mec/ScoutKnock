@@ -8,6 +8,7 @@ import { todayIn } from "@/lib/demos/booking";
 import { PORTFOLIO_BUCKET } from "@/lib/portfolio/images";
 import { parsePaymentInput, type PaymentError } from "./payments";
 import { parseRequestInput, requestKindOf } from "@/lib/requests/rules";
+import { phaseForStatus } from "./cycle";
 import { parseProjectFields, parseProjectInput, toRow, type ProjectError } from "./rules";
 
 const PROJECTS_PATH = "/painel/projetos";
@@ -33,6 +34,7 @@ export async function createProject(value: unknown): Promise<Result> {
     .from("client_projects")
     .insert({
       ...toRow(parsed.input),
+      phase: phaseForStatus(parsed.input.status),
       contact_id: parsed.input.contactId,
       work_request_id: parsed.input.workRequestId,
     })
@@ -88,6 +90,7 @@ export async function createProjectWithRequest(
     .from("client_projects")
     .insert({
       ...toRow(parsed.input),
+      phase: phaseForStatus(parsed.input.status),
       contact_id: parsed.input.contactId,
       work_request_id: created.id,
     })
@@ -107,9 +110,12 @@ export async function updateProject(id: string, value: unknown): Promise<Result>
   if (!parsed.ok) return parsed;
 
   const { supabase, user } = await currentUser();
+  // O estado muda só pelo ciclo (fase, terminar e reabrir), para não haver duas fontes.
+  const row: Partial<ReturnType<typeof toRow>> = toRow(parsed.fields);
+  delete row.status;
   const { data, error } = await supabase
     .from("client_projects")
-    .update(toRow(parsed.fields))
+    .update(row)
     .eq("id", id)
     .select("id");
 
@@ -142,7 +148,9 @@ export async function addPayment(value: unknown): Promise<{ ok: true } | { ok: f
     project_id: parsed.input.projectId,
     kind: parsed.input.kind,
     amount: parsed.input.amount,
+    status: parsed.input.status,
     paid_on: parsed.input.paidOn,
+    due_on: parsed.input.dueOn,
     note: parsed.input.note,
   });
   if (error) {

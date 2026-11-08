@@ -1,35 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { useSelectedLayoutSegment } from "next/navigation";
+import { useSelectedLayoutSegments } from "next/navigation";
 import { Suspense } from "react";
-import { Search } from "lucide-react";
+import { ChevronRight, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { requestNewSearch } from "@/lib/radar/new-search";
 import { CommandPalette } from "@/components/app/command-palette";
 import { Logo } from "@/components/ui/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
+import { crumbsFor } from "./nav-items";
 
-const PAGE_TITLES: Record<string, string> = {
-  radar: ptPT.app.nav.radar,
-  demos: ptPT.app.nav.demos,
-  contactos: ptPT.app.nav.contacts,
-  portfolio: ptPT.portfolio.title,
-  pedidos: ptPT.app.nav.requests,
-  projetos: ptPT.app.nav.projects,
-  planos: ptPT.plans.title,
-  conta: ptPT.app.account.label,
-  ui: ptPT.uiPreview.title,
-};
-
+// O caminho da página: o grupo do menu, a página e a subpágina. O último é o título.
 function PageTitle() {
-  const segment = useSelectedLayoutSegment();
+  const crumbs = crumbsFor(useSelectedLayoutSegments());
+  const current = crumbs[crumbs.length - 1];
+  const before = crumbs.slice(0, -1);
 
   return (
-    <h1 className="type-heading text-20">
-      {segment ? PAGE_TITLES[segment] : ptPT.app.nav.home}
-    </h1>
+    <div className="flex min-w-0 flex-col justify-center">
+      {before.length > 0 && (
+        <nav aria-label={ptPT.app.nav.crumbs.label} className="hidden sm:block">
+          <ol className="flex items-center gap-1.5 text-12 text-muted">
+            {before.map((crumb) => (
+              <li key={crumb.label} className="flex items-center gap-1.5">
+                {crumb.href ? (
+                  <Link href={crumb.href} className="focus-ring rounded-sm hovered:text-foreground">
+                    {crumb.label}
+                  </Link>
+                ) : (
+                  <span>{crumb.label}</span>
+                )}
+                <ChevronRight aria-hidden="true" size={12} className="text-border-strong" />
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )}
+      <h1 className="type-heading truncate text-18 sm:text-20">{current.label}</h1>
+    </div>
   );
 }
 

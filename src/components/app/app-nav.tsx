@@ -1,20 +1,6 @@
 "use client";
 
-import {
-  BriefcaseBusiness,
-  Ellipsis,
-  FolderKanban,
-  Globe,
-  House,
-  LogOut,
-  Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
-  Radar,
-  Sun,
-  UserRound,
-  Users,
-} from "lucide-react";
+import { Ellipsis, LogOut, Moon, PanelLeftClose, PanelLeftOpen, Sun } from "lucide-react";
 import Link from "next/link";
 import { useSelectedLayoutSegment } from "next/navigation";
 import { Suspense, useSyncExternalStore, useTransition, type ReactNode } from "react";
@@ -27,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
+import { NAV_GROUPS, NAV_ITEMS, type NavItem } from "./nav-items";
 import { ptPT } from "@/i18n/pt-PT";
 import { signOut } from "@/lib/auth/actions";
 import { toggleTheme, useTheme } from "@/lib/theme";
@@ -34,23 +21,8 @@ import { cn } from "@/lib/utils";
 
 const copy = ptPT.app;
 const COLLAPSED_KEY = "scoutknock-nav-collapsed";
-// Pela ordem do trabalho: encontrar, contactar e acompanhar, projetos, portfólio.
-const NAV_ITEMS = [
-  { href: "/painel", segment: null, label: copy.nav.home, icon: House },
-  { href: "/painel/radar", segment: "radar", label: copy.nav.radar, icon: Radar },
-  { href: "/painel/contactos", segment: "contactos", label: copy.nav.contacts, icon: Users },
-  { href: "/painel/projetos", segment: "projetos", label: copy.nav.projects, icon: FolderKanban },
-  // No telemóvel, a barra não tem espaço: estes passam para "Mais".
-  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness, desktopOnly: true },
-  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe, desktopOnly: true },
-] as const;
-
-// "Mais" só existe no telemóvel: o que não cabe na barra e a conta.
-const MORE_ITEMS = [
-  { href: "/painel/portfolio", segment: "portfolio", label: copy.nav.portfolio, icon: BriefcaseBusiness },
-  { href: "/painel/demos", segment: "demos", label: copy.nav.demos, icon: Globe },
-  { href: "/painel/conta", segment: "conta", label: copy.account.label, icon: UserRound },
-] as const;
+// No telemóvel, "Mais" leva o que não cabe na barra de baixo.
+const MORE_ITEMS = NAV_ITEMS.filter((item) => !item.mobileBar);
 
 const listeners = new Set<() => void>();
 
@@ -82,6 +54,28 @@ function ActiveNavLinks({ collapsed }: { collapsed: boolean }) {
 }
 
 // Enquanto o segmento não é conhecido (current undefined), nenhuma ligação fica ativa.
+function NavLink({ item, collapsed, current }: { item: NavItem; collapsed: boolean; current?: string | null }) {
+  const { href, segment, label, icon: Icon } = item;
+  const active = current === segment;
+  const link = (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "focus-ring relative flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-12 whitespace-nowrap text-muted transition-colors duration-(--duration-fast) ease-out hovered:bg-surface-raised hovered:text-foreground",
+        "md:min-h-10 md:flex-row md:justify-start md:gap-3 md:px-3 md:text-14",
+        collapsed && "md:justify-center md:px-0",
+        // Ativo: fundo verde suave e um traço dourado à esquerda (só no computador).
+        active && "bg-accent-soft font-medium text-foreground hovered:bg-accent-soft hovered:text-foreground [&>svg]:text-accent md:before:absolute md:before:inset-y-2 md:before:left-0 md:before:w-0.5 md:before:rounded-full md:before:bg-gold",
+      )}
+    >
+      <Icon aria-hidden="true" size={19} strokeWidth={1.75} className="shrink-0" />
+      <span className={cn(collapsed && "md:sr-only")}>{label}</span>
+    </Link>
+  );
+  return collapsed ? <Tooltip content={label}>{link}</Tooltip> : link;
+}
+
 function NavLinks({
   collapsed,
   current,
@@ -90,37 +84,41 @@ function NavLinks({
   current?: string | null;
 }) {
   return (
-    <ul className="flex flex-4 items-center gap-1 md:flex-1 md:flex-col md:items-stretch">
-      {NAV_ITEMS.map((item) => {
-        const { href, segment, label, icon: Icon } = item;
-        const desktopOnly = "desktopOnly" in item && item.desktopOnly;
-        const active = current === segment;
-        const link = (
-          <Link
-            href={href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "focus-ring flex min-h-11 flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-12 whitespace-nowrap text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
-              "md:flex-row md:justify-start md:gap-3 md:px-3 md:text-14",
-              collapsed && "md:justify-center md:px-0",
-              active && "bg-accent-soft text-accent hovered:text-accent",
-            )}
-          >
-            <Icon aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />
-            <span className={cn(collapsed && "md:sr-only")}>{label}</span>
-          </Link>
-        );
-
-        return (
-          <li key={href} className={cn("flex flex-1 md:flex-none", desktopOnly && "hidden md:flex")}>
-            {collapsed ? <Tooltip content={label}>{link}</Tooltip> : link}
+    <>
+      {/* Telemóvel: barra de baixo com as páginas do dia a dia e "Mais". */}
+      <ul className="flex flex-1 items-center gap-1 md:hidden">
+        {NAV_ITEMS.filter((item) => item.mobileBar).map((item) => (
+          <li key={item.href} className="flex flex-1">
+            <NavLink item={item} collapsed={false} current={current} />
           </li>
-        );
-      })}
-      <li className="flex flex-1 md:hidden">
-        <MoreMenu current={current} />
-      </li>
-    </ul>
+        ))}
+        <li className="flex flex-1">
+          <MoreMenu current={current} />
+        </li>
+      </ul>
+      {/* Computador: os grupos pelo ciclo do trabalho. */}
+      <div className="hidden min-h-0 flex-1 flex-col gap-4 overflow-y-auto md:flex">
+        {NAV_GROUPS.map((group) => (
+          <div key={group.id} role="group" aria-label={group.label ?? undefined} className="flex flex-col gap-0.5">
+            {group.label &&
+              (collapsed ? (
+                <span aria-hidden="true" className="mx-3 mb-1 h-px bg-border" />
+              ) : (
+                <span aria-hidden="true" className="px-3 pb-1 text-12 font-medium tracking-[0.06em] text-muted uppercase">
+                  {group.label}
+                </span>
+              ))}
+            <ul className="flex flex-col gap-0.5">
+              {group.items.map((item) => (
+                <li key={item.href} className="flex">
+                  <NavLink item={item} collapsed={collapsed} current={current} />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -137,7 +135,7 @@ function MoreMenu({ current }: { current?: string | null }) {
         data-testid="nav-more"
         className={cn(
           "focus-ring flex min-h-11 w-full flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-1 text-12 whitespace-nowrap text-muted transition-colors duration-(--duration-fast) ease-out hovered:text-foreground",
-          active && "bg-accent-soft text-accent",
+          active && "bg-accent-soft text-foreground [&>svg]:text-accent",
         )}
       >
         <Ellipsis aria-hidden="true" size={20} strokeWidth={1.75} className="shrink-0" />

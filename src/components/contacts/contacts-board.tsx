@@ -11,8 +11,10 @@ import {
   useSensors,
   type DragEndEvent,
 } from "@dnd-kit/core";
+import { Clock } from "lucide-react";
 import { useState } from "react";
 import { ptPT } from "@/i18n/pt-PT";
+import { stalledFor } from "@/lib/contacts/crm";
 import {
   CONTACT_STATUSES,
   isContactStatus,
@@ -67,6 +69,8 @@ function CardContent({
   onOpen?: (id: string) => void;
   onStatusChange?: (id: string, status: ContactStatus) => void;
 }) {
+  const [now] = useState(() => Date.now());
+  const stalled = stalledFor(contact, now);
   return (
     <>
       <div className="flex items-start gap-2">
@@ -82,6 +86,12 @@ function CardContent({
           <p className="min-h-11 min-w-0 flex-1 text-15 leading-snug font-semibold">{contact.label}</p>
         )}
       </div>
+      {stalled !== null && (
+        <p className="inline-flex items-center gap-1.5 self-start rounded-pill bg-amber-soft px-2 py-0.5 text-12 font-medium text-amber" data-testid="stalled">
+          <Clock aria-hidden="true" size={12} />
+          {copy.crm.stalled(stalled)}
+        </p>
+      )}
       {(contact.deal_value !== null || contact.do_not_contact) && (
         <p className="flex flex-wrap gap-x-3 text-13 text-muted">
           {contact.deal_value !== null && (

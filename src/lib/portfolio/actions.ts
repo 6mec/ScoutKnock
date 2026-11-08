@@ -152,6 +152,7 @@ export async function saveProjectWork(projectId: string, value: unknown): Promis
     .from("client_projects")
     .update({
       portfolio_show: parsed.work.show,
+      ...(parsed.work.show ? { portfolio_draft: false } : {}),
       portfolio_summary: parsed.work.summary,
       portfolio_url: parsed.work.url,
       ...(removeImage ? { portfolio_image: null } : {}),

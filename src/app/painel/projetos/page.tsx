@@ -18,6 +18,7 @@ import {
 import { PAYMENT_COLUMNS, type ProjectPayment } from "@/lib/projects/payments";
 import { sortRequests, type WorkRequest } from "@/lib/requests/rules";
 import { createClient } from "@/lib/supabase/server";
+import type { ChecklistItem } from "@/lib/cycle/actions";
 
 export const metadata: Metadata = {
   title: ptPT.projects.title,
@@ -37,9 +38,9 @@ export default function ProjectsPage({ searchParams }: PageProps<"/painel/projet
 
 async function Content({ searchParams }: Pick<PageProps<"/painel/projetos">, "searchParams">) {
   const user = await requireUser();
-  const { novo } = await searchParams;
+  const { novo, projeto } = await searchParams;
   const supabase = await createClient();
-  const [projects, events, contacts, payments, requests] = await Promise.all([
+  const [projects, events, contacts, payments, requests, checklist] = await Promise.all([
     supabase.from("client_projects").select(PROJECT_COLUMNS).order("created_at", { ascending: false }).limit(500),
     supabase
       .from("client_project_events")
@@ -53,6 +54,7 @@ async function Content({ searchParams }: Pick<PageProps<"/painel/projetos">, "se
       .select("id, contact_id, demo_id, company_name, kind, brief, status, result_note, result_url, created_at, updated_at")
       .order("created_at", { ascending: false })
       .limit(200),
+    supabase.from("project_checklist_items").select("id, project_id, label, done, position, kind").order("position").limit(4000),
   ]);
 
   if (projects.error) {
@@ -67,6 +69,7 @@ async function Content({ searchParams }: Pick<PageProps<"/painel/projetos">, "se
   if (contacts.error) await reportError("projetos contactos", contacts.error.code, user.id);
   if (payments.error) await reportError("projetos pagamentos", payments.error.code, user.id);
   if (requests.error) await reportError("pedidos ler", requests.error.code, user.id);
+  if (checklist.error) await reportError("projetos checklist", checklist.error.code, user.id);
   const requestRows = sortRequests((requests.data ?? []) as WorkRequest[]);
 
   const today = todayIn();
@@ -81,6 +84,8 @@ async function Content({ searchParams }: Pick<PageProps<"/painel/projetos">, "se
           contacts={(contacts.data ?? []) as { id: string; label: string }[]}
           today={today}
           openNew={novo === "1"}
+          openProject={typeof projeto === "string" ? projeto : null}
+          checklist={(checklist.data ?? []) as ChecklistItem[]}
         />
       }
       requests={<RequestList requests={requestRows} />}

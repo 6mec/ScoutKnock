@@ -91,7 +91,10 @@ export function PortfolioEditor({
   worksCount,
   testimonials,
   projects,
+  drafts = [],
 }: {
+  // Trabalhos em rascunho (a checklist pediu a opinião): só saem quando forem aprovados.
+  drafts?: { id: string; company_name: string }[];
   initial: PortfolioFormValues;
   savedSlug: string | null;
   savedPublished: boolean;
@@ -347,6 +350,20 @@ export function PortfolioEditor({
           <section aria-labelledby="pf-works" id="sec-works" className="panel flex scroll-mt-24 flex-col gap-3 p-5" data-testid="pf-works">
             <PanelHeader id="pf-works" icon={BriefcaseBusiness} title={copy.worksTitle} as="h3" />
             <p className="text-14">{copy.worksCount(worksCount)}</p>
+            {drafts.length > 0 && (
+              <div className="flex flex-col gap-2 rounded-md border border-gold/50 bg-gold-soft p-3" data-testid="pf-drafts">
+                <p className="text-14 font-medium">{copy.drafts(drafts.length)}</p>
+                <ul className="flex flex-col gap-1">
+                  {drafts.map((draft) => (
+                    <li key={draft.id}>
+                      <Link href={`/painel/projetos?projeto=${draft.id}`} className="focus-ring rounded-sm text-14 underline underline-offset-2 hovered:text-accent">
+                        {copy.reviewDraft(draft.company_name)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <p className="text-13 text-muted">{copy.worksHelp}</p>
             <Button asChild variant="secondary" size="sm" className="self-start">
               <Link href="/painel/projetos">{copy.worksOpen}</Link>

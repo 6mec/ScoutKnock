@@ -1,5 +1,6 @@
 "use client";
 
+import { Play } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import {
   type ContactFilter,
 } from "@/lib/contacts/crm";
 import { manualColumns, type ManualCompany } from "@/lib/contacts/manual";
-import type { FunnelStage } from "@/lib/dashboard/metrics";
 import {
   searchContacts,
   type Contact,
@@ -29,7 +29,8 @@ import { ContactNumbers } from "./crm-today";
 import { useStatusChange } from "./use-status-change";
 import { ExportCsvButton } from "./export-csv-button";
 import { ImportListButton } from "./import-list-button";
-import { PortfolioLinkContext } from "./whatsapp-call-button";
+import { DemoLinksContext, PortfolioLinkContext } from "./whatsapp-call-button";
+import { EMPTY_DEMO_LINKS, type DemoLinks } from "@/lib/demos/links";
 
 const { contacts: copy } = ptPT;
 
@@ -39,13 +40,13 @@ export function ContactsScreen({
   dailyGoal: initialGoal,
   whatsappTemplate: initialTemplate,
   portfolioUrl = null,
+  demoLinks = EMPTY_DEMO_LINKS,
   statusFilter,
   openContactId = null,
-  funnel = [],
 }: {
-  // Funil dos últimos 90 dias, calculado no servidor, para "Números dos contactos".
-  funnel?: { stage: FunnelStage; count: number }[];
   portfolioUrl?: string | null;
+  // Demos de cada empresa e exemplos do nicho, para o {link_demo}.
+  demoLinks?: DemoLinks;
   initial: Contact[];
   events: ContactEvent[];
   dailyGoal: number;
@@ -157,6 +158,7 @@ export function ContactsScreen({
 
   return (
     <PortfolioLinkContext value={portfolioUrl}>
+    <DemoLinksContext value={demoLinks}>
     <div className="flex w-full min-w-0 flex-col gap-4 px-4 pt-4 pb-6 lg:px-8">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Field label={copy.table.search} className="w-full max-w-md">
@@ -168,6 +170,12 @@ export function ContactsScreen({
           />
         </Field>
         <div className="flex flex-wrap gap-2">
+          <Button asChild data-testid="contacts-session">
+            <Link href="/painel/contactos/sessao">
+              <Play aria-hidden="true" size={15} />
+              {copy.session.start}
+            </Link>
+          </Button>
           {manualActions}
           <ExportCsvButton contacts={visible} />
         </div>
@@ -231,7 +239,7 @@ export function ContactsScreen({
           />
         </TabsContent>
       </Tabs>
-      <ContactNumbers contacts={contacts} events={events} dailyGoal={dailyGoal} now={now} funnel={funnel} />
+      <ContactNumbers contacts={contacts} events={events} dailyGoal={dailyGoal} now={now} />
       {open && (
         <ContactDialog
           key={open.id}
@@ -247,6 +255,7 @@ export function ContactsScreen({
         />
       )}
     </div>
+    </DemoLinksContext>
     </PortfolioLinkContext>
   );
 }

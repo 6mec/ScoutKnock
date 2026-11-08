@@ -93,6 +93,45 @@ export function nextInQueue(contacts: Contact[], skipped: ReadonlySet<string>) {
   );
 }
 
+// As próximas da fila, pela mesma ordem (a mais antiga primeiro).
+export function queueList(contacts: Contact[], skipped: ReadonlySet<string>, limit = 5) {
+  return contacts
+    .filter((contact) => contact.status === "to_contact" && !contact.do_not_contact && !skipped.has(contact.id))
+    .sort((a, b) => a.created_at.localeCompare(b.created_at))
+    .slice(0, limit);
+}
+
+// Retornos rápidos: hoje, amanhã, daqui a 3 dias ou a uma semana.
+export const RETURN_DAYS = [0, 1, 3, 7] as const;
+export type ReturnDays = (typeof RETURN_DAYS)[number];
+
+export function isReturnDays(value: unknown): value is ReturnDays {
+  return RETURN_DAYS.some((days) => days === value);
+}
+
+// O dia (AAAA-MM-DD) a `days` dias de `today`.
+export function returnDate(today: string, days: number) {
+  const date = new Date(`${today}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+export const STALLED_AFTER_DAYS = 7;
+
+// Contactada, respondeu ou com proposta, e sem mexer há uma semana ou mais: os dias, ou null.
+export function stalledFor(contact: Pick<Contact, "status" | "last_contacted_at" | "created_at" | "do_not_contact">, now: number) {
+  if (!["contacted", "replied", "proposal"].includes(contact.status)) return null;
+  const days = stalledDays(contact, now);
+  return days !== null && days >= STALLED_AFTER_DAYS ? days : null;
+}
+
+// "Parada": por contactar ou à espera, sem mexer há mais de `days` dias.
+export function stalledDays(contact: Pick<Contact, "status" | "last_contacted_at" | "created_at" | "do_not_contact">, now: number) {
+  if (contact.do_not_contact || contact.status === "won" || contact.status === "lost") return null;
+  const since = contact.last_contacted_at ?? contact.created_at;
+  return Math.floor((now - new Date(since).getTime()) / 86_400_000);
+}
+
 export function queueSize(contacts: Contact[]) {
   return contacts.filter(
     (contact) => contact.status === "to_contact" && !contact.do_not_contact,
@@ -131,11 +170,13 @@ export function parseWhatsappTemplate(value: unknown) {
   return text || null;
 }
 
-// {portfolio} passa a ser o link do portfólio publicado; sem ele, sai do texto.
-export function fillTemplate(template: string, name: string, portfolio?: string | null) {
+// {empresa} (ou {nome}) é o nome da empresa; {link_portfolio} (ou {portfolio}) o link do
+// portfólio publicado; {link_demo} o link da demo. Sem link, a variável sai do texto.
+export function fillTemplate(template: string, name: string, portfolio?: string | null, demo?: string | null) {
   return template
-    .replace(/\{nome\}/gi, name)
-    .replace(/\{portfolio\}/gi, portfolio ?? "")
+    .replace(/\{(nome|empresa)\}/gi, name)
+    .replace(/\{(link_portfolio|portfolio)\}/gi, portfolio ?? "")
+    .replace(/\{link_demo\}/gi, demo ?? "")
     .replace(/[ \t]{2,}/g, " ")
     .replace(/[ \t]+([.,!?;:])/g, "$1")
     .trim();

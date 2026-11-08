@@ -7,10 +7,9 @@ import { ptPT } from "@/i18n/pt-PT";
 import { requireUser } from "@/lib/auth/current-user";
 import { DEFAULT_DAILY_GOAL, PACE_DAYS, type ContactEvent } from "@/lib/contacts/crm";
 import type { Contact } from "@/lib/contacts/rules";
-import { funnel, FUNNEL_DAYS } from "@/lib/dashboard/metrics";
 import { parseStatusFilter } from "@/lib/dashboard/rules";
-import { todayIn } from "@/lib/demos/booking";
 import { portfolioUrl } from "@/lib/portfolio/rules";
+import { loadDemoLinks } from "@/lib/demos/load-links";
 import { homePortfolioSlug, siteUrl } from "@/lib/site";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
@@ -57,15 +56,6 @@ async function Content({
     supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
     supabase.from("portfolios").select("slug, published").eq("user_id", user.id).maybeSingle(),
   ]);
-  // O funil dos últimos 90 dias (mais um de folga para o fuso), para "Números dos contactos".
-  const funnelSince = new Date(new Date().getTime() - (FUNNEL_DAYS + 1) * DAY_MS).toISOString();
-  const funnelRows = await supabase
-    .from("contact_events")
-    .select("contact_id, status, created_at")
-    .eq("kind", "status")
-    .gte("created_at", funnelSince)
-    .limit(5000);
-  if (funnelRows.error) await reportError("contactos funil", funnelRows.error.code, user.id);
   // O {portfolio} da mensagem só tem link com o portfólio publicado.
   const published = portfolio.data?.published ? (portfolio.data.slug as string) : null;
 
@@ -80,8 +70,11 @@ async function Content({
   // Sem histórico, a lista continua a funcionar: só o ritmo fica vazio.
   if (events.error) await reportError("contactos ritmo", events.error.code, user.id);
 
+  const demoLinks = await loadDemoLinks(supabase, user.id);
+
   return (
     <ContactsScreen
+      demoLinks={demoLinks}
       initial={contacts.data as Contact[]}
       events={(events.data ?? []) as ContactEvent[]}
       dailyGoal={(profile.data?.daily_goal as number | undefined) ?? DEFAULT_DAILY_GOAL}
@@ -90,7 +83,6 @@ async function Content({
         published ? portfolioUrl(published, siteUrl(), homePortfolioSlug()) : null
       }
       statusFilter={parseStatusFilter(estado)}
-      funnel={funnel((funnelRows.data ?? []) as { contact_id: string; status: string; created_at: string }[], todayIn())}
       openContactId={typeof contacto === "string" && /^[0-9a-f-]{36}$/i.test(contacto) ? contacto : null}
     />
   );

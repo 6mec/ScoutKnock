@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { TodayPanels } from "@/components/contacts/crm-today";
 import { useStatusChange } from "@/components/contacts/use-status-change";
-import { PortfolioLinkContext } from "@/components/contacts/whatsapp-call-button";
+import { DemoLinksContext, PortfolioLinkContext } from "@/components/contacts/whatsapp-call-button";
+import { EMPTY_DEMO_LINKS, type DemoLinks } from "@/lib/demos/links";
 import { ptPT } from "@/i18n/pt-PT";
 import type { ContactEvent } from "@/lib/contacts/crm";
 import type { Contact } from "@/lib/contacts/rules";
@@ -17,8 +18,10 @@ export function DashboardToday({
   dailyGoal: initialGoal,
   whatsappTemplate,
   portfolioUrl,
+  demoLinks = EMPTY_DEMO_LINKS,
   children,
 }: {
+  demoLinks?: DemoLinks;
   contacts: Contact[];
   events: ContactEvent[];
   dailyGoal: number;
@@ -35,6 +38,7 @@ export function DashboardToday({
 
   return (
     <PortfolioLinkContext value={portfolioUrl}>
+      <DemoLinksContext value={demoLinks}>
       <section aria-labelledby="hoje" className="flex flex-col gap-3 lg:col-span-2" data-testid="block-hoje">
         <h3 id="hoje" className="sr-only">
           {ptPT.dashboard.today}
@@ -53,6 +57,7 @@ export function DashboardToday({
           <div className="flex md:col-span-2 xl:col-span-1">{children}</div>
         </div>
       </section>
+      </DemoLinksContext>
     </PortfolioLinkContext>
   );
 }

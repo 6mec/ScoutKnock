@@ -218,6 +218,23 @@ export async function setDemoSent(
   return { ok: true };
 }
 
+// Marca (ou desmarca) a demo como exemplo do nicho, para o {link_demo} das mensagens.
+export async function setDemoNicheExample(id: string, example: boolean): Promise<SaveDemoResult> {
+  const { supabase, user } = await currentUser();
+  const { data, error } = await supabase
+    .from("demo_sites")
+    .update({ niche_example: example })
+    .eq("id", id)
+    .select("id");
+  if (error || !data?.length) {
+    await reportError("demos exemplo do nicho", error?.code ?? "sem linha", user.id);
+    return { ok: false };
+  }
+  revalidatePath(GALLERY_PATH);
+  revalidatePath("/painel/contactos");
+  return { ok: true };
+}
+
 export type GenerateCopyResult =
   | { ok: true; copy: SiteCopy; isSample: boolean; remaining: number | null }
   | { ok: false; error: "limit" | "generic" };

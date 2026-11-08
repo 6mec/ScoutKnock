@@ -13,7 +13,15 @@ Fonte de verdade da fila de trabalho. Quem escreve as tarefas: o Daniel e o assi
 
 ## Em curso
 
-Nenhuma. A próxima é a primeira de "Próximas", quando o Daniel disser.
+### T17. Design, organização e ligações do ciclo
+Ciclo: Radar → Contactos → Sessão de contactos → Proposta → Projeto → Entrega → Portfólio → Manutenção; o Dashboard lê os números de todas as partes; nada se escreve duas vezes.
+Regras: não apagar dados, tabelas, rotas nem funcionalidades; migrações só incrementais (aplicadas pelo Daniel); não mexer na autenticação nem no Ctrl K; sem dados falsos (estado vazio claro); tudo em local, sem push, até o Daniel dizer.
+Plano aprovado a 08/11/2026. Ordem: 1a estilo "minimal luxury" (claro por omissão, escuro opcional, Inter); 1b menu por grupos (Pedidos ficam como separador de Projetos; Definições = Conta); Fase 2 ligações (propostas registadas, Ganho cria o projeto, fases, checklist, pagamentos previstos, entrega → rascunho no Portfólio, cobrança da manutenção, `{link_demo}` com demo "exemplo do nicho"); 1c Dashboard; Fase 3 prospeção (Radar em 3 estados, Sessão de contactos, ficha ao lado); Fase 4 Equipa (estrutura, sem abrir o acesso).
+- 1a e 1b feitas (08/11/2026): tokens claros e escuros novos (fundo #F7F7F4, superfícies brancas, verde sálvia, dourado só em detalhes), Inter, claro por omissão; menu por grupos numa só fonte (`nav-items.ts`) com caminho no topo; página Equipa (só o membro atual); "Conta" passa a "Definições" (mesmo endereço).
+- Fase 2 feita (08/11/2026; migração `20261127000000_cycle_links.sql` aplicada): propostas na ficha (rascunho, enviada, aceite, recusada), "Ganho" ou proposta aceite cria o projeto (fases, checklist do modelo, sinal e final previstos, origem), ciclo no diálogo do projeto (fases, próximo passo, checklist, terminar/reabrir), pagamentos previstos e recebidos, cobranças nas próximas tarefas, "pedir opinião" cria o rascunho no Portfólio, `{empresa}`/`{link_demo}`/`{link_portfolio}` com aviso e demo "exemplo do nicho"; o Radar guarda o nicho e a zona das empresas do OpenStreetMap.
+- 1c feita: Dashboard com a fila (e "Começar sessão de contactos") e a meta em cima, 7 números (vendas, a receber, em curso, manutenção, taxa de resposta, propostas abertas, entregues), recebido por mês, funil (saiu dos Contactos) e atividade recente.
+- Fase 3 feita: Radar em 3 estados (repouso com pesquisa em frase, pesquisas guardadas e zonas exploradas; animação só a procurar; resumo com total/novas/já guardadas, mapa pequeno e "Guardar as novas"); página Sessão de contactos (fila uma a uma, mensagem preenchida, Contactada/Saltar/Não contactar, retorno 1/3/7 dias, meta, próximas e registo); Contactos com "Parada há X dias", ficha ao lado, atalhos de retorno e "Fechar negócio e criar projeto".
+- Fase 4 feita: página Equipa com o membro atual, convites pendentes (não enviados) e funções; campo "responsável" em contactos e projetos, sem mudar o acesso. As pesquisas guardadas e os convites precisam da migração `20261128000000_prospecting_team.sql` (por aplicar).
 
 ## Próximas (por ordem)
 

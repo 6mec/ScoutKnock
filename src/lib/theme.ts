@@ -10,13 +10,13 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-// A classe no html é a fonte de verdade: o escuro é o defeito no servidor.
+// A classe no html é a fonte de verdade: o claro é o defeito no servidor.
 function currentTheme(): Theme {
   return document.documentElement.classList.contains("dark") ? "dark" : "light";
 }
 
 export function useTheme() {
-  return useSyncExternalStore(subscribe, currentTheme, () => "dark" as Theme);
+  return useSyncExternalStore(subscribe, currentTheme, () => "light" as Theme);
 }
 
 export function setTheme(theme: Theme) {
@@ -37,18 +37,18 @@ export const GLOBE_COLORS = {
   dark: {
     dark: 1,
     mapBrightness: 3,
-    baseColor: [0.12, 0.16, 0.22],
-    markerColor: [0.18, 0.89, 0.65],
-    glowColor: [0.07, 0.09, 0.13],
-    arcColor: [0.18, 0.89, 0.65],
+    baseColor: [0.14, 0.15, 0.13],
+    markerColor: [0.62, 0.72, 0.62],
+    glowColor: [0.08, 0.08, 0.07],
+    arcColor: [0.62, 0.72, 0.62],
   },
   light: {
     dark: 0,
     mapBrightness: 5,
-    baseColor: [0.88, 0.91, 0.94],
-    markerColor: [0.04, 0.5, 0.36],
-    glowColor: [0.93, 0.95, 0.97],
-    arcColor: [0.04, 0.5, 0.36],
+    baseColor: [0.91, 0.91, 0.89],
+    markerColor: [0.39, 0.48, 0.39],
+    glowColor: [0.97, 0.97, 0.96],
+    arcColor: [0.39, 0.48, 0.39],
   },
 } satisfies Record<Theme, {
   dark: number;

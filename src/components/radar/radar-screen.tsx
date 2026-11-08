@@ -38,6 +38,9 @@ import { RadarForm } from "./radar-form";
 import { ManualSearchActions } from "./manual-search";
 import { RadarResults } from "./radar-results";
 import { RadarStage } from "./radar-stage";
+import { RadarIdleSide, SearchSentence } from "./radar-idle";
+import type { SavedSearch } from "@/lib/radar/saved-searches";
+import type { Zone } from "@/lib/radar/zones";
 import { SearchProgress, type StepStatus } from "./search-progress";
 
 const { radar: copy } = ptPT;
@@ -192,7 +195,11 @@ export function RadarScreen({
   savedIds: initialSavedIds,
   senderName = null,
   source = "google",
+  savedSearches = [],
+  zones = [],
 }: {
+  savedSearches?: SavedSearch[];
+  zones?: Zone[];
   source?: "google" | "osm" | "sample";
   isSample: boolean;
   markets: Market[];
@@ -230,6 +237,8 @@ export function RadarScreen({
       onSaved={onSaved}
       senderName={senderName}
       source={source}
+      savedSearches={savedSearches}
+      zones={zones}
     />
   );
 }
@@ -244,7 +253,11 @@ function RadarSearch({
   onSaved,
   senderName,
   source,
+  savedSearches,
+  zones,
 }: {
+  savedSearches: SavedSearch[];
+  zones: Zone[];
   source: "google" | "osm" | "sample";
   isSample: boolean;
   markets: Market[];
@@ -267,6 +280,7 @@ function RadarSearch({
   });
   // Ficam de uma busca para a outra, como o formulário.
   const [preFilters, setPreFilters] = useState<PreFilter[]>([]);
+  const [saved, setSaved] = useState(savedSearches);
   const controllerRef = useRef<AbortController | null>(null);
 
   // Ao sair do ecrã a meio, o pedido para e o formulário volta.
@@ -448,6 +462,7 @@ function RadarSearch({
           initialFilters={filtersFromPre(preFilters)}
           senderName={senderName}
           source={source}
+          target={target}
         />
       </div>
     );
@@ -460,6 +475,12 @@ function RadarSearch({
       <div key={state.phase} className="flex animate-fade-in flex-col gap-4">
         {isSample && (
           <Callout tone="amber">{copy.sampleNotice}</Callout>
+        )}
+        {state.phase === "idle" && (
+          <SearchSentence
+            values={values}
+            onSaved={(search) => setSaved((list) => [search, ...list.filter((item) => item.id !== search.id)])}
+          />
         )}
         {state.phase === "idle" && (
           <RadarForm
@@ -533,6 +554,18 @@ function RadarSearch({
           </div>
         )}
       </div>
+      {!searching ? (
+        <RadarIdleSide
+          saved={saved}
+          zones={zones}
+          onUse={(query) => {
+            setValues(query);
+            search(query);
+          }}
+          onRemoved={(id) => setSaved((list) => list.filter((item) => item.id !== id))}
+          onLocality={(locality) => setValues((current) => ({ ...current, locality }))}
+        />
+      ) : (
       <RadarStage
         // No telemóvel, o mapa da busca fica por cima da lista para se ver.
         className={searching ? "order-first lg:order-none lg:sticky lg:top-24" : "lg:sticky lg:top-24"}
@@ -548,6 +581,7 @@ function RadarSearch({
           niche: values.niche,
         }}
       />
+      )}
     </div>
     </div>
   );

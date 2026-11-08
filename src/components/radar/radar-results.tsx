@@ -2,12 +2,15 @@
 
 import { ChevronDown, Globe, Phone, PhoneOff, RotateCcw, SlidersHorizontal, Star } from "lucide-react";
 import { AnimatePresence, LayoutGroup, motion, MotionConfig } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ScoreChip } from "@/components/ui/score-chip";
+import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
+import { saveContact } from "@/lib/contacts/actions";
 import { duration, ease } from "@/lib/motion";
 import {
   activeFilterCount,
@@ -23,11 +26,14 @@ import {
 } from "@/lib/radar/results";
 import type { ScoredCompany } from "@/lib/radar/search-events";
 import type { ServiceId } from "@/lib/radar/types";
+import { useTheme } from "@/lib/theme";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { cn } from "@/lib/utils";
 import { CompanyDetail } from "./company-detail";
 
 const { radar: copy } = ptPT;
+const SearchRegionMap = dynamic(() => import("./search-region-map"), { ssr: false });
+const noop = () => {};
 const transition = { duration: duration.fast, ease: ease.out };
 const FACETS = Object.keys(RESULT_FACETS) as ResultFacet[];
 
@@ -46,7 +52,10 @@ export function RadarResults({
   initialFilters = DEFAULT_RESULT_FILTERS,
   senderName = null,
   source = "google",
+  target = null,
 }: {
+  // Coordenadas da localidade, para o mapa pequeno do fim da busca.
+  target?: [number, number] | null;
   source?: "google" | "osm" | "sample";
   results: ScoredCompany[];
   isSample: boolean;
@@ -79,6 +88,25 @@ export function RadarResults({
   const siteChecks = results.filter(({ siteCheck }) => siteCheck);
   const checkingSites = siteChecks.filter(({ siteCheck }) => siteCheck === "checking").length;
   const clear = () => setFilters((current) => ({ ...DEFAULT_RESULT_FILTERS, sort: current.sort }));
+  const theme = useTheme();
+  const [savingAll, startSavingAll] = useTransition();
+  const fresh = results.filter(({ company }) => !savedIds.has(company.id));
+
+  // Guarda as novas uma a uma (a mesma ação do botão de cada empresa).
+  function saveAllNew() {
+    startSavingAll(async () => {
+      let saved = 0;
+      for (const { company } of fresh) {
+        const { ok } = await saveContact(company.id, company.name);
+        if (ok) {
+          saved += 1;
+          onSaved(company.id);
+        }
+      }
+      if (saved === fresh.length) toast.success(copy.savedAll(saved));
+      else toast.error(copy.savedAllPartial(saved, fresh.length));
+    });
+  }
 
   return (
     <MotionConfig reducedMotion="user">
@@ -99,21 +127,33 @@ export function RadarResults({
                 {results.length === 1 ? copy.countOne : copy.countOther} ·{" "}
                 {copy.sortedBy[filters.sort]}
               </p>
-              <Button variant="secondary" size="sm" onClick={onNewSearch}>
-                {copy.newSearch}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {!isSample && fresh.length > 0 && (
+                  <Button size="sm" onClick={saveAllNew} loading={savingAll} loadingText={copy.savingAll} data-testid="save-all-new">
+                    {copy.saveAllNew(fresh.length)}
+                  </Button>
+                )}
+                <Button variant="secondary" size="sm" onClick={onNewSearch}>
+                  {copy.newSearch}
+                </Button>
+              </div>
             </div>
+            {target && (
+              <div role="img" aria-label={copy.resultMapLabel} className="relative h-40 w-full overflow-hidden rounded-md sm:h-48" data-testid="result-map">
+                <SearchRegionMap target={target} revealAfterMs={0} companies={results} done theme={theme} onComplete={noop} />
+              </div>
+            )}
 
             <dl
               aria-label={copy.stats.label}
               className="grid grid-cols-3 gap-px overflow-hidden rounded-md border border-border bg-border sm:grid-cols-5"
             >
-              {(["total", "strong", "noOwnSite", "mobile", "saved"] as const).map((key) => (
+              {(["total", "fresh", "saved", "strong", "noOwnSite"] as const).map((key) => (
                 <div
                   key={key}
                   className={cn(
                     "flex flex-col-reverse gap-0.5 bg-surface px-3 py-2",
-                    key === "saved" && "hidden sm:flex",
+                    key === "noOwnSite" && "hidden sm:flex",
                   )}
                 >
                   <dt className="type-mono truncate text-12 tracking-wide text-muted uppercase">

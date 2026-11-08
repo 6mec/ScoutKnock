@@ -92,6 +92,8 @@ export type PublicDemo = {
 
 export type OwnDemo = PublicDemo & {
   id: string;
+  // Pode ir no {link_demo} de empresas do mesmo nicho sem demo própria.
+  niche_example?: boolean;
   slug: string;
   status: "draft" | "sent";
   // Vazio num site oficial, que não tem data de apagamento.

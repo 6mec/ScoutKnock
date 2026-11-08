@@ -9,6 +9,8 @@ const pay = (project_id: string, amount: number | string, paid_on: string, kind:
   kind,
   amount,
   paid_on,
+  status: "received",
+  due_on: null,
   note: null,
   created_at: `${paid_on}T10:00:00Z`,
 });
@@ -18,7 +20,13 @@ describe("parsePaymentInput", () => {
   it("aceita valor em euros, data e nota", () => {
     expect(parsePaymentInput(base, "2026-11-07")).toEqual({
       ok: true,
-      input: { projectId: P1, kind: "build", amount: 300.5, paidOn: "2026-11-05", note: "sinal" },
+      input: { projectId: P1, kind: "build", amount: 300.5, status: "received", paidOn: "2026-11-05", dueOn: null, note: "sinal" },
+    });
+  });
+  it("um pagamento previsto não precisa de data de recebimento e pode ter data prevista futura", () => {
+    expect(parsePaymentInput({ ...base, kind: "final", status: "expected", paidOn: "", dueOn: "2027-01-10" }, "2026-11-07")).toEqual({
+      ok: true,
+      input: { projectId: P1, kind: "final", amount: 300.5, status: "expected", paidOn: null, dueOn: "2027-01-10", note: "sinal" },
     });
   });
   it("recusa valor zero, vazio ou inválido", () => {

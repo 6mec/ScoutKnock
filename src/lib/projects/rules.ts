@@ -38,6 +38,14 @@ export type ClientProject = {
   portfolio_summary?: string | null;
   portfolio_url?: string | null;
   portfolio_image?: string | null;
+  // Ciclo (T17): proposta de origem, fase, próximo passo, origem e rascunho no portfólio.
+  proposal_id?: string | null;
+  phase?: string | null;
+  next_step?: string | null;
+  origin_source?: "osm" | "manual" | "google" | "other" | null;
+  origin_niche?: string | null;
+  origin_locality?: string | null;
+  portfolio_draft?: boolean;
 };
 
 export type ProjectEvent = {
@@ -48,7 +56,7 @@ export type ProjectEvent = {
 };
 
 export const PROJECT_COLUMNS =
-  "id, contact_id, work_request_id, company_name, name, kind, status, build_value, third_party_value, third_party_note, maintenance_monthly, start_date, due_date, delivered_on, maintenance_since, link, notes, created_at, updated_at, portfolio_show, portfolio_summary, portfolio_url, portfolio_image";
+  "id, contact_id, work_request_id, company_name, name, kind, status, build_value, third_party_value, third_party_note, maintenance_monthly, start_date, due_date, delivered_on, maintenance_since, link, notes, created_at, updated_at, portfolio_show, portfolio_summary, portfolio_url, portfolio_image, proposal_id, phase, next_step, origin_source, origin_niche, origin_locality, portfolio_draft";
 
 export type ProjectFields = {
   companyName: string;

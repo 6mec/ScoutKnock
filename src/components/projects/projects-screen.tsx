@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { useRef, useState, type MouseEvent } from "react";
 import { ProjectDialog } from "@/components/projects/project-dialog";
+import type { ChecklistItem } from "@/lib/cycle/actions";
 import { projectBalance, type ProjectPayment } from "@/lib/projects/payments";
 import { RequestWorkButton } from "@/components/requests/request-work-button";
 import { Badge, type BadgeVariant } from "@/components/ui/badge";
@@ -65,7 +66,12 @@ export function ProjectsScreen({
   contacts,
   today,
   openNew = false,
+  openProject = null,
+  checklist = [],
 }: {
+  // Vindo do Portfólio ("Rever e publicar"): abre logo este projeto.
+  openProject?: string | null;
+  checklist?: ChecklistItem[];
   projects: ClientProject[];
   events: ProjectEvent[];
   payments: ProjectPayment[];
@@ -146,7 +152,15 @@ export function ProjectsScreen({
       ) : (
         <ul data-testid="project-list" className="grid gap-3 lg:grid-cols-2">
           {visible.map((project) => (
-            <ProjectCard key={project.id} project={project} events={events} payments={payments} today={today} />
+            <ProjectCard
+              key={project.id}
+              project={project}
+              events={events}
+              payments={payments}
+              today={today}
+              checklist={checklist}
+              defaultOpen={project.id === openProject}
+            />
           ))}
         </ul>
       )}
@@ -171,11 +185,15 @@ function ProjectCard({
   events,
   payments,
   today,
+  checklist,
+  defaultOpen,
 }: {
   project: ClientProject;
   events: ProjectEvent[];
   payments: ProjectPayment[];
   today: string;
+  checklist: ChecklistItem[];
+  defaultOpen: boolean;
 }) {
   const balance = projectBalance(project, payments);
   const Icon = ICONS[project.kind];
@@ -260,6 +278,8 @@ function ProjectCard({
           events={events}
           payments={payments}
           today={today}
+          checklist={checklist}
+          defaultOpen={defaultOpen}
           trigger={
             <Button ref={editRef} size="sm" data-testid="project-edit">
               {copy.edit}

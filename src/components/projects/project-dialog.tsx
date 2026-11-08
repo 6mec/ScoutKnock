@@ -18,6 +18,8 @@ import { ptPT } from "@/i18n/pt-PT";
 import { createProject, createProjectWithRequest, deleteProject, updateProject } from "@/lib/projects/actions";
 import { MAX_BRIEF, requestKindOf } from "@/lib/requests/rules";
 import type { ProjectPayment } from "@/lib/projects/payments";
+import type { ChecklistItem } from "@/lib/cycle/actions";
+import { ProjectCycle } from "./project-cycle";
 import { ProjectPayments } from "./project-payments";
 import { ProjectPortfolio } from "./project-portfolio";
 import {
@@ -112,7 +114,10 @@ export function ProjectDialog({
   contacts,
   trigger,
   defaultOpen = false,
+  checklist = [],
 }: {
+  // Itens da checklist (de todos os projetos) para a ficha do projeto.
+  checklist?: ChecklistItem[];
   project?: ClientProject | null;
   draft?: ProjectDraft;
   events?: ProjectEvent[];
@@ -207,6 +212,20 @@ export function ProjectDialog({
         <DialogTitle>{project ? copy.editTitle(project.name) : copy.createTitle}</DialogTitle>
         <DialogDescription>{copy.createBody}</DialogDescription>
         {draft.workRequestId && !editing && <p className="text-13 text-muted">{copy.fromRequest}</p>}
+        {project && (
+          <ProjectCycle
+            project={project}
+            checklist={checklist}
+            onDates={(dates) =>
+              setForm((current) => ({
+                ...current,
+                ...(dates.start_date ? { startDate: dates.start_date } : {}),
+                ...(dates.delivered_on ? { deliveredOn: dates.delivered_on } : {}),
+                ...(dates.maintenance_since ? { maintenanceSince: dates.maintenance_since } : {}),
+              }))
+            }
+          />
+        )}
         <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
           <div className="grid gap-4 sm:grid-cols-2">
             {pickContact && (
@@ -249,6 +268,7 @@ export function ProjectDialog({
                 ))}
               </Select>
             </Field>
+            {!editing && (
             <Field label={copy.fields.status}>
               <Select
                 name="status"
@@ -262,6 +282,7 @@ export function ProjectDialog({
                 ))}
               </Select>
             </Field>
+            )}
           </div>
 
           {canRequest && (

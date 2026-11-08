@@ -36,12 +36,15 @@ export function useStatusChange(
     // O mesmo que o gatilho da base de dados grava, para a meta e o ritmo mudarem já.
     setEvents((list) => [...list, { contact_id: id, kind: "status", status, created_at: at }]);
 
-    setContactStatus(id, status).then(({ ok }) => {
-      if (!ok) {
+    setContactStatus(id, status).then((result) => {
+      if (!result.ok) {
         setContacts(previous);
         setEvents(previousEvents);
         toast.error(ptPT.contacts.errors.generic);
+        return;
       }
+      // Ganho: o servidor fecha o negócio e cria o projeto (se ainda não havia).
+      if (status === "won") toast.success(result.projectCreated ? ptPT.projects.cycle.created : ptPT.projects.cycle.existing);
     });
   };
 }

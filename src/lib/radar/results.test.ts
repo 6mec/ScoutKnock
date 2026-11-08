@@ -103,6 +103,7 @@ describe("filtros dos resultados", () => {
   it("conta o que chegou para a faixa de cima", () => {
     expect(resultStats(results, new Set(["b"]))).toEqual({
       total: 3,
+      fresh: 2,
       strong: 1,
       noOwnSite: 2,
       mobile: 1,

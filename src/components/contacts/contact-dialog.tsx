@@ -20,6 +20,7 @@ import {
   getContactHistory,
   removeContact,
   saveContactDetails,
+  setContactReturn,
   saveManualCompany,
   saveOsmDetails,
 } from "@/lib/contacts/actions";
@@ -63,6 +64,9 @@ import {
 import { StatusMenu } from "./status-menu";
 import { WhatsappCallButton } from "./whatsapp-call-button";
 import { WhatsappTemplateButton } from "./whatsapp-template-button";
+import { ProposalSection } from "./proposal-section";
+import { RETURN_DAYS, returnDate } from "@/lib/contacts/crm";
+import { todayIn } from "@/lib/demos/booking";
 
 const { contacts: copy } = ptPT;
 const osmDayFormat = new Intl.DateTimeFormat("pt-PT", { dateStyle: "medium", timeZone: "UTC" });
@@ -533,7 +537,7 @@ export function ContactDialog({
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent aria-describedby={undefined} className="max-w-lg gap-5 lg:max-w-240">
+      <DialogContent side="right" aria-describedby={undefined} className="gap-5 lg:max-w-240">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pr-10">
           <DialogTitle className="pr-0">{contact.label}</DialogTitle>
           <StatusMenu contact={contact} onChange={onStatusChange} />
@@ -608,6 +612,13 @@ export function ContactDialog({
             }
           />
         </div>
+        {/* A proposta registada: alimenta os números e, aceite, cria o projeto. */}
+        <ProposalSection
+          contactId={contact.id}
+          contactStatus={contact.status}
+          today={todayIn()}
+          onStatusChange={onStatusChange}
+        />
         {/* No computador: a empresa à esquerda, o acompanhamento à direita. */}
         <div className="grid gap-5 lg:grid-cols-2 lg:items-start">
         <div className="flex min-w-0 flex-col gap-4">
@@ -687,6 +698,44 @@ export function ContactDialog({
               onChange={(event) => setNextActionAt(event.target.value)}
             />
           </Field>
+          {/* Atalhos: gravam logo a data (e "Ver se respondeu" se não houver ação escrita). */}
+          <div role="group" aria-label={copy.crm.returnShortcuts} className="-mt-2 flex flex-wrap items-center gap-1.5" data-testid="return-shortcuts">
+            <span className="text-13 text-muted">{copy.crm.returnShortcuts}:</span>
+            {RETURN_DAYS.map((days) => (
+              <Button
+                key={days}
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={saving}
+                onClick={() =>
+                  startSaving(async () => {
+                    const action = nextAction.trim() || copy.session.returnAction;
+                    const { ok } = await setContactReturn(contact.id, days, action);
+                    if (!ok) {
+                      toast.error(copy.errors.generic);
+                      return;
+                    }
+                    const date = returnDate(todayIn(), days);
+                    setNextAction(action);
+                    setNextActionAt(date);
+                    onSaved(contact.id, {
+                      label: contact.label,
+                      confirmedContact: contact.confirmed_contact,
+                      nextAction: action,
+                      nextActionAt: date,
+                      notes: contact.notes,
+                      dealValue: contact.deal_value,
+                      doNotContact: contact.do_not_contact,
+                    });
+                    toast.success(copy.crm.returnSet(copy.session.returns[days]));
+                  })
+                }
+              >
+                {copy.session.returns[days]}
+              </Button>
+            ))}
+          </div>
           <Field label={copy.details.notes}>
             <Textarea
               value={notes}

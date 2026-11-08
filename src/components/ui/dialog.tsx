@@ -13,16 +13,19 @@ export const DialogClose = DialogPrimitive.Close;
 export function DialogContent({
   className,
   children,
+  side = "center",
   ...props
-}: ComponentProps<typeof DialogPrimitive.Content>) {
+}: ComponentProps<typeof DialogPrimitive.Content> & { side?: "center" | "right" }) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-canvas/70 backdrop-blur-sm data-[state=closed]:animate-fade-out data-[state=open]:animate-fade-in print:hidden" />
       <DialogPrimitive.Content
         className={cn(
           // shrink-0: com conteúdo alto, o diálogo faz scroll em vez de esmagar os botões.
-          "fixed inset-0 z-50 m-auto flex h-fit max-h-[85dvh] w-[calc(100%-32px)] max-w-md flex-col gap-4 overflow-y-auto rounded-lg border border-panel-border bg-surface p-6 shadow-float [&>*]:shrink-0",
-          "focus-ring data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in",
+          side === "right"
+            ? "fixed inset-y-0 right-0 z-50 flex h-dvh w-full max-w-2xl flex-col gap-4 overflow-y-auto border-l border-panel-border bg-surface p-6 shadow-float [&>*]:shrink-0 data-[state=closed]:animate-slide-out-right data-[state=open]:animate-slide-in-right"
+            : "fixed inset-0 z-50 m-auto flex h-fit max-h-[85dvh] w-[calc(100%-32px)] max-w-md flex-col gap-4 overflow-y-auto rounded-lg border border-panel-border bg-surface p-6 shadow-float [&>*]:shrink-0 data-[state=closed]:animate-pop-out data-[state=open]:animate-pop-in",
+          "focus-ring",
           className,
         )}
         {...props}

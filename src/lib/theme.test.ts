@@ -3,9 +3,9 @@ import { GLOBE_COLORS } from "./theme";
 import { THEME_SCRIPT } from "./theme-script";
 
 describe("tema", () => {
-  it("o script só tira o escuro a quem escolheu o claro", () => {
-    expect(THEME_SCRIPT).toContain('==="light"');
-    expect(THEME_SCRIPT).toContain('classList.remove("dark")');
+  it("o claro é o tema por omissão: o script só põe o escuro a quem o escolheu", () => {
+    expect(THEME_SCRIPT).toContain('==="dark"');
+    expect(THEME_SCRIPT).toContain('classList.add("dark")');
   });
 
   it("o script não falha sem armazenamento", () => {

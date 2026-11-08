@@ -1,4 +1,4 @@
-import { FolderKanban, UserRound } from "lucide-react";
+import { FolderKanban, UserRound, Wallet } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { ptPT } from "@/i18n/pt-PT";
@@ -15,10 +15,10 @@ export function UpcomingList({ tasks, today }: { tasks: UpcomingTask[]; today: s
   return (
     <ul className="flex flex-col divide-y divide-border-subtle" data-testid="upcoming-tasks">
       {tasks.map((task) => {
-        const Icon = task.kind === "contact" ? UserRound : FolderKanban;
-        const href = task.kind === "contact" ? `/painel/contactos?contacto=${task.id}` : "/painel/projetos";
+        const Icon = task.kind === "contact" ? UserRound : task.kind === "billing" ? Wallet : FolderKanban;
+        const href = task.kind === "contact" ? `/painel/contactos?contacto=${task.id}` : `/painel/projetos?projeto=${task.id}`;
         return (
-          <li key={`${task.kind}-${task.id}`} data-testid="upcoming-task">
+          <li key={`${task.kind}-${task.id}-${task.detail}`} data-testid="upcoming-task">
             <Link
               href={href}
               className="focus-ring flex min-h-11 items-start gap-3 rounded-sm py-2.5 transition-colors duration-(--duration-fast) hovered:text-accent"
@@ -27,7 +27,7 @@ export function UpcomingList({ tasks, today }: { tasks: UpcomingTask[]; today: s
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="truncate text-14 font-medium">{task.title}</span>
                 <span className="truncate text-13 text-muted">
-                  {task.kind === "contact" ? copy.contact : copy.project}
+                  {task.kind === "contact" ? copy.contact : task.kind === "billing" ? copy.billing : copy.project}
                   {task.detail ? ` · ${task.detail}` : ""}
                 </span>
               </span>

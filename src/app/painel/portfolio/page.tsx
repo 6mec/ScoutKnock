@@ -34,7 +34,7 @@ async function Content() {
   const [{ data: row, error }, { data: profile }, projectRows, testimonialRows] = await Promise.all([
     supabase.from("portfolios").select("*").eq("user_id", user.id).maybeSingle(),
     supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
-    supabase.from("client_projects").select("id, company_name, portfolio_show").order("company_name").limit(500),
+    supabase.from("client_projects").select("*").order("company_name").limit(500),
     supabase
       .from("portfolio_testimonials")
       .select("id, first_name, company, quote, authorized, project_id")
@@ -69,7 +69,7 @@ async function Content() {
   // Sem nada escrito, começa com uma linha vazia.
   if (initial.services.length === 0) initial.services.push({ title: "", description: "" });
 
-  const projects = (projectRows.data ?? []) as { id: string; company_name: string; portfolio_show: boolean }[];
+  const projects = (projectRows.data ?? []) as { id: string; company_name: string; portfolio_show: boolean; portfolio_draft?: boolean }[];
   return (
     <PortfolioEditor
       initial={initial}
@@ -78,6 +78,7 @@ async function Content() {
       siteUrl={siteUrl()}
       homeSlug={homePortfolioSlug()}
       worksCount={projects.filter((project) => project.portfolio_show).length}
+      drafts={projects.filter((project) => project.portfolio_draft && !project.portfolio_show).map(({ id, company_name }) => ({ id, company_name }))}
       testimonials={(testimonialRows.data ?? []) as TestimonialRow[]}
       projects={projects.map(({ id, company_name }) => ({ id, company_name }))}
     />

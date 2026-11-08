@@ -121,6 +121,7 @@ export function applyResultFilters(
 export function resultStats(results: ScoredCompany[], savedIds: ReadonlySet<string>) {
   return {
     total: results.length,
+    fresh: results.filter(({ company }) => !savedIds.has(company.id)).length,
     strong: results.filter(({ opportunity }) => opportunity.level === "strong").length,
     noOwnSite: results.filter(hasNoOwnSite).length,
     mobile: results.filter(hasMobilePhone).length,

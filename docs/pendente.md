@@ -306,3 +306,11 @@ Registo, confirmação de conta e recuperação de palavra-passe saem pelo Supab
 **Limites:**
 - [ ] A morada e o telefone vêm da memória da busca (1 hora). Uma empresa guardada mais tarde fica só com o nome; escreve-os na ficha.
 - [ ] Os dados guardados não se atualizam sozinhos: se a empresa mudar de telefone no OpenStreetMap, a ficha fica com o antigo até o corrigires.
+
+## Ciclo, prospeção e equipa (T17, 08/11/2026)
+
+**Funciona hoje:** propostas registadas, projeto criado ao fechar o negócio, fases, checklist, pagamentos previstos, cobranças, sessão de contactos e Radar em 3 estados. Precisa das migrações `20261127000000_cycle_links.sql` (aplicada) e `20261128000000_prospecting_team.sql` (pesquisas guardadas e equipa).
+
+**Equipa:** os convites ficam "pendentes" e não dão acesso. Para os ativar é preciso: registos abertos, envio de emails (Resend e SMTP) e regras de acesso partilhado nas tabelas (hoje só o dono vê os seus dados). Decisão do Daniel quando houver equipa.
+
+**Demo "exemplo do nicho":** continua a ser apagada ao fim de 30 dias, como as outras; e mostra o nome da empresa para quem foi feita.

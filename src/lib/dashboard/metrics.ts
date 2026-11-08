@@ -60,8 +60,45 @@ export function funnel(events: { contact_id: string; status: string; created_at:
   return FUNNEL_STAGES.map((stage, index) => ({ stage, count: ranks.filter((rank) => rank >= index).length }));
 }
 
-export type UpcomingTask = {
+export type ActivityItem = {
   kind: "contact" | "project";
+  id: string;
+  title: string;
+  status: string;
+  created: boolean;
+  at: string;
+};
+
+// Atividade recente: as mudanças de estado dos contactos e a criação e as mudanças dos
+// projetos, das mais recentes para as mais antigas. Sem nome conhecido, não entra.
+export function recentActivity(
+  contactEvents: { contact_id: string; status: string; created_at: string }[],
+  projectEvents: { project_id: string; kind: string; status: string; created_at: string }[],
+  contactNames: Map<string, string>,
+  projectNames: Map<string, string>,
+  limit = 8,
+): ActivityItem[] {
+  const items: ActivityItem[] = [];
+  for (const event of contactEvents) {
+    const title = contactNames.get(event.contact_id);
+    if (title) items.push({ kind: "contact", id: event.contact_id, title, status: event.status, created: false, at: event.created_at });
+  }
+  for (const event of projectEvents) {
+    const title = projectNames.get(event.project_id);
+    if (title) items.push({ kind: "project", id: event.project_id, title, status: event.status, created: event.kind === "created", at: event.created_at });
+  }
+  return items.sort((a, b) => b.at.localeCompare(a.at)).slice(0, limit);
+}
+
+// Taxa de resposta dos últimos 90 dias: das empresas contactadas, quantas responderam.
+export function responseRate(stages: { stage: FunnelStage; count: number }[]) {
+  const contacted = stages.find((item) => item.stage === "contacted")?.count ?? 0;
+  const replied = stages.find((item) => item.stage === "replied")?.count ?? 0;
+  return { contacted, replied, percent: contacted > 0 ? Math.round((replied / contacted) * 100) : null };
+}
+
+export type UpcomingTask = {
+  kind: "contact" | "project" | "billing";
   id: string;
   title: string;
   detail: string | null;
@@ -76,8 +113,17 @@ export function upcomingTasks(
   projects: Pick<ClientProject, "id" | "company_name" | "name" | "status" | "due_date" | "delivered_on">[],
   today: string,
   limit = 5,
+  // Cobranças (pagamentos previstos e manutenção do mês), já calculadas.
+  billing: { projectId: string; company: string; detail: string; date: string; overdue: boolean }[] = [],
 ): UpcomingTask[] {
-  const tasks: UpcomingTask[] = [];
+  const tasks: UpcomingTask[] = billing.map((item) => ({
+    kind: "billing",
+    id: item.projectId,
+    title: item.company,
+    detail: item.detail,
+    date: item.date,
+    overdue: item.overdue,
+  }));
   for (const contact of contacts) {
     if (!contact.next_action_at || contact.do_not_contact || contact.status === "won" || contact.status === "lost") continue;
     tasks.push({
