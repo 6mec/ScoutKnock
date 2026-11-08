@@ -8,6 +8,7 @@ import { todayIn } from "@/lib/demos/booking";
 import { cachedOsmCompany } from "@/lib/radar/osm-provider";
 import { closeDealFor } from "@/lib/cycle/deal";
 import { createClient } from "@/lib/supabase/server";
+import { getAccess } from "@/lib/team/access";
 import { isReturnDays, parseDailyGoal, parseWhatsappTemplate, returnDate, type ContactEvent } from "./crm";
 import {
   MANUAL_PREFIX,
@@ -40,7 +41,9 @@ async function currentUser() {
 
   if (!user) redirect("/entrar");
 
-  return { supabase, user };
+  // O Comercial guarda os contactos em nome do dono (workspace).
+  const { workspaceId, role } = await getAccess();
+  return { supabase, user, workspaceId, role };
 }
 
 // Guarda só o place_id e o nome que o freelancer escreveu, por isso não há chamada paga.
@@ -52,12 +55,12 @@ export async function saveContact(
   const label = parseContactLabel(labelValue);
   if (!companyId || !label) return { ok: false };
 
-  const { supabase, user } = await currentUser();
+  const { supabase, user, workspaceId } = await currentUser();
   // OpenStreetMap: a morada e o telefone vêm da busca feita no servidor (dados abertos),
   // nunca do browser. Fora da cache (1 h), guarda-se só o nome.
   const osm = isOsmCompanyId(companyId) ? cachedOsmCompany(companyId) : null;
   const { error } = await supabase.from("contacts").insert({
-    user_id: user.id,
+    user_id: workspaceId,
     company_id: companyId,
     label,
     ...(osm ? { ...osmColumns(osm, todayIn()), manual_niche: osm.niche?.slice(0, 80) || null, manual_locality: osm.locality?.slice(0, 80) || null } : {}),
@@ -303,11 +306,11 @@ export async function addManualContact(
   const company = parseManualCompany(value);
   if (!company) return { ok: false };
 
-  const { supabase, user } = await currentUser();
+  const { supabase, user, workspaceId } = await currentUser();
   const { data, error } = await supabase
     .from("contacts")
     .insert({
-      user_id: user.id,
+      user_id: workspaceId,
       company_id: `${MANUAL_PREFIX}${crypto.randomUUID()}`,
       label: company.name,
       ...manualColumns(company),
@@ -333,7 +336,7 @@ export async function importManualContacts(
 > {
   if (typeof input !== "string" || input.length > 100_000) return { ok: false };
 
-  const { supabase, user } = await currentUser();
+  const { supabase, user, workspaceId } = await currentUser();
   const { data: existing, error: readError } = await supabase
     .from("contacts")
     .select("label, manual_phone, confirmed_contact");
@@ -353,7 +356,7 @@ export async function importManualContacts(
   if (parsed.companies.length > 0) {
     const { error } = await supabase.from("contacts").insert(
       parsed.companies.map((company) => ({
-        user_id: user.id,
+        user_id: workspaceId,
         company_id: `${MANUAL_PREFIX}${crypto.randomUUID()}`,
         label: company.name,
         ...manualColumns(company),
@@ -423,7 +426,9 @@ export async function saveOsmDetails(id: string, value: unknown): Promise<Result
 }
 
 export async function removeContact(id: string): Promise<Result> {
-  const { supabase, user } = await currentUser();
+  const { supabase, user, role } = await currentUser();
+  // O Comercial não apaga (a base de dados também não deixa).
+  if (role !== "owner") return { ok: false };
   const { data, error } = await supabase
     .from("contacts")
     .delete()

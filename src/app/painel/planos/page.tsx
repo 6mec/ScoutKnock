@@ -11,6 +11,7 @@ import { ptPT } from "@/i18n/pt-PT";
 import { isCurrentUserAdmin } from "@/lib/account/admin";
 import { PLANS, YEARLY_PRICES_EUR } from "@/lib/account/rules";
 import { requireUser } from "@/lib/auth/current-user";
+import { requireOwner } from "@/lib/team/access";
 import { openBillingPortal, startCheckout } from "@/lib/billing/actions";
 import {
   currencyForLocale,
@@ -68,6 +69,8 @@ export default function PlansPage({ searchParams }: PageProps<"/painel/planos">)
 async function Content({
   searchParams,
 }: Pick<PageProps<"/painel/planos">, "searchParams">) {
+  // Só do dono: o Comercial vai para os Contactos.
+  await requireOwner();
   const user = await requireUser();
   const supabase = await createClient();
   const { pagamento, periodo } = await searchParams;

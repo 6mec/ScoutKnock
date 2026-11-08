@@ -82,6 +82,15 @@ const INDEX = [
   ["sec-testimonials", copy.testimonials.title],
 ] as const;
 
+// Contador de caracteres: a vermelho quando passa do limite (o texto não é cortado).
+export function CharCount({ used, max }: { used: number; max: number }) {
+  return (
+    <span className={used > max ? "font-medium text-danger" : undefined} aria-live="polite">
+      {copy.charCount(used, max)}
+    </span>
+  );
+}
+
 export function PortfolioEditor({
   initial,
   savedSlug,
@@ -325,10 +334,14 @@ export function PortfolioEditor({
                     <Trash2 aria-hidden="true" size={16} strokeWidth={1.75} />
                   </Button>
                 </div>
-                <Field label={<Numbered label={copy.serviceLine} n={index + 1} />}>
-                  <Input
+                {/* Sem corte: passar do limite mostra o contador a vermelho e o "Guardar" avisa. */}
+                <Field
+                  label={<Numbered label={copy.serviceLine} n={index + 1} />}
+                  help={<CharCount used={service.description.length} max={LIMITS.serviceLine} />}
+                >
+                  <Textarea
+                    rows={3}
                     value={service.description}
-                    maxLength={LIMITS.serviceLine}
                     placeholder={copy.serviceLinePlaceholder}
                     onChange={(event) => update({ services: form.services.map((s, i) => (i === index ? { ...s, description: event.target.value } : s)) })}
                   />

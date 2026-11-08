@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps<"/p/[slug]">): Prom
 
 export default function PortfolioPage({ params }: PageProps<"/p/[slug]">) {
   return (
-    <main className="flex flex-1 flex-col bg-[#f7f9fb]">
+    <main className="flex flex-1 flex-col bg-[#f7f7f4]">
       <Suspense>
         <Content params={params} />
       </Suspense>

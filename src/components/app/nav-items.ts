@@ -1,5 +1,6 @@
 import {
   BriefcaseBusiness,
+  ClipboardList,
   FolderKanban,
   Globe,
   House,
@@ -10,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ptPT } from "@/i18n/pt-PT";
+import { canOpen, type AccessRole } from "@/lib/team/rules";
 
 const copy = ptPT.app.nav;
 
@@ -61,6 +63,18 @@ export const NAV_GROUPS: NavGroup[] = [
 ];
 
 export const NAV_ITEMS = NAV_GROUPS.flatMap((group) => group.items);
+
+// O menu do Comercial: sem as páginas só do dono; os Pedidos (separador de Projetos) ficam
+// no lugar dos Projetos. Grupos sem páginas desaparecem.
+const SALES_REQUESTS: NavItem = { href: "/painel/pedidos", segment: "pedidos", label: copy.requests, icon: ClipboardList, mobileBar: true };
+
+export function navGroupsFor(role: AccessRole): NavGroup[] {
+  if (role === "owner") return NAV_GROUPS;
+  return NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.id === "clientes" ? [SALES_REQUESTS] : group.items.filter((item) => canOpen(role, item.segment)),
+  })).filter((group) => group.items.length > 0);
+}
 
 // Páginas fora do menu que pertencem a um grupo (para o caminho no topo).
 const EXTRA: Record<string, { group: string; label: string; parent?: NavItem }> = {

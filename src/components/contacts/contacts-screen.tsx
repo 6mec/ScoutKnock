@@ -43,7 +43,9 @@ export function ContactsScreen({
   demoLinks = EMPTY_DEMO_LINKS,
   statusFilter,
   openContactId = null,
+  isOwner = true,
 }: {
+  isOwner?: boolean;
   portfolioUrl?: string | null;
   // Demos de cada empresa e exemplos do nicho, para o {link_demo}.
   demoLinks?: DemoLinks;
@@ -252,6 +254,7 @@ export function ContactsScreen({
           onOsmSaved={handleOsmSaved}
           onRemoved={handleRemoved}
           onTemplateSaved={setTemplate}
+          isOwner={isOwner}
         />
       )}
     </div>

@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
 import { requireUser } from "@/lib/auth/current-user";
+import { requireOwner } from "@/lib/team/access";
 import { TeamMembers } from "@/components/team/team-members";
 import { createClient } from "@/lib/supabase/server";
 import type { TeamMember } from "@/lib/team/rules";
@@ -30,6 +31,8 @@ export default function TeamPage() {
 
 // Só a verdade: hoje a equipa é quem tem a sessão aberta.
 async function Content() {
+  // Só do dono: o Comercial vai para os Contactos.
+  await requireOwner();
   const user = await requireUser();
   const supabase = await createClient();
   const invites = await supabase.from("team_members").select("id, email, role, status, created_at").order("created_at").limit(100);

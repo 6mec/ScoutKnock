@@ -4,7 +4,8 @@ import { CircleAlert, ImageUp, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
-import { Field, Input } from "@/components/ui/field";
+import { CharCount } from "@/components/portfolio/portfolio-editor";
+import { Field, Input, Textarea } from "@/components/ui/field";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "@/components/ui/toaster";
 import { ptPT } from "@/i18n/pt-PT";
@@ -126,11 +127,11 @@ export function ProjectPortfolio({ project }: { project: ClientProject }) {
             </label>
             <Switch id={`work-show-${project.id}`} checked={form.show} onCheckedChange={(show) => setForm({ ...form, show })} />
           </div>
-          <Field label={copy.summary}>
-            <Input
+          <Field label={copy.summary} help={<CharCount used={form.summary.length} max={LIMITS.summary} />}>
+            <Textarea
               name="portfolioSummary"
+              rows={3}
               value={form.summary}
-              maxLength={LIMITS.summary}
               placeholder={copy.summaryPlaceholder}
               onChange={(event) => setForm({ ...form, summary: event.target.value })}
             />

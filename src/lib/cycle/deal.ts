@@ -3,13 +3,17 @@ import { todayIn } from "@/lib/demos/booking";
 import { reportError } from "@/lib/events/log";
 import { projectFromDeal } from "@/lib/projects/cycle";
 import { PROPOSAL_COLUMNS, type Proposal } from "@/lib/proposals/rules";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { createClient } from "@/lib/supabase/server";
+import { getAccess } from "@/lib/team/access";
 
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 // Partilhado com a mudança de estado do contacto para "Ganho": marca o contacto como ganho,
 // aceita a proposta (a indicada ou a mais recente por decidir) e cria o projeto se ainda
 // não houver um para esta proposta ou, sem proposta, para este contacto.
+// O Comercial não lê nem escreve projetos e pagamentos: quando é ele a fechar, o servidor
+// cria o projeto em nome do dono com a chave secreta, só para um contacto do dono.
 export async function closeDealFor(
   supabase: Supabase,
   userId: string,
@@ -18,13 +22,18 @@ export async function closeDealFor(
 ): Promise<{ ok: true; created: boolean; projectId: string | null } | { ok: false }> {
   const { data: contact, error } = await supabase
     .from("contacts")
-    .select("id, label, company_id, manual_niche, manual_locality, deal_value, status")
+    .select("id, user_id, label, company_id, manual_niche, manual_locality, deal_value, status")
     .eq("id", contactId)
     .maybeSingle();
   if (error || !contact) {
     if (error) await reportError("negócio ler contacto", error.code, userId);
     return { ok: false };
   }
+  const access = await getAccess();
+  const asOwner = access.role !== "owner";
+  if (asOwner && contact.user_id !== access.workspaceId) return { ok: false };
+  const writer = asOwner ? createAdminClient() : supabase;
+  const owned = asOwner ? { user_id: access.workspaceId } : {};
   if (contact.status !== "won") await supabase.from("contacts").update({ status: "won" }).eq("id", contactId);
 
   const { data: proposals } = await supabase
@@ -44,8 +53,8 @@ export async function closeDealFor(
   }
 
   const existing = proposal
-    ? await supabase.from("client_projects").select("id").eq("proposal_id", proposal.id).limit(1)
-    : await supabase.from("client_projects").select("id").eq("contact_id", contactId).limit(1);
+    ? await writer.from("client_projects").select("id").eq("proposal_id", proposal.id).limit(1)
+    : await writer.from("client_projects").select("id").eq("contact_id", contactId).limit(1);
   if (existing.data?.length) return { ok: true, created: false, projectId: existing.data[0].id as string };
 
   const today = todayIn();
@@ -63,19 +72,20 @@ export async function closeDealFor(
     },
     today,
   );
-  const inserted = await supabase.from("client_projects").insert(plan.row).select("id").single();
+  const inserted = await writer.from("client_projects").insert({ ...plan.row, ...owned }).select("id").single();
   if (inserted.error || !inserted.data) {
     await reportError("negócio criar projeto", inserted.error?.code ?? "sem linha", userId);
     return { ok: false };
   }
   const projectId = inserted.data.id as string;
   const [checklist, payments] = await Promise.all([
-    supabase.from("project_checklist_items").insert(
-      plan.checklist.map((item, position) => ({ project_id: projectId, label: item.label, kind: item.kind, position })),
+    writer.from("project_checklist_items").insert(
+      plan.checklist.map((item, position) => ({ ...owned, project_id: projectId, label: item.label, kind: item.kind, position })),
     ),
     plan.payments.length
-      ? supabase.from("client_project_payments").insert(
+      ? writer.from("client_project_payments").insert(
           plan.payments.map((payment) => ({
+            ...owned,
             project_id: projectId,
             kind: payment.kind,
             amount: payment.amount,

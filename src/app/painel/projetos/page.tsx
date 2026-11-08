@@ -6,7 +6,9 @@ import { ProjectsTabs } from "@/components/projects/projects-tabs";
 import { RequestList } from "@/components/requests/request-list";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
+import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/auth/current-user";
+import { getAccess } from "@/lib/team/access";
 import { todayIn } from "@/lib/demos/booking";
 import { reportError } from "@/lib/events/log";
 import {
@@ -37,6 +39,8 @@ export default function ProjectsPage({ searchParams }: PageProps<"/painel/projet
 }
 
 async function Content({ searchParams }: Pick<PageProps<"/painel/projetos">, "searchParams">) {
+  // O Comercial não vê projetos nem pagamentos: abre só os Pedidos.
+  if ((await getAccess()).role !== "owner") redirect("/painel/pedidos");
   const user = await requireUser();
   const { novo, projeto } = await searchParams;
   const supabase = await createClient();

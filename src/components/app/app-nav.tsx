@@ -13,16 +13,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Logo } from "@/components/ui/logo";
 import { Tooltip } from "@/components/ui/tooltip";
-import { NAV_GROUPS, NAV_ITEMS, type NavItem } from "./nav-items";
+import { navGroupsFor, type NavGroup, type NavItem } from "./nav-items";
 import { ptPT } from "@/i18n/pt-PT";
 import { signOut } from "@/lib/auth/actions";
 import { toggleTheme, useTheme } from "@/lib/theme";
+import type { AccessRole } from "@/lib/team/rules";
 import { cn } from "@/lib/utils";
 
 const copy = ptPT.app;
 const COLLAPSED_KEY = "scoutknock-nav-collapsed";
-// No telemóvel, "Mais" leva o que não cabe na barra de baixo.
-const MORE_ITEMS = NAV_ITEMS.filter((item) => !item.mobileBar);
 
 const listeners = new Set<() => void>();
 
@@ -49,8 +48,8 @@ function writeCollapsed(collapsed: boolean) {
   listeners.forEach((listener) => listener());
 }
 
-function ActiveNavLinks({ collapsed }: { collapsed: boolean }) {
-  return <NavLinks collapsed={collapsed} current={useSelectedLayoutSegment()} />;
+function ActiveNavLinks({ collapsed, groups }: { collapsed: boolean; groups: NavGroup[] }) {
+  return <NavLinks collapsed={collapsed} groups={groups} current={useSelectedLayoutSegment()} />;
 }
 
 // Enquanto o segmento não é conhecido (current undefined), nenhuma ligação fica ativa.
@@ -78,27 +77,30 @@ function NavLink({ item, collapsed, current }: { item: NavItem; collapsed: boole
 
 function NavLinks({
   collapsed,
+  groups,
   current,
 }: {
   collapsed: boolean;
+  groups: NavGroup[];
   current?: string | null;
 }) {
+  const items = groups.flatMap((group) => group.items);
   return (
     <>
       {/* Telemóvel: barra de baixo com as páginas do dia a dia e "Mais". */}
       <ul className="flex flex-1 items-center gap-1 md:hidden">
-        {NAV_ITEMS.filter((item) => item.mobileBar).map((item) => (
+        {items.filter((item) => item.mobileBar).map((item) => (
           <li key={item.href} className="flex flex-1">
             <NavLink item={item} collapsed={false} current={current} />
           </li>
         ))}
         <li className="flex flex-1">
-          <MoreMenu current={current} />
+          <MoreMenu current={current} items={items.filter((item) => !item.mobileBar)} />
         </li>
       </ul>
       {/* Computador: os grupos pelo ciclo do trabalho. */}
       <div className="hidden min-h-0 flex-1 flex-col gap-4 overflow-y-auto md:flex">
-        {NAV_GROUPS.map((group) => (
+        {groups.map((group) => (
           <div key={group.id} role="group" aria-label={group.label ?? undefined} className="flex flex-col gap-0.5">
             {group.label &&
               (collapsed ? (
@@ -123,8 +125,9 @@ function NavLinks({
 }
 
 // No telemóvel, "Mais" junta as outras páginas e o menu da conta (tema e sair).
-function MoreMenu({ current }: { current?: string | null }) {
-  const active = MORE_ITEMS.some((item) => item.segment === current);
+// No telemóvel, "Mais" leva o que não cabe na barra de baixo.
+function MoreMenu({ current, items }: { current?: string | null; items: NavItem[] }) {
+  const active = items.some((item) => item.segment === current);
   const theme = useTheme();
   const [pending, startTransition] = useTransition();
 
@@ -142,7 +145,7 @@ function MoreMenu({ current }: { current?: string | null }) {
         <span>{copy.nav.more}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="end" className="max-w-[calc(100vw-16px)]">
-        {MORE_ITEMS.map(({ href, segment, label, icon: Icon }) => (
+        {items.map(({ href, segment, label, icon: Icon }) => (
           <DropdownMenuItem key={href} asChild>
             <Link href={href} aria-current={current === segment ? "page" : undefined}>
               <Icon aria-hidden="true" size={16} strokeWidth={1.75} />
@@ -171,8 +174,10 @@ function MoreMenu({ current }: { current?: string | null }) {
 }
 
 // Um só menu: barra inferior no telemóvel, coluna lateral a partir de 768 px.
-export function AppNav({ account }: { account: ReactNode }) {
-    const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
+// O Comercial vê só as páginas que pode abrir (navGroupsFor).
+export function AppNav({ account, role = "owner" }: { account: ReactNode; role?: AccessRole }) {
+  const groups = navGroupsFor(role);
+  const collapsed = useSyncExternalStore(subscribe, readCollapsed, () => false);
   const ToggleIcon = collapsed ? PanelLeftOpen : PanelLeftClose;
 
   return (
@@ -193,8 +198,8 @@ export function AppNav({ account }: { account: ReactNode }) {
         <Logo showWordmark={!collapsed} size={collapsed ? 32 : 28} />
       </Link>
 
-      <Suspense fallback={<NavLinks collapsed={collapsed} />}>
-        <ActiveNavLinks collapsed={collapsed} />
+      <Suspense fallback={<NavLinks collapsed={collapsed} groups={groups} />}>
+        <ActiveNavLinks collapsed={collapsed} groups={groups} />
       </Suspense>
 
       <button

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { reportError } from "@/lib/events/log";
 import { createClient } from "@/lib/supabase/server";
+import { getAccess } from "./access";
 import { isTeamRole, parseInviteEmail } from "./rules";
 
 // Equipa: convites e funções. Os convites ficam pendentes (não se enviam emails enquanto
@@ -15,6 +16,8 @@ async function currentUser() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/entrar");
+  // Só o dono gere a equipa.
+  if ((await getAccess()).role !== "owner") redirect("/painel/contactos");
   return { supabase, user };
 }
 

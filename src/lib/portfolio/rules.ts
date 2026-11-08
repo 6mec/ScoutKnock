@@ -16,7 +16,7 @@ export const LIMITS = {
   whatsapp: 40,
   email: 200,
   itemTitle: 80,
-  serviceLine: 160,
+  serviceLine: 300,
   stepTitle: 40,
   stepText: 160,
   priceFrom: 60,

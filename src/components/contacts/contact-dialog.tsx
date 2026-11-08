@@ -401,8 +401,11 @@ export function ContactDialog({
   onOsmSaved,
   onRemoved,
   onTemplateSaved,
+  isOwner = true,
 }: {
   contact: Contact;
+  // O Comercial não apaga contactos nem cria projetos à mão (o "Ganho" cria-o para o dono).
+  isOwner?: boolean;
   whatsappTemplate: string | null;
   // Com isto, o modelo da mensagem do WhatsApp muda-se no grupo "Mensagem".
   onTemplateSaved?: (template: string | null) => void;
@@ -602,15 +605,17 @@ export function ContactDialog({
               {copy.crm.proposal}
             </Link>
           </Button>
-          <ProjectDialog
-            draft={{ companyName: contact.label, contactId: contact.id }}
-            trigger={
-              <Button variant="secondary" data-testid="project-create-contact">
-                <FolderKanban aria-hidden="true" size={16} strokeWidth={1.75} />
-                {ptPT.projects.create}
-              </Button>
-            }
-          />
+          {isOwner && (
+            <ProjectDialog
+              draft={{ companyName: contact.label, contactId: contact.id }}
+              trigger={
+                <Button variant="secondary" data-testid="project-create-contact">
+                  <FolderKanban aria-hidden="true" size={16} strokeWidth={1.75} />
+                  {ptPT.projects.create}
+                </Button>
+              }
+            />
+          )}
         </div>
         {/* A proposta registada: alimenta os números e, aceite, cria o projeto. */}
         <ProposalSection
@@ -772,7 +777,7 @@ export function ContactDialog({
           </Button>
         </form>
         <HistorySection contactId={contact.id} status={contact.status} />
-        {confirmingRemoval ? (
+        {!isOwner ? null : confirmingRemoval ? (
           <div className="flex flex-col gap-3 rounded-md border border-danger p-4">
             <p>{copy.removeWarning}</p>
             <div className="flex flex-wrap gap-2">

@@ -12,9 +12,8 @@ import { DEFAULT_DAILY_GOAL, type ContactEvent } from "@/lib/contacts/crm";
 import type { Contact } from "@/lib/contacts/rules";
 import { loadDemoLinks } from "@/lib/demos/load-links";
 import { reportError } from "@/lib/events/log";
-import { portfolioUrl } from "@/lib/portfolio/rules";
-import { homePortfolioSlug, siteUrl } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
+import { loadOutreach } from "@/lib/team/outreach";
 
 const copy = ptPT.contacts.session;
 
@@ -51,12 +50,11 @@ async function Content() {
   const supabase = await createClient();
   // O dia de hoje em Lisboa começa no máximo 26 h antes de agora.
   const since = new Date(new Date().getTime() - 26 * 3_600_000).toISOString();
-  const [contacts, events, profile, template, portfolio, demoLinks] = await Promise.all([
+  const [contacts, events, profile, outreach, demoLinks] = await Promise.all([
     supabase.from("contacts").select("*").order("created_at", { ascending: true }),
     supabase.from("contact_events").select("contact_id, kind, status, created_at").eq("kind", "status").gte("created_at", since).limit(2000),
     supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
-    supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
-    supabase.from("portfolios").select("slug, published").eq("user_id", user.id).maybeSingle(),
+    loadOutreach(supabase),
     loadDemoLinks(supabase, user.id),
   ]);
   if (contacts.error) {
@@ -67,15 +65,14 @@ async function Content() {
       </p>
     );
   }
-  const published = portfolio.data?.published ? (portfolio.data.slug as string) : null;
 
   return (
     <SessionScreen
       initial={contacts.data as Contact[]}
       events={(events.data ?? []) as ContactEvent[]}
       dailyGoal={(profile.data?.daily_goal as number | undefined) ?? DEFAULT_DAILY_GOAL}
-      whatsappTemplate={(template.data?.whatsapp_template as string | null | undefined) ?? null}
-      portfolioUrl={published ? portfolioUrl(published, siteUrl(), homePortfolioSlug()) : null}
+      whatsappTemplate={outreach.template}
+      portfolioUrl={outreach.portfolioUrl}
       demoLinks={demoLinks}
     />
   );

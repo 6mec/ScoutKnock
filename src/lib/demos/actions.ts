@@ -8,6 +8,7 @@ import { parseCompanyId } from "@/lib/contacts/rules";
 import { messageCostEur } from "@/lib/messages/rules";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { getAccess } from "@/lib/team/access";
 import { IDENTITIES, isIdentityKey, matchIdentity } from "./identities";
 import { bookingByDefault } from "./booking";
 import {
@@ -113,7 +114,8 @@ export async function createDemo(
   const { data, error } = await supabase
     .from("demo_sites")
     .insert({
-      user_id: user.id,
+      // O Comercial cria a demo em nome do dono (conta nos limites do dono).
+      user_id: (await getAccess()).workspaceId,
       slug: createDemoSlug(),
       company_id: companyId,
       company_name: draft.companyName,

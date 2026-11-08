@@ -5,6 +5,7 @@ import { PortfolioEditor, type PortfolioFormValues } from "@/components/portfoli
 import { Skeleton } from "@/components/ui/skeleton";
 import { ptPT } from "@/i18n/pt-PT";
 import { requireUser } from "@/lib/auth/current-user";
+import { requireOwner } from "@/lib/team/access";
 import { reportError } from "@/lib/events/log";
 import { suggestSlug, type PortfolioService, type PortfolioStep } from "@/lib/portfolio/rules";
 import type { TestimonialRow } from "@/components/portfolio/testimonials-editor";
@@ -29,6 +30,8 @@ export default function PortfolioPage() {
 
 // Só lê a base de dados: o portfólio, o nome do perfil, os projetos e as opiniões.
 async function Content() {
+  // Só do dono: o Comercial vai para os Contactos.
+  await requireOwner();
   const user = await requireUser();
   const supabase = await createClient();
   const [{ data: row, error }, { data: profile }, projectRows, testimonialRows] = await Promise.all([

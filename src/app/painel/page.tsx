@@ -38,9 +38,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DismissButton, DismissibleArea } from "@/components/dashboard/dismissible";
 import { DashboardToday } from "@/components/dashboard/today";
-import { portfolioUrl } from "@/lib/portfolio/rules";
 import { loadDemoLinks } from "@/lib/demos/load-links";
-import { homePortfolioSlug, siteUrl } from "@/lib/site";
 import { PanelHeader } from "@/components/ui/panel-header";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -98,6 +96,8 @@ import {
 import { enabledMarkets } from "@/lib/markets";
 import { getCompanyProvider } from "@/lib/radar/provider";
 import { createClient } from "@/lib/supabase/server";
+import { getAccess } from "@/lib/team/access";
+import { loadOutreach } from "@/lib/team/outreach";
 import { cn } from "@/lib/utils";
 
 const { dashboard: copy } = ptPT;
@@ -845,7 +845,7 @@ async function Content() {
   const since = new Date(new Date().getTime() - 26 * 3_600_000).toISOString();
   // O funil olha 90 dias para trás (mais um de folga para o fuso).
   const funnelSince = new Date(new Date().getTime() - (FUNNEL_DAYS + 1) * 86_400_000).toISOString();
-  const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow, templateRow, portfolioRow, isAdmin] =
+  const [{ data, error }, { data: profile }, dealRows, todayEvents, goalRow, outreach, isAdmin, access] =
     await Promise.all([
       supabase.rpc("my_dashboard"),
       supabase.from("profiles").select("locale").eq("id", user.id).maybeSingle(),
@@ -858,10 +858,12 @@ async function Content() {
         .eq("kind", "status")
         .gte("created_at", since),
       supabase.from("profiles").select("daily_goal").eq("id", user.id).maybeSingle(),
-      supabase.from("profiles").select("whatsapp_template").eq("id", user.id).maybeSingle(),
-      supabase.from("portfolios").select("slug, published").eq("user_id", user.id).maybeSingle(),
+      loadOutreach(supabase),
       isCurrentUserAdmin(supabase),
+      getAccess(),
     ]);
+  // O Comercial vê o dia (fila, meta, retornos), o funil e a atividade; sem vendas nem pagamentos.
+  const owner = access.role === "owner";
   // Lidos à parte: sem estas tabelas, o painel continua (o bloco fica vazio).
   const [projectRows, requestRows, paymentRows, funnelRows, proposalRows, recentContactEvents, recentProjectEvents] = await Promise.all([
     supabase
@@ -923,10 +925,6 @@ async function Content() {
     new Map(projects.map((project) => [project.id, project.company_name])),
   );
   // Se estas leituras falharem, o bloco mostra zeros em vez de partir o painel.
-  // O {portfolio} da mensagem do WhatsApp só tem link com o portfólio publicado.
-  const portfolioLink = portfolioRow.data?.published
-    ? portfolioUrl(portfolioRow.data.slug as string, siteUrl(), homePortfolioSlug())
-    : null;
   const deals: Deals = {
     contacts,
     events: (todayEvents.data ?? []) as ContactEvent[],
@@ -941,8 +939,8 @@ async function Content() {
         contacts={contacts}
         events={deals.events}
         dailyGoal={deals.goal}
-        whatsappTemplate={(templateRow.data?.whatsapp_template as string | null | undefined) ?? null}
-        portfolioUrl={portfolioLink}
+        whatsappTemplate={outreach.template}
+        portfolioUrl={outreach.portfolioUrl}
         demoLinks={await loadDemoLinks(supabase, user.id)}
       >
         <TasksBlock
@@ -963,8 +961,8 @@ async function Content() {
           className="flex-1"
         />
       </DashboardToday>
-      <KpiRow metrics={metrics} />
-      <ChartBlock data={receivedByMonth(payments, today)} />
+      {owner && <KpiRow metrics={metrics} />}
+      {owner && <ChartBlock data={receivedByMonth(payments, today)} />}
       <FunnelBlock data={funnelData} />
       <ActivityBlock items={activity} now={now} />
       {/* Modo pessoal: "Próximo passo" repetia a fila dos Contactos e as tarefas. */}
@@ -977,15 +975,17 @@ async function Content() {
           lateProjects={summary.late}
         />
       )}
+      {owner && (
       <OnboardingBlock
         progress={onboardingProgress({
           contacts,
-          hasTemplate: Boolean(templateRow.data?.whatsapp_template),
+          hasTemplate: Boolean(outreach.template),
           requestsMade: requestRows.count ?? 0,
           projectsMade: projects.length,
-          portfolioPublished: Boolean(portfolioRow.data?.published),
+          portfolioPublished: Boolean(outreach.portfolioUrl),
         })}
       />
+      )}
       {selling && <UsageBlock data={dashboard} isAdmin={isAdmin} />}
       {/* Modo pessoal: estes repetiam o funil, os números do mês e as buscas recentes do Radar. */}
       {selling && <LeadsBlock data={dashboard} />}

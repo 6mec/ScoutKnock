@@ -1,8 +1,9 @@
 import {
-  ArrowRight,
+  ArrowDown,
   ArrowUpRight,
   Bot,
   CalendarCheck,
+  ClipboardList,
   Globe,
   LayoutGrid,
   Lock,
@@ -15,27 +16,25 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ptPT } from "@/i18n/pt-PT";
 import { whatsappUrl } from "@/lib/messages/rules";
 import { publicImageUrl } from "@/lib/portfolio/images";
 import type { PortfolioStep, PublicPortfolio } from "@/lib/portfolio/rules";
+import { TECHNOLOGIES } from "@/lib/portfolio/showcase";
 import { cn } from "@/lib/utils";
-import { Spotlight } from "./spotlight";
+import { BookingDemo } from "./public/booking-demo";
+import { ProjectBuilder } from "./public/project-builder";
+import { PublicNav } from "./public/public-nav";
+import { SitePreview } from "./public/site-preview";
+import { pf } from "./public/styles";
 import { WhatsAppBar } from "./whatsapp-bar";
 
 const copy = ptPT.portfolio.page;
+const show = ptPT.portfolio.showcase;
 const values = ptPT.portfolio.values;
 const KINDS = ptPT.projects.kinds;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
-
-// Paleta fixa da montra: preto da marca e o verde do ScoutKnock como única cor de destaque
-// (#0a7f5b no claro, #2de2a6 no escuro, para contraste AA nos dois).
-const INK = "#0b0f14";
-const muted = "text-[#566273]";
-const focusDark = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white";
-const focusLight = "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0a7f5b]";
-const container = "mx-auto w-full max-w-6xl px-5 sm:px-8";
 
 function initialsOf(name: string) {
   return name
@@ -69,68 +68,21 @@ function hostOf(url: string | null) {
 
 const two = (n: number) => String(n).padStart(2, "0");
 
-// Título de secção com o número em letra de código.
-function SectionTitle({ id, n, as: Tag, children, dark = false }: { id: string; n: number; as: "h2" | "h4"; children: ReactNode; dark?: boolean }) {
+// Cabeçalho de secção: etiqueta pequena em verde, título e texto opcional.
+function Head({ id, eyebrow, as: Tag, children, text, center = false }: { id: string; eyebrow: string; as: "h2" | "h4"; children: ReactNode; text?: string; center?: boolean }) {
   return (
-    <div className="flex items-baseline gap-4">
-      <span aria-hidden="true" className={cn("font-mono text-14 font-semibold", dark ? "text-[#2de2a6]" : "text-[#0a7f5b]")}>
-        {two(n)}
-      </span>
-      <Tag id={id} className="text-32 leading-[1.05] font-bold tracking-[-0.03em] text-balance sm:text-44 lg:text-64">
+    <div className={cn("flex max-w-2xl flex-col gap-3", center && "mx-auto items-center text-center")}>
+      <p className={pf.eyebrow}>{eyebrow}</p>
+      <Tag id={id} className={pf.h2}>
         {children}
       </Tag>
+      {text && <p className={cn("text-16 leading-relaxed text-pretty sm:text-18", pf.muted)}>{text}</p>}
     </div>
   );
 }
 
-// Moldura de browser escura (topo) ou clara (trabalhos), com o endereço real do site.
-function BrowserFrame({
-  image,
-  host,
-  alt,
-  dark,
-  sizes,
-  priority,
-}: {
-  image: string;
-  host: string | null;
-  alt: string;
-  dark: boolean;
-  sizes: string;
-  priority: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "overflow-hidden rounded-2xl border",
-        dark ? "border-white/10 bg-[#11161d] shadow-[0_50px_100px_-40px_rgba(0,0,0,0.9)]" : "border-[#d9e0e7] bg-white shadow-[0_30px_60px_-30px_rgba(11,15,20,0.45)]",
-      )}
-    >
-      <div className={cn("flex h-9 items-center gap-3 border-b px-3.5", dark ? "border-white/10 bg-white/[0.03]" : "border-[#e3e8ee] bg-[#f3f6f8]")}>
-        <span aria-hidden="true" className="flex gap-1.5">
-          {[0, 1, 2].map((dot) => (
-            <span key={dot} className={cn("size-2.5 rounded-full", dark ? "bg-white/15" : "bg-[#d1d8e0]")} />
-          ))}
-        </span>
-        {host && (
-          <span
-            className={cn("flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-0.5 text-12", dark ? "bg-white/[0.06] text-white/70" : "bg-white text-[#566273]")}
-            aria-label={copy.browserLabel(host)}
-          >
-            <Lock aria-hidden="true" size={11} strokeWidth={2.2} className="shrink-0" />
-            <span className="truncate">{host}</span>
-          </span>
-        )}
-      </div>
-      <div className={cn("relative aspect-[16/10]", dark ? "bg-[#1a2028]" : "bg-[#eef1f5]")}>
-        <Image src={image} alt={alt} fill sizes={sizes} className="object-cover object-top" priority={priority} />
-      </div>
-    </div>
-  );
-}
-
-// A página pública do freelancer. É a montra dele: só mostra o que ele escreveu, e cada
-// secção sem conteúdo não aparece.
+// A montra do freelancer: o estilo do painel (claro, verde sálvia, dourado em detalhes) e os
+// textos e dados do editor do Portfólio. Cada secção sem conteúdo não aparece.
 export function PortfolioView({ portfolio, preview = false }: { portfolio: PublicPortfolio; preview?: boolean }) {
   const { display_name: name, headline, about, city, whatsapp, email, services, slug } = portfolio;
   const works = portfolio.works ?? [];
@@ -139,269 +91,175 @@ export function PortfolioView({ portfolio, preview = false }: { portfolio: Publi
   const Heading = preview ? "h3" : "h1";
   const Title = preview ? "h4" : "h2";
   const Sub = preview ? "h5" : "h3";
-  // Na pré-visualização do editor não há animações, navegação fixa nem barra do WhatsApp.
   const reveal = preview ? "" : "pf-reveal";
-  const motion = (name: string) => (preview ? "" : name);
-  const rise = (i: number, className?: string) =>
-    preview ? { className } : { className: cn(className, "pf-rise"), style: { "--pf-i": i } as CSSProperties };
   const whatsappHref = whatsapp ? whatsappUrl(copy.whatsappMessage, whatsapp) : null;
-  const heroId = `${slug}-topo`;
-  const contactId = `${slug}-contacto`;
   const anchor = (id: string) => `${slug}-${id}`;
   const imageOf = (path: string | null) => (path && SUPABASE_URL ? publicImageUrl(path, SUPABASE_URL) : null);
-  // O trabalho com captura vai para o topo, num ecrã de computador e num telemóvel.
-  const featured = works.find((work) => work.image);
-  const featuredImage = featured ? imageOf(featured.image) : null;
+  const firstName = name.split(/\s+/)[0] || name;
+  const hasContact = Boolean(whatsappHref || email);
 
-  // Numeração das secções que existem.
-  const order = [
-    services.length > 0 && "servicos",
-    works.length > 0 && "trabalhos",
-    "como-trabalho",
-    "valores",
-    testimonials.length > 0 && "opinioes",
-    about && "sobre",
-  ].filter(Boolean) as string[];
-  const n = (id: string) => order.indexOf(id) + 1;
-  const nav = [
-    services.length > 0 && { id: "servicos", label: copy.services },
-    works.length > 0 && { id: "trabalhos", label: copy.work },
-    { id: "como-trabalho", label: copy.process },
-  ].filter(Boolean) as { id: string; label: string }[];
-
-  const whatsappButton = (variant: "green" | "white", size: "lg" | "sm" = "lg") =>
-    whatsappHref && (
-      <a
-        href={whatsappHref}
-        target="_blank"
-        rel="noreferrer noopener"
-        className={cn(
-          "group inline-flex items-center justify-center gap-2.5 rounded-full font-semibold transition-[background-color,transform,box-shadow] duration-300 motion-safe:hover:-translate-y-0.5",
-          size === "lg" ? "min-h-14 px-8 text-16" : "min-h-10 px-4 text-14",
-          variant === "green"
-            ? "bg-[#0a7f5b] text-white shadow-[0_0_0_1px_rgba(45,226,166,0.35),0_14px_40px_-10px_rgba(45,226,166,0.6)] hover:bg-[#0c8f67] hover:shadow-[0_0_0_1px_rgba(45,226,166,0.6),0_18px_50px_-10px_rgba(45,226,166,0.75)]"
-            : "bg-white text-[#06513a] shadow-[0_14px_40px_-12px_rgba(0,0,0,0.6)] hover:bg-[#f0fbf6]",
-          focusDark,
-        )}
-      >
-        <MessageCircle aria-hidden="true" size={size === "lg" ? 20 : 16} strokeWidth={2} />
-        {copy.whatsapp}
-        {size === "lg" && (
-          <ArrowRight aria-hidden="true" size={18} strokeWidth={2} className="transition-transform duration-300 motion-safe:group-hover:translate-x-1" />
-        )}
-      </a>
-    );
-  const emailButton = email && (
-    <a
-      href={`mailto:${email}`}
-      className={cn(
-        "inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full border border-white/20 bg-white/[0.04] px-8 text-16 font-medium text-white backdrop-blur transition-colors duration-300 hover:border-white/50 hover:bg-white/10",
-        focusDark,
-      )}
-    >
-      <Mail aria-hidden="true" size={20} strokeWidth={1.9} />
-      {copy.email}
-    </a>
-  );
+  const links = [
+    { href: `#${anchor("demonstracao")}`, label: show.nav.demo },
+    services.length > 0 && { href: `#${anchor("servicos")}`, label: show.nav.services },
+    works.length > 0 && { href: `#${anchor("trabalhos")}`, label: show.nav.work },
+    { href: `#${anchor("como-trabalho")}`, label: show.nav.process },
+    hasContact && { href: `#${anchor("monta")}`, label: show.nav.build },
+  ].filter(Boolean) as { href: string; label: string }[];
 
   return (
-    <div
-      data-testid="portfolio-view"
-      className={cn("bg-white text-[#0b0f14] antialiased", preview ? "overflow-hidden rounded-lg" : "min-h-dvh", !preview && (whatsappHref ? "pb-[calc(6rem+var(--badge-space))] sm:pb-[var(--badge-space)]" : "pb-[var(--badge-space)]"))}
-    >
-      {/* ================= Topo ================= */}
-      <header id={heroId} className="pf-grain relative isolate overflow-hidden text-white" style={{ background: INK }}>
-        <div aria-hidden="true" className="pf-grid pointer-events-none absolute inset-0 -z-10" />
-        <div
-          aria-hidden="true"
-          className={cn("pointer-events-none absolute -top-48 -right-32 -z-10 size-[640px] rounded-full bg-[radial-gradient(closest-side,rgba(45,226,166,0.32),transparent)] blur-3xl", motion("pf-drift"))}
-        />
-        <div
-          aria-hidden="true"
-          className={cn("pointer-events-none absolute -bottom-64 -left-40 -z-10 size-[600px] rounded-full bg-[radial-gradient(closest-side,rgba(10,127,91,0.45),transparent)] blur-3xl", motion("pf-drift-slow"))}
-        />
+    <div data-testid="portfolio-view" className={cn(pf.page, "antialiased [color-scheme:light]", preview ? "overflow-hidden rounded-lg" : whatsappHref ? "min-h-dvh pb-[calc(5.5rem+var(--badge-space))] sm:pb-[var(--badge-space)]" : "min-h-dvh pb-[var(--badge-space)]")}>
+      <PublicNav name={name} initials={initialsOf(name)} links={links} contactHref={hasContact ? `#${anchor("contacto")}` : null} sticky={!preview} />
 
-        <div className={cn("relative z-20 border-b border-white/10", !preview && "lg:sticky lg:top-0 lg:bg-[#0b0f14]/75 lg:backdrop-blur-xl")}>
-          <div className={cn(container, "flex h-16 items-center justify-between gap-4")}>
-            <span className="flex min-w-0 items-center gap-3">
-              <span aria-hidden="true" className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#2de2a6] to-[#0a7f5b] text-13 font-bold text-[#0b0f14]">
-                {initialsOf(name)}
-              </span>
-              <span className="truncate text-15 font-semibold tracking-tight">{name}</span>
-            </span>
-            <nav aria-label={copy.navLabel} className="hidden items-center gap-1 lg:flex">
-              {nav.map((item) => (
-                <a key={item.id} href={`#${anchor(item.id)}`} className={cn("rounded-full px-3.5 py-2 text-14 text-white/70 transition-colors hover:bg-white/5 hover:text-white", focusDark)}>
-                  {item.label}
-                </a>
-              ))}
-              <a href={`#${contactId}`} className={cn("rounded-full px-3.5 py-2 text-14 text-white/70 transition-colors hover:bg-white/5 hover:text-white", focusDark)}>
-                {copy.navContact}
-              </a>
-              <span className="ml-3">{whatsappButton("green", "sm")}</span>
-            </nav>
-          </div>
-        </div>
-
-        <div className={cn(container, "relative z-10 grid items-center gap-14 pt-14 pb-20 sm:pt-20 sm:pb-28 lg:grid-cols-[1.05fr_1fr] lg:gap-12 lg:pt-24 lg:pb-32")}>
-          <div className="flex flex-col gap-7">
-            {city && (
-              <p {...rise(0)}>
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] py-1.5 pr-4 pl-1.5 text-13 font-medium text-white/80 backdrop-blur">
-                  <span className="inline-flex size-6 items-center justify-center rounded-full bg-[#2de2a6]/15">
-                    <MapPin aria-hidden="true" size={13} strokeWidth={2.2} className="text-[#2de2a6]" />
-                  </span>
-                  {city}
-                </span>
-              </p>
-            )}
-            <div {...rise(1, "flex flex-col gap-5")}>
-              <Heading className="text-44 leading-[0.98] font-bold tracking-[-0.045em] sm:text-64 xl:text-84">{name}</Heading>
-              {headline && <p className="max-w-xl text-18 leading-relaxed text-pretty text-white/72 sm:text-24 sm:leading-snug">{headline}</p>}
-            </div>
-            {(whatsappHref || email) && (
-              <div {...rise(2, "flex flex-col gap-3 sm:flex-row sm:flex-wrap")}>
-                {whatsappButton("green")}
-                {emailButton}
-              </div>
-            )}
-            {services.length > 0 && (
-              <ul aria-hidden="true" {...rise(3, "flex flex-wrap gap-2")}>
-                {services.map((service) => {
-                  const Icon = serviceIcon(service.title);
-                  return (
-                    <li key={service.title} className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.05] py-1.5 pr-3.5 pl-1.5 text-13 font-medium text-white/85">
-                      <span className="inline-flex size-6 items-center justify-center rounded-full bg-[#2de2a6] text-[#0b0f14]">
-                        <Icon size={13} strokeWidth={2.2} />
-                      </span>
-                      {service.title}
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
-
-          {/* O trabalho em destaque num computador e num telemóvel. */}
-          {featured && featuredImage && (
-            <div {...rise(3, "relative mx-auto w-full max-w-[560px] pr-6 pb-12 sm:pr-12 lg:mx-0 lg:max-w-none")}>
-              <div aria-hidden="true" className="pointer-events-none absolute inset-8 -z-10 rounded-full bg-[#2de2a6]/25 blur-3xl" />
-              <div className={motion("pf-float")}>
-                <BrowserFrame
-                  image={featuredImage}
-                  host={hostOf(featured.url)}
-                  alt={copy.imageAlt(featured.company_name)}
-                  dark
-                  sizes="(min-width: 1024px) 540px, 92vw"
-                  priority={!preview}
-                />
-              </div>
-              <div aria-hidden="true" className={cn("absolute right-0 bottom-0 w-[30%] min-w-[104px]", motion("pf-float-late"))}>
-                <div className="overflow-hidden rounded-[22px] border-[5px] border-[#232a33] bg-black shadow-[0_40px_80px_-25px_rgba(0,0,0,0.95),0_0_0_1px_rgba(255,255,255,0.08)] sm:rounded-[28px] sm:border-[6px]">
-                  <div className="relative aspect-[9/19]">
-                    <Image src={featuredImage} alt="" fill sizes="180px" className="object-cover object-center" />
-                    <span className="absolute top-1.5 left-1/2 h-1.5 w-1/3 -translate-x-1/2 rounded-full bg-[#232a33]" />
-                  </div>
-                </div>
-              </div>
-            </div>
+      {/* ================= Destaque ================= */}
+      <header className="relative isolate overflow-hidden">
+        <div aria-hidden="true" className="pointer-events-none absolute -top-40 -right-40 -z-10 size-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(100,123,99,0.16),transparent)]" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-48 -left-32 -z-10 size-[480px] rounded-full bg-[radial-gradient(closest-side,rgba(197,164,109,0.16),transparent)]" />
+        <div className={cn(pf.container, "flex flex-col gap-8 pt-16 pb-20 sm:pt-24 sm:pb-28")}>
+          {city && (
+            <p className="inline-flex items-center gap-2 self-start rounded-full border border-[#EAEAE5] bg-white px-3.5 py-1.5 text-13 font-medium">
+              <MapPin aria-hidden="true" size={14} className={pf.accentText} />
+              {city}
+            </p>
           )}
+          <Heading className="max-w-4xl text-44 leading-[1.02] font-semibold tracking-[-0.04em] text-balance sm:text-64">
+            {headline || name}
+          </Heading>
+          {headline && <p className={cn("text-18 sm:text-20", pf.muted)}>{name}</p>}
+          <span aria-hidden="true" className="h-px w-24 bg-[#C5A46D]" />
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            {whatsappHref && (
+              <a id={anchor("wa-topo")} href={whatsappHref} target="_blank" rel="noreferrer noopener" className={cn(pf.primary, pf.focus)} data-testid="hero-whatsapp">
+                <MessageCircle aria-hidden="true" size={18} />
+                {copy.whatsapp}
+              </a>
+            )}
+            {hasContact && (
+              <a href={`#${anchor("monta")}`} className={cn(pf.secondary, pf.focus)} data-testid="hero-build">
+                <ClipboardList aria-hidden="true" size={18} />
+                {show.heroBuild}
+              </a>
+            )}
+          </div>
         </div>
       </header>
 
+      {/* ================= Demonstração de marcações ================= */}
+      <section id={anchor("demonstracao")} aria-labelledby={`${anchor("demonstracao")}-t`} className={cn(pf.section, "border-t", pf.border, "bg-white")} data-testid="pf-section-demo">
+        <div className={cn(pf.container, "grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center")}>
+          <Head id={`${anchor("demonstracao")}-t`} eyebrow={show.demo.eyebrow} as={Title} text={show.demo.text}>
+            {show.demo.title}
+          </Head>
+          <BookingDemo />
+        </div>
+      </section>
+
+      {/* ================= Tecnologias ================= */}
+      <section aria-labelledby={`${anchor("tecnologias")}-t`} className={cn("border-t py-12", pf.border)} data-testid="pf-section-tech">
+        <div className={cn(pf.container, "flex flex-col items-center gap-5 text-center")}>
+          <p className={pf.eyebrow}>{show.tech.eyebrow}</p>
+          <Sub id={`${anchor("tecnologias")}-t`} className="text-18 font-semibold">
+            {show.tech.title}
+          </Sub>
+          <ul className="flex flex-wrap justify-center gap-2.5">
+            {TECHNOLOGIES.map((item) => (
+              <li key={item} className="rounded-full border border-[#EAEAE5] bg-white px-4 py-2 text-14 font-medium shadow-[0_1px_2px_rgba(32,33,31,0.04)]">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       {/* ================= Serviços ================= */}
       {services.length > 0 && (
-        <section aria-labelledby={anchor("servicos")} data-testid="pf-section-servicos" className="scroll-mt-16 bg-white py-24 sm:py-32">
-          <div className={cn(container, "flex flex-col gap-14")}>
-            <SectionTitle id={anchor("servicos")} n={n("servicos")} as={Title}>
-              {copy.services}
-            </SectionTitle>
-            <Spotlight className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {services.map((service, index) => {
+        <section id={anchor("servicos")} aria-labelledby={`${anchor("servicos")}-t`} className={cn(pf.section, "border-t", pf.border)} data-testid="pf-section-servicos">
+          <div className={cn(pf.container, "flex flex-col gap-12")}>
+            <Head id={`${anchor("servicos")}-t`} eyebrow={copy.services} as={Title}>
+              {show.titles.services}
+            </Head>
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {services.map((service) => {
                 const Icon = serviceIcon(service.title);
                 return (
-                  <li
-                    key={service.title}
-                    className={cn(
-                      reveal,
-                      "pf-spot group flex flex-col gap-6 overflow-hidden rounded-[28px] border border-[#e3e8ee] bg-[#f7f9fb] p-7 transition-[border-color,transform,box-shadow,background-color] duration-300 hover:border-[#0a7f5b]/30 hover:bg-white hover:shadow-[0_30px_60px_-30px_rgba(11,15,20,0.3)] motion-safe:hover:-translate-y-1 sm:p-9",
-                    )}
-                  >
-                    <div className="flex items-start justify-between">
-                      <span aria-hidden="true" className="inline-flex size-14 items-center justify-center rounded-2xl bg-[#0b0f14] text-[#2de2a6] transition-[background-color,color,transform] duration-300 group-hover:bg-[#0a7f5b] group-hover:text-white motion-safe:group-hover:rotate-[-6deg]">
-                        <Icon size={26} strokeWidth={1.8} />
-                      </span>
-                      <span aria-hidden="true" className="font-mono text-14 font-semibold text-[#3d4754]">
-                        {two(index + 1)}
-                      </span>
-                    </div>
-                    <Sub className="text-24 leading-tight font-bold tracking-[-0.02em]">{service.title}</Sub>
-                    {service.description && <p className={cn("text-16 leading-relaxed", muted)}>{service.description}</p>}
+                  <li key={service.title} className={cn(reveal, pf.card, "group flex flex-col gap-4 p-7 transition-[border-color,transform] duration-300 hover:border-[#647B63]/50 motion-safe:hover:-translate-y-1")}>
+                    <span aria-hidden="true" className="inline-flex size-12 items-center justify-center rounded-xl bg-[#647B63]/10 text-[#4E6350] transition-colors group-hover:bg-[#647B63] group-hover:text-white">
+                      <Icon size={22} strokeWidth={1.8} />
+                    </span>
+                    <Sub className="text-20 font-semibold tracking-[-0.01em]">{service.title}</Sub>
+                    {service.description && <p className={cn("text-15 leading-relaxed", pf.muted)}>{service.description}</p>}
                   </li>
                 );
               })}
-            </Spotlight>
+            </ul>
           </div>
         </section>
       )}
 
+      {/* ================= Vê o teu negócio com um site ================= */}
+      <section aria-labelledby={`${anchor("preview")}-t`} className={cn(pf.section, "border-t bg-white", pf.border)} data-testid="pf-section-preview">
+        <div className={cn(pf.container, "flex flex-col gap-12")}>
+          <Head id={`${anchor("preview")}-t`} eyebrow={show.preview.eyebrow} as={Title} text={show.preview.text}>
+            {show.preview.title}
+          </Head>
+          <SitePreview />
+        </div>
+      </section>
+
       {/* ================= Trabalhos ================= */}
       {works.length > 0 && (
-        <section aria-labelledby={anchor("trabalhos")} data-testid="pf-section-trabalhos" className="scroll-mt-16 bg-[#f3f6f8] py-24 sm:py-32">
-          <div className={cn(container, "flex flex-col gap-14")}>
-            <SectionTitle id={anchor("trabalhos")} n={n("trabalhos")} as={Title}>
-              {copy.work}
-            </SectionTitle>
-            <ul className="flex flex-col gap-10">
+        <section id={anchor("trabalhos")} aria-labelledby={`${anchor("trabalhos")}-t`} className={cn(pf.section, "border-t", pf.border)} data-testid="pf-section-trabalhos">
+          <div className={cn(pf.container, "flex flex-col gap-12")}>
+            <Head id={`${anchor("trabalhos")}-t`} eyebrow={copy.work} as={Title}>
+              {show.titles.work}
+            </Head>
+            <ul className="grid gap-6 lg:grid-cols-2">
               {works.map((work, index) => {
                 const image = imageOf(work.image);
-                const flip = index % 2 === 1;
+                const host = hostOf(work.url);
                 return (
-                  <li key={work.id} data-testid="pf-work" className={cn(reveal, "rounded-[32px]", index === 0 && motion("pf-ring"))}>
-                    <div
-                      className={cn(
-                        "grid items-center gap-8 rounded-[30.5px] bg-white p-4 shadow-[0_40px_80px_-45px_rgba(11,15,20,0.35)] sm:p-6",
-                        index !== 0 && "border border-[#e3e8ee]",
-                        image ? "lg:grid-cols-[1.35fr_1fr] lg:gap-14 lg:p-10" : "p-7 sm:p-12",
-                      )}
-                    >
-                      {image && (
-                        <div className={cn(flip && "lg:order-2")}>
-                          <BrowserFrame
-                            image={image}
-                            host={hostOf(work.url)}
-                            alt={copy.imageAlt(work.company_name)}
-                            dark={false}
-                            sizes="(min-width: 1024px) 620px, 100vw"
-                            priority={false}
-                          />
-                        </div>
-                      )}
-                      <div className={cn("flex flex-col items-start gap-5", image && "px-2 pb-3 lg:px-0 lg:pb-0")}>
-                        <span className="inline-flex items-center gap-2 rounded-full bg-[#e6f4ef] px-3.5 py-1.5 text-13 font-semibold text-[#06513a]">
-                          <span aria-hidden="true" className="size-1.5 rounded-full bg-[#0a7f5b]" />
-                          {KINDS[work.kind]}
-                        </span>
-                        <Sub className="text-32 leading-[1.05] font-bold tracking-[-0.03em] sm:text-44">{work.company_name}</Sub>
-                        {work.summary && <p className={cn("text-18 leading-relaxed", muted)}>{work.summary}</p>}
-                        {work.url && (
-                          <a
-                            href={work.url}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            aria-label={copy.visitLabel(work.company_name)}
-                            className={cn(
-                              "group mt-1 inline-flex min-h-12 items-center gap-2 rounded-full bg-[#0b0f14] pr-2 pl-6 text-15 font-semibold text-white transition-[background-color,transform] duration-300 hover:bg-[#0a7f5b] motion-safe:hover:-translate-y-0.5",
-                              focusLight,
-                            )}
-                          >
-                            {copy.visitSite}
-                            <span className="inline-flex size-9 items-center justify-center rounded-full bg-white/10 transition-transform duration-300 motion-safe:group-hover:rotate-45">
-                              <ArrowUpRight aria-hidden="true" size={18} strokeWidth={2} />
+                  <li key={work.id} data-testid="pf-work" className={cn(reveal, pf.card, "flex flex-col overflow-hidden")}>
+                    {image && (
+                      <div className="border-b border-[#EAEAE5] bg-[#F3F3EF] p-3">
+                        <div className="overflow-hidden rounded-xl border border-[#EAEAE5] bg-white">
+                          <div className="flex h-8 items-center gap-2 border-b border-[#EAEAE5] px-3">
+                            <span aria-hidden="true" className="flex gap-1.5">
+                              {[0, 1, 2].map((dot) => (
+                                <span key={dot} className="size-2 rounded-full bg-[#D8D8D1]" />
+                              ))}
                             </span>
-                          </a>
-                        )}
+                            {host && (
+                              <span className={cn("mx-auto flex min-w-0 items-center gap-1 text-12", pf.muted)} aria-label={copy.browserLabel(host)}>
+                                <Lock aria-hidden="true" size={10} />
+                                <span className="truncate">{host}</span>
+                              </span>
+                            )}
+                          </div>
+                          <div className="relative aspect-[16/10]">
+                            <Image src={image} alt={copy.imageAlt(work.company_name)} fill sizes="(min-width: 1024px) 560px, 92vw" className="object-cover object-top" priority={!preview && index === 0} />
+                          </div>
+                        </div>
                       </div>
+                    )}
+                    <div className="flex flex-1 flex-col gap-3 p-6 sm:p-7">
+                      <p className={cn("flex items-center gap-2 text-12 font-semibold tracking-[0.12em] uppercase", pf.accentText)}>
+                        <span>{two(index + 1)}</span>
+                        <span aria-hidden="true" className="h-px w-5 bg-[#C5A46D]" />
+                        {KINDS[work.kind]}
+                      </p>
+                      <Sub className="text-24 font-semibold tracking-[-0.02em]">{work.company_name}</Sub>
+                      {work.summary && <p className={cn("text-15 leading-relaxed", pf.muted)}>{work.summary}</p>}
+                      {work.url && (
+                        <a
+                          href={work.url}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          aria-label={copy.visitLabel(work.company_name)}
+                          className={cn("group mt-auto inline-flex items-center gap-2 self-start pt-2 text-15 font-semibold", pf.accentText, pf.focus)}
+                        >
+                          {copy.visitSite}
+                          <ArrowUpRight aria-hidden="true" size={17} className="transition-transform duration-300 motion-safe:group-hover:rotate-45" />
+                        </a>
+                      )}
                     </div>
                   </li>
                 );
@@ -412,33 +270,20 @@ export function PortfolioView({ portfolio, preview = false }: { portfolio: Publi
       )}
 
       {/* ================= Como trabalho ================= */}
-      <section
-        aria-labelledby={anchor("como-trabalho")}
-        data-testid="pf-section-como-trabalho"
-        className="pf-grain relative isolate scroll-mt-16 overflow-hidden py-24 text-white sm:py-32"
-        style={{ background: INK }}
-      >
-        <div aria-hidden="true" className="pf-grid pointer-events-none absolute inset-0 -z-10 opacity-50" />
-        <div aria-hidden="true" className="pointer-events-none absolute top-1/3 -right-40 -z-10 size-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(10,127,91,0.4),transparent)] blur-3xl" />
-        <div className={cn(container, "relative z-10 grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20")}>
-          <div className="lg:sticky lg:top-32 lg:self-start">
-            <SectionTitle id={anchor("como-trabalho")} n={n("como-trabalho")} as={Title} dark>
-              {copy.process}
-            </SectionTitle>
-          </div>
-          <ol className="relative flex flex-col gap-12 pl-16 sm:gap-16">
-            <span aria-hidden="true" className="absolute top-3 bottom-3 left-[23px] w-px bg-white/12" />
-            <span aria-hidden="true" className={cn("absolute top-3 bottom-3 left-[23px] w-px bg-gradient-to-b from-[#2de2a6] to-[#0a7f5b]", motion("pf-fill"))} />
+      <section id={anchor("como-trabalho")} aria-labelledby={`${anchor("como-trabalho")}-t`} className={cn(pf.section, "border-t bg-white", pf.border)} data-testid="pf-section-como-trabalho">
+        <div className={cn(pf.container, "flex flex-col gap-12")}>
+          <Head id={`${anchor("como-trabalho")}-t`} eyebrow={copy.process} as={Title}>
+            {show.titles.process}
+          </Head>
+          <ol className="relative grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+            <span aria-hidden="true" className="absolute top-5 right-0 left-0 hidden h-px bg-[#EAEAE5] lg:block" />
             {steps.map((step, index) => (
               <li key={`${index}-${step.title}`} className={cn(reveal, "relative flex flex-col gap-3")}>
-                <span
-                  aria-hidden="true"
-                  className="absolute top-0 -left-16 inline-flex size-12 items-center justify-center rounded-full border border-[#2de2a6]/50 bg-[#0b0f14] font-mono text-15 font-semibold text-[#2de2a6] shadow-[0_0_0_6px_#0b0f14,0_0_30px_-4px_rgba(45,226,166,0.5)]"
-                >
+                <span aria-hidden="true" className="relative inline-flex size-10 items-center justify-center rounded-full border border-[#C5A46D] bg-white text-14 font-semibold tabular-nums">
                   {two(index + 1)}
                 </span>
-                <Sub className="pt-2 text-24 font-bold tracking-[-0.02em]">{step.title}</Sub>
-                <p className="max-w-lg text-18 leading-relaxed text-white/70">{step.text}</p>
+                <Sub className="text-18 font-semibold">{step.title}</Sub>
+                <p className={cn("text-15 leading-relaxed", pf.muted)}>{step.text}</p>
               </li>
             ))}
           </ol>
@@ -446,12 +291,12 @@ export function PortfolioView({ portfolio, preview = false }: { portfolio: Publi
       </section>
 
       {/* ================= Os três valores ================= */}
-      <section aria-labelledby={anchor("valores")} data-testid="pf-values" className="bg-white py-24 sm:py-32">
-        <div className={cn(container, "flex flex-col gap-14")}>
-          <SectionTitle id={anchor("valores")} n={n("valores")} as={Title}>
-            {copy.values}
-          </SectionTitle>
-          <Spotlight className="grid gap-5 md:grid-cols-3">
+      <section aria-labelledby={`${anchor("valores")}-t`} className={cn(pf.section, "border-t", pf.border)} data-testid="pf-values">
+        <div className={cn(pf.container, "flex flex-col gap-12")}>
+          <Head id={`${anchor("valores")}-t`} eyebrow={copy.values} as={Title}>
+            {show.titles.values}
+          </Head>
+          <ul className="grid gap-5 md:grid-cols-3">
             {(
               [
                 ["1×", values.build, values.buildText],
@@ -459,119 +304,134 @@ export function PortfolioView({ portfolio, preview = false }: { portfolio: Publi
                 ["/mês", values.maintenance, values.maintenanceText],
               ] as const
             ).map(([glyph, term, text]) => (
-              <li key={term} className={cn(reveal, "pf-spot flex flex-col gap-5 overflow-hidden rounded-[28px] border border-[#e3e8ee] bg-white p-7 sm:p-9")}>
-                <span aria-hidden="true" className="font-mono text-44 leading-none font-semibold tracking-tight text-[#0a7f5b]">
+              <li key={term} className={cn(reveal, pf.card, "flex flex-col gap-4 p-7")}>
+                <span aria-hidden="true" className="text-32 leading-none font-semibold text-[#8A6A2F]">
                   {glyph}
                 </span>
-                <Sub className="text-24 font-bold tracking-[-0.02em]">{term}</Sub>
-                <p className={cn("text-16 leading-relaxed", muted)}>{text}</p>
+                <Sub className="text-20 font-semibold">{term}</Sub>
+                <p className={cn("text-15 leading-relaxed", pf.muted)}>{text}</p>
               </li>
             ))}
-          </Spotlight>
+          </ul>
           {portfolio.price_from && (
-            <p className="inline-flex items-center gap-3 self-start rounded-full bg-[#0b0f14] py-3 pr-6 pl-3 text-18 font-semibold text-white" data-testid="pf-price-from">
-              <span aria-hidden="true" className="inline-flex size-8 items-center justify-center rounded-full bg-[#2de2a6] font-mono text-14 text-[#0b0f14]">
-                €
-              </span>
+            <p data-testid="pf-price-from" className="inline-flex items-center gap-2 self-start rounded-full border border-[#C5A46D]/50 bg-white px-5 py-2.5 text-16 font-semibold">
+              <span aria-hidden="true" className="size-2 rounded-full bg-[#C5A46D]" />
               {values.priceFromLabel(portfolio.price_from)}
             </p>
           )}
         </div>
       </section>
 
-      {/* ================= Opiniões (só se houver autorizadas) ================= */}
+      {/* ================= Monta o teu projeto ================= */}
+      {hasContact && (
+        <section id={anchor("monta")} aria-labelledby={`${anchor("monta")}-t`} className={cn(pf.section, "border-t bg-white", pf.border)} data-testid="pf-section-build">
+          <div className={cn(pf.container, "flex flex-col gap-12")}>
+            <Head id={`${anchor("monta")}-t`} eyebrow={show.builder.eyebrow} as={Title} text={show.builder.text}>
+              {show.builder.title}
+            </Head>
+            <ProjectBuilder owner={firstName} whatsapp={whatsapp} email={email} />
+          </div>
+        </section>
+      )}
+
+      {/* ================= Opiniões ================= */}
       {testimonials.length > 0 && (
-        <section aria-labelledby={anchor("opinioes")} data-testid="pf-section-opinioes" className="bg-[#f3f6f8] py-24 sm:py-32">
-          <div className={cn(container, "flex flex-col gap-14")}>
-            <SectionTitle id={anchor("opinioes")} n={n("opinioes")} as={Title}>
+        <section aria-labelledby={`${anchor("opinioes")}-t`} className={cn(pf.section, "border-t", pf.border)} data-testid="pf-section-opinioes">
+          <div className={cn(pf.container, "flex flex-col gap-12")}>
+            <Head id={`${anchor("opinioes")}-t`} eyebrow={copy.testimonials} as={Title}>
               {copy.testimonials}
-            </SectionTitle>
-            <Spotlight className="grid gap-5 md:grid-cols-2">
+            </Head>
+            <ul className={cn("grid gap-5", testimonials.length > 1 && "md:grid-cols-2")}>
               {testimonials.map((item) => (
-                <li key={`${item.first_name}-${item.quote.slice(0, 20)}`} className={cn(reveal, "pf-spot overflow-hidden rounded-[28px] border border-[#e3e8ee] bg-white p-8 sm:p-10")}>
-                  <span aria-hidden="true" className="pointer-events-none absolute -top-8 right-6 font-serif text-[180px] leading-none text-[#0a7f5b]/10 select-none">
-                    ”
-                  </span>
-                  <figure className="relative flex flex-col gap-6">
-                    <blockquote className="text-20 leading-relaxed font-medium tracking-[-0.01em]">“{item.quote}”</blockquote>
-                    <figcaption className="flex items-center gap-3">
-                      <span aria-hidden="true" className="inline-flex size-10 items-center justify-center rounded-full bg-gradient-to-br from-[#2de2a6] to-[#0a7f5b] text-14 font-bold text-[#0b0f14]">
-                        {item.first_name[0]?.toUpperCase()}
-                      </span>
-                      <span className="text-15 font-semibold">{copy.testimonialBy(item.first_name, item.company)}</span>
+                <li key={`${item.first_name}-${item.quote.slice(0, 20)}`} className={cn(reveal, pf.card, "p-8 sm:p-10")}>
+                  <figure className="flex flex-col gap-6">
+                    <blockquote className={cn("leading-snug font-medium tracking-[-0.01em] text-pretty", testimonials.length === 1 ? "text-24" : "text-20")}>
+                      <span aria-hidden="true" className="text-[#8A6A2F]">“</span>
+                      {item.quote}
+                      <span aria-hidden="true" className="text-[#8A6A2F]">”</span>
+                    </blockquote>
+                    <figcaption className={cn("text-15", pf.muted)}>
+                      <span className="font-semibold text-[#20211F]">{item.first_name}</span> · {item.company}
                     </figcaption>
                   </figure>
                 </li>
               ))}
-            </Spotlight>
+            </ul>
           </div>
         </section>
       )}
 
       {/* ================= Sobre ================= */}
       {about && (
-        <section aria-labelledby={anchor("sobre")} data-testid="pf-section-sobre" className="bg-white pb-24 sm:pb-32">
-          <div className={cn(container, "grid gap-12 border-t border-[#e3e8ee] pt-24 sm:pt-32 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20")}>
-            <div className="flex flex-col gap-10">
-              <SectionTitle id={anchor("sobre")} n={n("sobre")} as={Title}>
-                {copy.about}
-              </SectionTitle>
-              <span
-                aria-hidden="true"
-                className="relative inline-flex size-28 items-center justify-center overflow-hidden rounded-[32px] bg-[#0b0f14] text-44 font-bold tracking-tight text-white shadow-[0_30px_60px_-30px_rgba(10,127,91,0.9)] sm:size-36 sm:text-64"
-              >
-                <span className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(45,226,166,0.55),transparent_60%)]" />
-                <span className="relative">{initialsOf(name)}</span>
+        <section aria-labelledby={`${anchor("sobre")}-t`} className={cn(pf.section, "border-t", pf.border)} data-testid="pf-section-sobre">
+          <div className={cn(pf.container, "grid gap-10 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)] lg:gap-16")}>
+            <div className="flex flex-col gap-6">
+              <Head id={`${anchor("sobre")}-t`} eyebrow={copy.about} as={Title}>
+                {name}
+              </Head>
+              <span aria-hidden="true" className="inline-flex size-24 items-center justify-center rounded-3xl bg-[#20211F] text-32 font-semibold text-white">
+                {initialsOf(name)}
               </span>
             </div>
-            <p className="text-20 leading-[1.65] tracking-[-0.01em] whitespace-pre-line text-[#2a333e] sm:text-24 sm:leading-[1.55] lg:pt-20">{about}</p>
+            <p className={cn("text-18 leading-[1.7] whitespace-pre-line text-pretty sm:text-20 lg:pt-10", pf.muted)}>{about}</p>
           </div>
         </section>
       )}
 
-      {/* ================= Fecho ================= */}
-      {(whatsappHref || email) && (
-        <section aria-labelledby={contactId} data-testid="pf-section-contacto" className="scroll-mt-16 bg-white px-3 pb-3 sm:px-5 sm:pb-5">
-          <div id={`${contactId}-zona`} className="pf-grain relative isolate overflow-hidden rounded-[36px] px-6 py-20 text-white sm:px-12 sm:py-32" style={{ background: INK }}>
-            <div aria-hidden="true" className="pf-grid pointer-events-none absolute inset-0 -z-10" />
-            <div
-              aria-hidden="true"
-              className={cn("pointer-events-none absolute -bottom-72 left-1/2 -z-10 size-[760px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(45,226,166,0.4),transparent)] blur-3xl", motion("pf-drift-slow"))}
-            />
-            <div className="relative z-10 mx-auto flex max-w-4xl flex-col items-center gap-7 text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 font-mono text-13 text-[#2de2a6]">
-                <span aria-hidden="true" className="size-1.5 rounded-full bg-[#2de2a6]" />
-                {copy.navContact}
-              </span>
-              <Title id={contactId} className="text-44 leading-[1.0] font-bold tracking-[-0.045em] text-balance sm:text-64 lg:text-84">
+      {/* ================= Contacto ================= */}
+      {hasContact && (
+        <section id={anchor("contacto")} aria-labelledby={`${anchor("contacto")}-t`} className="scroll-mt-20 px-3 pb-3 sm:px-5 sm:pb-5" data-testid="pf-section-contacto">
+          <div className="relative isolate overflow-hidden rounded-[32px] bg-[#20211F] px-6 py-20 text-white sm:px-12 sm:py-24">
+            <div aria-hidden="true" className="pointer-events-none absolute -top-40 left-1/2 -z-10 h-[420px] w-[760px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(100,123,99,0.45),transparent)]" />
+            <div className="mx-auto flex max-w-3xl flex-col items-center gap-6 text-center">
+              <p className="text-12 font-semibold tracking-[0.14em] text-[#E8D3A8] uppercase">{show.nav.contact}</p>
+              <Title id={`${anchor("contacto")}-t`} className="text-32 leading-[1.08] font-semibold tracking-[-0.03em] text-balance sm:text-48">
                 {copy.ctaTitle}
               </Title>
-              <p className="text-18 text-white/75 sm:text-20">{copy.ctaText}</p>
-              <div className="mt-3 flex w-full flex-col justify-center gap-3 sm:w-auto sm:flex-row">
-                {whatsappButton("green")}
-                {emailButton}
+              <p className="text-18 text-white/75">{copy.ctaText}</p>
+              <div className="mt-2 flex w-full flex-col items-center justify-center gap-3 sm:w-auto sm:flex-row">
+                {whatsappHref && (
+                  <a id={anchor("wa-contacto")} href={whatsappHref} target="_blank" rel="noreferrer noopener" className={cn(pf.primary, "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white")}>
+                    <MessageCircle aria-hidden="true" size={18} />
+                    {copy.whatsapp}
+                  </a>
+                )}
+                {email && (
+                  <a href={`mailto:${email}`} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/25 px-6 text-15 font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
+                    <Mail aria-hidden="true" size={18} />
+                    {email}
+                  </a>
+                )}
               </div>
             </div>
           </div>
         </section>
       )}
 
-      <footer className="relative overflow-hidden" style={{ background: INK }}>
-        <div className={cn(container, "relative z-10 flex flex-col items-center justify-between gap-2 py-8 text-14 text-white/70 sm:flex-row")}>
-          <span className="font-semibold text-white">{name}</span>
+      {/* ================= Rodapé ================= */}
+      <footer className="overflow-hidden">
+        <div className={cn(pf.container, "flex flex-col items-center justify-between gap-2 py-8 text-14 sm:flex-row", pf.muted)}>
+          <span className="font-semibold text-[#20211F]">{name}</span>
           {city && (
             <span className="inline-flex items-center gap-1.5">
-              <MapPin aria-hidden="true" size={14} strokeWidth={2} />
+              <MapPin aria-hidden="true" size={14} />
               {city}
             </span>
           )}
+          <a href="#" className={cn("inline-flex items-center gap-1.5 rounded-sm", pf.focus)}>
+            <ArrowDown aria-hidden="true" size={14} className="rotate-180" />
+            {show.backToTop}
+          </a>
         </div>
-        <p aria-hidden="true" className="pf-outline -mb-[0.22em] overflow-hidden text-center text-[18vw] leading-none font-bold tracking-[-0.06em] whitespace-nowrap select-none">
-          {name.split(/\s+/)[0]}
-        </p>
+        {/* O nome enorme, só com contorno, cortado em baixo; fica verde ao passar o rato. */}
+        <p
+          aria-hidden="true"
+          className="pf-outline-name -mb-[0.24em] text-center text-[22vw] leading-none font-bold tracking-[-0.06em] whitespace-nowrap select-none"
+          data-testid="pf-footer-name"
+          data-name={firstName}
+        />
       </footer>
-
-      {!preview && whatsappHref && <WhatsAppBar href={whatsappHref} heroId={heroId} contactId={`${contactId}-zona`} />}
+      {!preview && whatsappHref && <WhatsAppBar href={whatsappHref} watchIds={[anchor("wa-topo"), anchor("wa-contacto")]} />}
     </div>
   );
 }

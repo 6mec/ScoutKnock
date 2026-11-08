@@ -1,6 +1,7 @@
 "use client";
 
 import { KeyRound, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useState, useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -93,8 +94,14 @@ export function AccountScreen({
       <InstallApp className={cardClasses} />
       <section aria-labelledby="account-password" className={cardClasses}>
         <PanelHeader id="account-password" icon={KeyRound} title={ptPT.auth.fields.password} />
+        {/* Com a sessão aberta, muda-se já, sem depender do email. */}
+        <Button asChild className="self-start">
+          <Link href="/nova-palavra-passe" data-testid="account-change-password">
+            {copy.passwordChange}
+          </Link>
+        </Button>
         <Button
-          variant="secondary"
+          variant="ghost"
           loading={sending}
           loadingText={copy.saving}
           onClick={handlePasswordEmail}

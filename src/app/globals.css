@@ -594,6 +594,21 @@ body {
   }
 }
 
+/* Nome enorme no rodapé do portfólio: só contorno fino; verde ao passar o rato. */
+/* O nome vem de data-name (pseudo-elemento): é só desenho, não é texto da página. */
+.pf-outline-name::before {
+  content: attr(data-name);
+}
+.pf-outline-name {
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(32 33 31 / 0.3);
+  transition: -webkit-text-stroke-color 0.4s ease, color 0.4s ease;
+}
+.pf-outline-name:hover {
+  -webkit-text-stroke-color: #647b63;
+  color: rgb(100 123 99 / 0.06);
+}
+
 /* Grelha fina no fundo escuro, a desvanecer nas margens. */
 .pf-grid {
   background-image:

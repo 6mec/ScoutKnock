@@ -53,7 +53,7 @@ describe("parsePortfolio", () => {
     [{ email: "sem-arroba" }, "email"],
     [{ headline: "a".repeat(121) }, "tooLong"],
     [{ services: [{ title: "Site", description: "" }] }, "serviceLine"],
-    [{ services: [{ title: "Site", description: "a".repeat(161) }] }, "tooLong"],
+    [{ services: [{ title: "Site", description: "a".repeat(301) }] }, "tooLong"],
     [{ processSteps: [{ title: "Só título", text: "" }] }, "step"],
     [{ priceFrom: "a".repeat(61) }, "tooLong"],
     [{ about: "a minha senha: 1234" }, "secret"],
@@ -152,8 +152,8 @@ describe("endereços", () => {
 });
 
 describe("limites de texto", () => {
-  it("a linha do serviço vai até 160 e a frase do trabalho até 240", () => {
-    expect(parsePortfolio({ ...base, services: [{ title: "Apps", description: "a".repeat(160) }] }).ok).toBe(true);
+  it("a linha do serviço vai até 300 e a frase do trabalho até 240", () => {
+    expect(parsePortfolio({ ...base, services: [{ title: "Apps", description: "a".repeat(300) }] }).ok).toBe(true);
     expect(parseWork({ show: true, summary: "a".repeat(240), url: "" }, "delivered").ok).toBe(true);
     expect(parseWork({ show: true, summary: "a".repeat(241), url: "" }, "delivered")).toEqual({ ok: false, error: "tooLong" });
   });
